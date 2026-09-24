@@ -1,0 +1,38 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+contracts/lib/
+
+# expo / RN
+app/.expo/
+app/ios/
+app/android/
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+
+# build
+dist/
+build/
+.next/
+
+# os / editor
+.DS_Store
+.vscode/
+.idea/
+
+# local tooling
+.claude/*.lock
