@@ -17,3 +17,16 @@ describe("escrow terms", () => {
     );
   });
 });
+
+import { privateKeyToAccount } from "viem/accounts";
+import { authorizationTypedData, getNetwork, hydrateTypedData, monad, newAuthorization, serializeTypedData } from "../src";
+
+describe("typed data JSON", () => {
+  it("round-trips and signs identically", async () => {
+    const account = privateKeyToAccount(`0x${"42".repeat(32)}`);
+    const td = authorizationTypedData("TransferWithAuthorization", getNetwork(monad.id).ausd, monad.id, newAuthorization({ from: account.address, to: account.address, value: 5n }));
+    const wire = JSON.parse(JSON.stringify(serializeTypedData(td)));
+    expect(typeof wire.message.value).toBe("string");
+    expect(await account.signTypedData(hydrateTypedData(wire))).toBe(await account.signTypedData(td));
+  });
+});
