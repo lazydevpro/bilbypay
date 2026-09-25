@@ -98,6 +98,7 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 ### Submission #submission
 - [ ] README: problem, demo, "Why Monad" (300ms/600ms, EIP-3009 gasless, P256), architecture, addresses, tx hashes, AI-tool disclosure
 - [ ] OSI license (MIT)
+- [ ] Repo access for judges: make github.com/lazydevpro/bilbypay public (or grant metropolis@hackathon.monad.xyz) before Oct 13
 - [ ] Demo video ≤ 3 min (real mainnet txs) + pitch video ≤ 2 min + optional 30s ad
 - [ ] Logo (bilby 🐰) + live link
 - [ ] Submit Track 02 + bounties (Agora cross-border, Mera UX; + Envio/Aurora if built)
