@@ -1,6 +1,6 @@
 # BilbyPay 🐰
 
-**UPI-style payments for the world.** Send dollars to any phone number — settled on Monad in ~0.6 seconds.
+**UPI-style payments for the world.** Send dollars or gift cards to any phone number — settled on Monad in ~0.6 seconds.
 No seed phrases, no wallet addresses, no gas tokens.
 
 > Monad Metropolis hackathon · Track 02: Consumer Products & Payments · work in progress
@@ -11,6 +11,8 @@ No seed phrases, no wallet addresses, no gas tokens.
 - **Your passkey is your key** — Face ID / fingerprint signs every payment (via [mera](https://www.monad.xyz/blog/introducing-mera)). SMS codes never move money.
 - **Dollars only** — balances are USD stablecoin (AUSD); a relayer pays network fees.
 - **Pay anyone** — if the recipient hasn't joined yet, funds wait in escrow and refund if unclaimed. Share a claim link over iMessage, WhatsApp, anything.
+- **Gift cards** — send a brand gift card to a phone number; the recipient taps the link and opens it inside BilbyPay. No emails, no copy-pasting codes. The card is bought when the recipient claims it and shown natively (code, PIN, barcode). Demo provider: Laso Finance (USDC via x402); production: Bitrefill Business.
+- **Burrow** — set a threshold once; money above it is tucked away and earns a variable rate (Aave v3 on Monad). Break it any time, and if you pay more than your balance, BilbyPay takes the difference from Burrow in the same payment — one Face ID.
 
 ## Why Monad
 
