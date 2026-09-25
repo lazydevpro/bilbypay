@@ -1,5 +1,13 @@
 {
   "webcredentials": {
     "apps": ["REPLACE_WITH_APPLE_TEAM_ID.com.bilbypay.app"]
+  },
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["REPLACE_WITH_APPLE_TEAM_ID.com.bilbypay.app"],
+        "components": [{ "/": "/c/*", "comment": "Claim links open in the app" }]
+      }
+    ]
   }
 }
