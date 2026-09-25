@@ -70,6 +70,28 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.4)(lightningcss@1.33.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
 
+  packages/giftcards:
+    dependencies:
+      '@bilbypay/core':
+        specifier: workspace:*
+        version: link:../core
+      viem:
+        specifier: ^2.56.9
+        version: 2.56.9(typescript@5.9.3)(zod@3.25.76)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.18.0
+        version: 22.20.4
+      tsx:
+        specifier: ^4.20.6
+        version: 4.23.15
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.4)(lightningcss@1.33.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
+
   server:
     dependencies:
       '@bilbypay/core':
