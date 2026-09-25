@@ -35,6 +35,7 @@ build/
 
 # local tooling
 .claude/*.lock
+.claude/worktrees/
 
 # blender working files
 assets/mascot/blender/renders/
