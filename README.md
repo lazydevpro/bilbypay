@@ -23,30 +23,37 @@ No seed phrases, no wallet addresses, no gas tokens.
 ## Repo layout
 
 ```
-packages/core/  shared TS: Monad chains + AUSD, EIP-3009 typed data, passkey → account key derivation
-contracts/      Foundry — BilbyDirectory, BilbyEscrow, BilbyRouter (Phase 1+); MockAUSD for tests
-server/         Node/TS — relay spike now; OTP, verifier, relayer, claim links later
-app/            Expo (React Native dev build) — mera passkey account
-docs/plans/     spec & plan
-docs/phase-0-runbook.md  how to run the passkey + mainnet relay spikes
-reports/        research reports
-research_notes/
+contracts/          Foundry — BilbyDirectory (phone → account), BilbyEscrow (pay anyone), BilbyRouter (Burrow)
+packages/core/      shared TS: chains, AUSD/stataAUSD, EIP-3009 + EIP-712 helpers, ABIs, passkey → key derivation
+packages/giftcards/ gift card providers: mock, Laso (x402, USDC on Base), Bitrefill Business
+packages/topup/     Aurora Intents (NEAR Intents 1Click) top-up from other networks
+server/             Node/TS API (Hono + SQLite): OTP, verifier, relayer, actions, claims, gift cards, Burrow keeper
+app/                Expo SDK 57 dev-build app: mera passkeys, Expo Router screens, demo mode
+indexer/            Envio HyperIndex: activity feed, escrow lifecycle, Burrow positions, protocol stats
+docs/               spec & plan, API contract (docs/api.md), runbooks, status
+reports/, research_notes/
 ```
 
 ## Develop
 
 ```bash
+git submodule update --init --recursive
 pnpm install
-pnpm typecheck && pnpm test          # TS packages
-pnpm test:contracts                  # forge test
+pnpm typecheck && pnpm test          # all TS packages (server tests start their own anvil)
+pnpm test:contracts                  # forge test (fork test needs MONAD_RPC_URL)
 pnpm --filter @bilbypay/server spike:relay:local   # EIP-3009 relay e2e on a local anvil "Monad"
 ```
 
-Device and mainnet steps: [docs/phase-0-runbook.md](docs/phase-0-runbook.md).
+- Run the whole stack locally: [server/README.md](server/README.md) (anvil + `DeployLocal` + `pnpm dev`), then the app
+  with `EXPO_PUBLIC_API_URL=http://<your-ip>:8787` — or `EXPO_PUBLIC_API_URL=mock` for the in-app demo.
+- Devices, passkey domain and mainnet: [docs/phase-0-runbook.md](docs/phase-0-runbook.md) and
+  [docs/launch-checklist.md](docs/launch-checklist.md).
 
 ## Status
 
-See [TODO.md](TODO.md) and the [spec](docs/plans/2026-09-25-bilbypay-spec.md).
+Phases 0–5 are implemented and tested locally; see [docs/launch-checklist.md](docs/launch-checklist.md) for each
+acceptance criterion's evidence and what still needs a real phone, mainnet funds or provider accounts.
+Tasks: [TODO.md](TODO.md) · Spec: [docs/plans/2026-09-25-bilbypay-spec.md](docs/plans/2026-09-25-bilbypay-spec.md).
 
 ## AI disclosure
 

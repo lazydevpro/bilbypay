@@ -23,70 +23,70 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 ## Next
 ### Contracts #contracts
 - [x] Foundry project in `contracts/` (forge-std, `MockAUSD` with EIP-3009 + tests)
-- [ ] `BilbyDirectory`: EIP-712 verifier-signed bind, `resolve`, `boundAt`, `Bound` event
-- [ ] `BilbyEscrow`: `depositWithAuthorization` (receiveWithAuthorization), `claim` with attestation, `refund` after expiry
-- [ ] `BilbyEscrow` deposit `kind`: `TRANSFER` (→ recipient) vs `GIFT` (→ treasury on claim, emits `giftId`)
-- [ ] Tests: happy paths, bad sigs, replay, expiry, double-claim, rebind, fork test against mainnet AUSD
+- [x] `BilbyDirectory`: EIP-712 verifier-signed bind, `resolve`, `boundAt`, `Bound` event
+- [x] `BilbyEscrow`: `depositWithAuthorization` (receiveWithAuthorization), `claim` with attestation, `refund` after expiry
+- [x] `BilbyEscrow` deposit `kind`: `TRANSFER` (→ recipient) vs `GIFT` (→ treasury on claim, emits `giftId`)
+- [x] Tests: happy paths, bad sigs, replay, expiry, double-claim, rebind, fork test against mainnet AUSD
 - [ ] Deploy to testnet (AUSD testnet `0xa9012a…22dC`), then mainnet; verify on explorer
 - [ ] Record contract addresses + tx hashes in README
 
 ### Backend #backend
-- [ ] Node/TS service in `server/`
-- [ ] OTP: Twilio Verify (intl route, no DLT) + Firebase test numbers for demo
-- [ ] `phoneKey = HMAC(pepper, E.164)`; never store/emit raw numbers on-chain
-- [ ] Verifier key: EIP-712 bind/claim attestations
-- [ ] Relayer EOA (> 10 MON), tight gas limits (estimate + ~7.5%), nonce management
-- [ ] Endpoints: `/otp/start`, `/otp/verify`, `/resolve`, `/send`, `/claim`, `/refund`, `/activity`
-- [ ] Claim links + OG preview image ("Name sent you $20")
-- [ ] Rebind cooldown: flag numbers re-bound within N days; sender warning / hold
+- [x] Node/TS service in `server/`
+- [x] OTP: Twilio Verify (intl route, no DLT) + Firebase test numbers for demo
+- [x] `phoneKey = HMAC(pepper, E.164)`; never store/emit raw numbers on-chain
+- [x] Verifier key: EIP-712 bind/claim attestations
+- [x] Relayer EOA (> 10 MON), tight gas limits (estimate + ~7.5%), nonce management
+- [x] Endpoints: `/otp/start`, `/otp/verify`, `/resolve`, `/send`, `/claim`, `/refund`, `/activity`
+- [x] Claim links + OG preview image ("Name sent you $20")
+- [x] Rebind cooldown: flag numbers re-bound within N days; sender warning / hold
 
 ### Gift cards #giftcards
-- [ ] `GiftCardProvider` interface (catalog, quote, purchase, getRedemption) + `MockProvider` for dev/tests
-- [ ] `LasoProvider`: wallet sign-in (`/auth`), `/search-gift-cards`, `/order-gift-card` with x402 USDC payment on Base; verify signed webhooks
-- [ ] `BitrefillProvider` (build when access lands): `POST /v2/invoices` (balance, auto_pay, no email) → `GET /v2/orders/{id}` `redemption_info`; verify real product IDs + base URL
-- [ ] Catalog endpoint: brands by recipient country, USD ranges, brand images; cache; hide Amazon in demo (resale-lock risk)
-- [ ] Send-a-gift: AUSD → `BilbyEscrow` gift deposit (brand intent + USD amount + design/message), share claim link
-- [ ] Claim-a-gift: OTP → passkey → optional brand pick → verifier attests → escrow releases to treasury → provider purchase → reveal code
-- [ ] Buy-for-self: one tap + Face ID → pay from balance → buy instantly from pre-funded float → card in < 3s
-- [ ] Auto-refund to balance if provider purchase fails after payment (plain-language message + "pick another brand")
-- [ ] Pre-check float/provider availability before showing Buy; mark brand "temporarily unavailable" instead of failing after payment
-- [ ] Lock the dollar price at checkout; fold provider fee into one price (or one "service fee" line)
-- [ ] Idempotency: one purchase per `giftId` (DB unique constraint; store provider order id before reveal)
-- [ ] Encrypt codes/PINs at rest; reveal only to authenticated owner; never log
-- [ ] Quote = face value + provider fee + buffer; on price/stock change at claim, let recipient pick another brand
-- [ ] Unclaimed gift expiry → escrow refund to sender (no card bought)
-- [ ] Base USDC float + Bitrefill balance: balance check, low-balance alert, background rebalancing (manual for demo)
-- [ ] README: gift card providers, buy-at-claim design, production path (Bitrefill)
+- [x] `GiftCardProvider` interface (catalog, quote, purchase, getRedemption) + `MockProvider` for dev/tests
+- [x] `LasoProvider`: wallet sign-in (`/auth`), `/search-gift-cards`, `/order-gift-card` with x402 USDC payment on Base; verify signed webhooks
+- [x] `BitrefillProvider` (built; verify against the live API when access lands): `POST /v2/invoices` (balance, auto_pay, no email) → `GET /v2/orders/{id}` `redemption_info`; verify real product IDs + base URL
+- [x] Catalog endpoint: brands by recipient country, USD ranges, brand images; cache; hide Amazon in demo (resale-lock risk)
+- [x] Send-a-gift: AUSD → `BilbyEscrow` gift deposit (brand intent + USD amount + design/message), share claim link
+- [x] Claim-a-gift: OTP → passkey → optional brand pick → verifier attests → escrow releases to treasury → provider purchase → reveal code
+- [x] Buy-for-self: one tap + Face ID → pay from balance → buy instantly from pre-funded float → card in < 3s
+- [x] Auto-refund to balance if provider purchase fails after payment (plain-language message + "pick another brand")
+- [x] Pre-check float/provider availability before showing Buy; mark brand "temporarily unavailable" instead of failing after payment
+- [x] Lock the dollar price at checkout; fold provider fee into one price (or one "service fee" line)
+- [x] Idempotency: one purchase per `giftId` (DB unique constraint; store provider order id before reveal)
+- [x] Encrypt codes/PINs at rest; reveal only to authenticated owner; never log
+- [x] Quote = face value + provider fee + buffer; on price/stock change at claim, let recipient pick another brand
+- [x] Unclaimed gift expiry → escrow refund to sender (no card bought)
+- [~] Base USDC float + Bitrefill balance: balance check + "temporarily unavailable" done; low-balance alert and rebalancing still manual
+- [x] README: gift card providers, buy-at-claim design, production path (Bitrefill)
 
 ### Burrow (auto-save, breakable any time) #burrow
-- [ ] `BilbyRouter.topUpAndCall`: stataAUSD permit → `withdraw(shortfall, user, user)` → allow-listed payment call (AUSD 3009 or escrow deposit) in one tx
-- [ ] `BilbyRouter.sweep(user)`: move balance above user's signed threshold into stataAUSD (receiver = user only)
-- [ ] `BilbyRouter.breakToBalance` + enable/disable auto-save (AUSD permit allowance + EIP-712 threshold; disable = allowance 0)
-- [ ] Router tests: fork test vs mainnet stataAUSD/AUSD, break+pay atomicity, sweep never below threshold, only-own-Burrow invariant, replay/expiry
-- [ ] Keeper: watch incoming AUSD transfers → debounce → relay `sweep`
-- [ ] Backend: `maxWithdraw` check before offering "Take from Burrow"; partial-availability message
-- [ ] Balance API: balance + Burrow (`convertToAssets`) + earned since deposit + current rate
-- [ ] Escrow never swept into Burrow
-- [ ] Disclosure copy (variable rate, can go down, smart-contract risk); never "FD/fixed deposit/interest/savings/guaranteed"
+- [x] `BilbyRouter.topUpAndCall`: stataAUSD permit → `withdraw(shortfall, user, user)` → allow-listed payment call (AUSD 3009 or escrow deposit) in one tx
+- [x] `BilbyRouter.sweep(user)`: move balance above user's signed threshold into stataAUSD (receiver = user only)
+- [x] `BilbyRouter.breakToBalance` + enable/disable auto-save (AUSD permit allowance + EIP-712 threshold; disable = allowance 0)
+- [x] Router tests: fork test vs mainnet stataAUSD/AUSD, break+pay atomicity, sweep never below threshold, only-own-Burrow invariant, replay/expiry
+- [x] Keeper: watch incoming AUSD transfers → debounce → relay `sweep`
+- [x] Backend: `maxWithdraw` check before offering "Take from Burrow"; partial-availability message
+- [x] Balance API: balance + Burrow (`convertToAssets`) + earned since deposit + current rate
+- [x] Escrow never swept into Burrow
+- [x] Disclosure copy (variable rate, can go down, smart-contract risk); never "FD/fixed deposit/interest/savings/guaranteed"
 
 ### App #app
-- [ ] Onboarding: phone → OTP → passkey (mera) — no seed phrase, no address shown
-- [ ] Home: USD balance, Send / Receive, activity
-- [ ] Send: contacts picker + number input, amount in USD, confirm with passkey (signing session)
-- [ ] Share sheet with claim link (iMessage / WhatsApp / any)
-- [ ] Claim screen from deep link (works on a fresh device)
-- [ ] Activity: sent / received / pending / refunded
-- [ ] Rebind warning UI
-- [ ] Gift cards: brand catalog, pick amount + design + message, send to contact or buy for self
-- [ ] Gift cards tab: native card view (brand art, code, PIN, barcode), one-tap copy, "Open in brand app"
-- [ ] Gift claim screen from link (sign in → optional brand pick → card appears; no email, no hosted page)
-- [ ] Burrow: set/change auto-save threshold, Add to Burrow, Move to balance, "earned $x" + rate, disclosure sheet
-- [ ] Confirm sheet: "You have $X available. Take $Y from Burrow?" → one Face ID (both signatures in one mera session)
-- [ ] Copy pass against the spec §3a glossary: zero crypto words anywhere (chain, Base, gas, token, transaction, hash, swap, bridge, wallet, address, stake, APY, sign)
-- [ ] Every money action = one button + Face ID; no multi-step approve/confirm
-- [ ] Receipts: amount, who, when, reference number; chain details only behind a hidden "technical details" row
-- [ ] Human error messages with a next step for every failure path; double-tap safe everywhere
-- [ ] Success state as soon as payment is final (~0.6s); no block/confirmation language
+- [x] Onboarding: phone → OTP → passkey (mera) — no seed phrase, no address shown
+- [x] Home: USD balance, Send / Receive, activity
+- [x] Send: contacts picker + number input, amount in USD, confirm with passkey (signing session)
+- [x] Share sheet with claim link (iMessage / WhatsApp / any)
+- [x] Claim screen from deep link (works on a fresh device)
+- [x] Activity: sent / received / pending / refunded
+- [x] Rebind warning UI
+- [x] Gift cards: brand catalog, pick amount + design + message, send to contact or buy for self
+- [x] Gift cards tab: native card view (brand art, code, PIN, barcode), one-tap copy, "Open in brand app"
+- [x] Gift claim screen from link (sign in → optional brand pick → card appears; no email, no hosted page)
+- [x] Burrow: set/change auto-save threshold, Add to Burrow, Move to balance, "earned $x" + rate, disclosure sheet
+- [x] Confirm sheet: "You have $X available. Take $Y from Burrow?" → one Face ID (both signatures in one mera session)
+- [x] Copy pass against the spec §3a glossary: zero crypto words anywhere (chain, Base, gas, token, transaction, hash, swap, bridge, wallet, address, stake, APY, sign)
+- [x] Every money action = one button + Face ID; no multi-step approve/confirm
+- [x] Receipts: amount, who, when, reference number; chain details only behind a hidden "technical details" row
+- [x] Human error messages with a next step for every failure path; double-tap safe everywhere
+- [x] Success state as soon as payment is final (~0.6s); no block/confirmation language
 - [ ] HTTPS domain with AASA + assetlinks.json for passkeys
 
 ### Verification #qa
@@ -106,8 +106,8 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 - [ ] Submit Track 02 + bounties (Agora cross-border, Mera UX; + Envio/Aurora if built)
 
 ## Later (stretch — only after all acceptance criteria pass)
-- [ ] Envio HyperIndex for activity feed #stretch #bounty
-- [ ] Aurora Intents cross-chain top-up #stretch #bounty
+- [~] Envio HyperIndex for activity feed #stretch #bounty — `indexer/` built + tested offline; needs contract addresses and Envio Cloud deploy
+- [~] Aurora Intents cross-chain top-up #stretch #bounty — `packages/topup` + server routes + app screen; needs Studio key and one live $5 top-up; lands USDC, not AUSD (decide)
 - [ ] WhatsApp bot (or mocked in demo) #stretch
 - [ ] iMessage extension #stretch
 - [ ] Request money / split bill #stretch
@@ -119,6 +119,12 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 - [ ] Burrow goals ("Trip to Goa" pots) #stretch #burrow
 
 ## Done
+- [x] Phase 1 contracts: Directory, Escrow (front-run-safe terms nonce), Router (break+pay, sweep); 42 Foundry tests + fork test #contracts
+- [x] Phase 2 server: OTP, accounts, verifier, relayer, actions, claims, share links + OG image, Burrow keeper, refunds #backend
+- [x] Phase 2b gift cards (mock/Laso/Bitrefill, encrypted, idempotent, buy-at-claim) + Burrow router/keeper #giftcards #burrow
+- [x] Phase 3 app: Expo Router screens, one-Face-ID unlock, pre-authorization guard, demo mode, glossary test #app
+- [x] App↔server contract test on anvil (app's own client + guard) #qa
+- [x] Acceptance-criteria map: docs/launch-checklist.md #qa
 - [x] Phase 0 scaffold: pnpm workspace, `packages/core` (chains, EIP-3009, PRF → key derivation, dollars), MIT license #admin
 - [x] Relay spike script + local anvil e2e (`pnpm --filter @bilbypay/server spike:relay:local`) #contracts #spike
 - [x] Expo SDK 57 dev-build app with mera passkey create / sign-in / sign test payment; `.well-known` templates #app #spike
