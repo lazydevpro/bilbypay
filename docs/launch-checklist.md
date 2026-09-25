@@ -2,7 +2,7 @@
 
 Status as of 2026-09-25. Everything is verified **locally** in the dev container:
 - Contracts: 42 Foundry tests; the mainnet fork test needs `MONAD_RPC_URL`.
-- TypeScript: 222 tests across 6 packages.
+- TypeScript: 228 tests across 6 packages.
 - App: iOS and Android bundles build.
 
 What is still missing is anything that needs a real phone, Monad mainnet, SMS, or live provider accounts.
