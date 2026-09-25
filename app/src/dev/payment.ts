@@ -5,7 +5,7 @@ import {
   parseUsd,
 } from "@bilbypay/core";
 import type { Address, Hex } from "viem";
-import { type Account, withSigner } from "./account";
+import { type Account, withSigner } from "../account";
 
 export const CHAIN_ID = Number(process.env.EXPO_PUBLIC_CHAIN_ID ?? "143");
 

@@ -14,11 +14,14 @@ export const RP_ID: string = process.env.EXPO_PUBLIC_RP_ID ?? "bilbypay.com";
 
 export type Account = {
   address: `0x${string}`;
-  /** Kept in memory only for this spike. Never persist it unencrypted. */
+  /**
+   * Held only for the duration of one action (see src/auth/unlock.ts). At rest it lives only in the
+   * biometric-gated secure store; wipe it with `.fill(0)` when done.
+   */
   prfOutput: Uint8Array;
 };
 
-function toAccount(prfOutput: Uint8Array): Account {
+export function accountFromPrf(prfOutput: Uint8Array): Account {
   const session = createSecp256k1SigningSession({ privateKey: deriveEvmPrivateKey(prfOutput) });
   try {
     return { address: getEvmAddress(session.publicKey), prfOutput };
@@ -34,7 +37,7 @@ export async function createAccount(displayName: string): Promise<Account> {
     user: { name: displayName, displayName },
     webAuthnClient: reactNativeWebAuthnClient,
   });
-  return toAccount(prfOutput);
+  return accountFromPrf(prfOutput);
 }
 
 /**
@@ -46,7 +49,7 @@ export async function signIn(): Promise<Account> {
     rpId: RP_ID,
     webAuthnClient: reactNativeWebAuthnClient,
   });
-  return toAccount(prfOutput);
+  return accountFromPrf(prfOutput);
 }
 
 /** Runs `fn` with a signer and wipes the key afterwards. Signing inside never prompts. */

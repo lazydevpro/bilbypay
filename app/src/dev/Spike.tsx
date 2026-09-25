@@ -3,15 +3,15 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from "react-native";
 import { isAddress } from "viem";
-import { type Account, createAccount, RP_ID, signIn } from "./src/account";
-import { CHAIN_ID, signTestPayment } from "./src/payment";
+import { type Account, createAccount, RP_ID, signIn } from "../account";
+import { CHAIN_ID, signTestPayment } from "./payment";
 
 /**
  * Phase 0 spike screen (developer-only, not the product UI).
  * Proves: passkey → deterministic account on iOS/Android, same account after reinstall,
  * and a passkey-signed payment the relay script can submit.
  */
-export default function App() {
+export default function Spike() {
   const [account, setAccount] = useState<Account | null>(null);
   const [name, setName] = useState("");
   const [to, setTo] = useState("");
@@ -91,7 +91,7 @@ function Button({ label, onPress, disabled }: { label: string; onPress: () => vo
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, paddingTop: 64, gap: 12 },
+  container: { padding: 20, paddingTop: 24, gap: 12 },
   title: { fontSize: 22, fontWeight: "700" },
   muted: { color: "#666", fontSize: 13 },
   card: { backgroundColor: "#f4f1ec", borderRadius: 14, padding: 16, gap: 10 },
