@@ -1,158 +1,165 @@
-// glossary-allow-file — adding money from elsewhere has to name where it comes from ("USDC on Base") and
-// show the one-time address to send to; everything else stays in plain dollars.
+// glossary-allow-file — the one screen that must name where outside money comes from (e.g. "USDC on Base")
+// and show the deposit address to send it to (lead's instruction; server contract "Top-up").
 import * as Clipboard from "expo-clipboard";
-import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { api } from "../api";
 import type { TopupOrigin, TopupQuote, TopupStatus } from "../api/types";
-import { usd } from "../money/amount";
+import { displayTyped, isPositive, typedToBase, usd } from "../money/amount";
+import { useLoad } from "../state/useLoad";
 import { Button } from "../ui/Button";
-import { Card, Line, SectionTitle } from "../ui/Card";
+import { Card, Line } from "../ui/Card";
+import { Icon } from "../ui/Icon";
+import { Keypad } from "../ui/Keypad";
 import { ErrorNote, Notice } from "../ui/Notice";
+import { Row } from "../ui/Row";
 import { Screen } from "../ui/Screen";
 import { Muted, Text } from "../ui/Text";
 import { colors, radius, space } from "../ui/theme";
 
-const AMOUNTS = ["10000000", "25000000", "50000000", "100000000"];
+const POLL_MS = 5000;
 
-/** Add money from another account (Aurora Intents): pick where from, how much, send to a one-time address. */
+/** "$12.50" without the $ sign, for "Send exactly 12.50 USDC". */
+const plain = (base: string) => usd(base).slice(1);
+
+/** Add money from another account: pick where from, how much, then send to the one-time deposit details. */
 export default function TopUp() {
-  const [origins, setOrigins] = useState<TopupOrigin[]>([]);
+  const origins = useLoad(() => api.topupOrigins());
   const [origin, setOrigin] = useState<TopupOrigin | null>(null);
-  const [amount, setAmount] = useState(AMOUNTS[1]!);
+  const [typed, setTyped] = useState("");
   const [quote, setQuote] = useState<TopupQuote | null>(null);
   const [status, setStatus] = useState<TopupStatus | null>(null);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    api
-      .topupOrigins()
-      .then(({ origins }) => {
-        setOrigins(origins);
-        setOrigin(origins[0] ?? null);
-      })
-      .catch(setError);
-  }, []);
+  const amount = typedToBase(typed);
 
-  // Poll until it lands (or comes back).
+  // Poll the status while the deposit is on its way.
   useEffect(() => {
     if (!quote) return;
     let alive = true;
     const tick = async () => {
       try {
-        const s = await api.topupStatus(quote.quoteId);
+        const st = await api.topupStatus(quote.quoteId);
         if (!alive) return;
-        setStatus(s);
-        if (s.status === "completed") void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        setStatus(st);
+        setError(null);
+        if (st.status === "waiting" || st.status === "processing") timer.current = setTimeout(tick, POLL_MS);
       } catch (e) {
-        if (alive) setError(e);
+        if (!alive) return;
+        setError(e);
+        timer.current = setTimeout(tick, POLL_MS * 2);
       }
     };
     void tick();
-    const timer = setInterval(() => {
-      if (status?.status === "completed" || status?.status === "refunded" || status?.status === "failed") return;
-      void tick();
-    }, 3_000);
     return () => {
       alive = false;
-      clearInterval(timer);
+      if (timer.current) clearTimeout(timer.current);
     };
-  }, [quote, status?.status]);
+  }, [quote]);
 
-  const start = async () => {
+  const getQuote = async () => {
     if (!origin) return;
-    setBusy(true);
     setError(null);
     try {
       setQuote(await api.topupQuote(origin.id, amount));
     } catch (e) {
       setError(e);
-    } finally {
-      setBusy(false);
     }
   };
 
-  const copy = async () => {
-    if (!quote) return;
-    await Clipboard.setStringAsync(quote.depositAddress);
-    setCopied(true);
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+  const copy = async (what: string, value: string) => {
+    await Clipboard.setStringAsync(value);
+    setCopied(what);
+    setTimeout(() => setCopied(null), 2000);
   };
 
+  // Step 3: deposit details + live status.
   if (quote && origin) {
     const done = status?.status === "completed";
+    const ended = done || status?.status === "failed" || status?.status === "refunded";
     return (
-      <Screen footer={<Button label={done ? "Done" : "I'll come back later"} variant={done ? "primary" : "secondary"} onPress={() => router.back()} />}>
-        {done ? (
-          <Notice tone="success" title={`${usd(status?.amountOut ?? quote.amountOut)} added`} message="It's in your balance now." />
-        ) : (
-          <>
-            <Text variant="title">
-              Send {usd(quote.amountIn)} {origin.label}
+      <Screen footer={<Button variant={ended ? "primary" : "secondary"} label="Done" onPress={() => router.back()} />}>
+        <Text variant="title">
+          Send exactly {plain(quote.amountIn)} {origin.symbol}
+        </Text>
+        <Muted>
+          From your {origin.label} account, send to the details below. We'll add about {usd(quote.amountOut)} to your balance (at least{" "}
+          {usd(quote.minAmountOut)}).
+        </Muted>
+
+        <Card>
+          <Muted variant="small">Send to ({origin.networkLabel} only)</Muted>
+          <Pressable accessibilityRole="button" accessibilityHint="Copies the deposit address" onPress={() => copy("address", quote.depositAddress)} style={styles.copyRow}>
+            <Text variant="bodyStrong" selectable style={styles.mono}>
+              {quote.depositAddress}
             </Text>
-            <Muted>Send it from any app that holds your {origin.symbol}. It shows up in your BilbyPay balance, usually within a minute.</Muted>
-            <Card>
-              <Muted variant="small">Send to this one-time address</Muted>
-              <Text selectable style={styles.address}>
-                {quote.depositAddress}
-              </Text>
-              {quote.depositMemo ? <Line label="Memo" value={quote.depositMemo} /> : null}
-              <Button compact variant="secondary" label={copied ? "Copied" : "Copy"} onPress={copy} />
-            </Card>
-            <Card tone="sand">
-              <Line label="You'll get about" value={usd(quote.amountOut)} strong />
-              <Line label="At least" value={usd(quote.minAmountOut)} />
-              <Line label="Use this address before" value={new Date(quote.expiresAt).toLocaleTimeString()} />
-            </Card>
-            <Notice tone="warning" message={`Only send ${origin.label}. Anything else sent here can't be added to your balance.`} />
-            {status ? <Muted style={{ textAlign: "center" }}>{status.message}</Muted> : null}
-          </>
-        )}
+            <Icon name={copied === "address" ? "check" : "copy"} color={copied === "address" ? colors.green : colors.brown} />
+          </Pressable>
+          {quote.depositMemo ? (
+            <>
+              <Muted variant="small">Memo (required)</Muted>
+              <Pressable accessibilityRole="button" onPress={() => copy("memo", quote.depositMemo!)} style={styles.copyRow}>
+                <Text variant="bodyStrong" selectable style={styles.mono}>
+                  {quote.depositMemo}
+                </Text>
+                <Icon name={copied === "memo" ? "check" : "copy"} color={copied === "memo" ? colors.green : colors.brown} />
+              </Pressable>
+            </>
+          ) : null}
+          <Line label="Amount" value={`${plain(quote.amountIn)} ${origin.symbol}`} />
+          <Line label="Use by" value={new Date(quote.expiresAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} />
+          {quote.etaSeconds ? <Line label="Usually takes" value={`about ${Math.max(1, Math.round(quote.etaSeconds / 60))} min`} /> : null}
+        </Card>
+
+        <Notice
+          tone={done ? "success" : status?.status === "failed" ? "danger" : "info"}
+          title={done ? "Added to your balance" : status?.status === "processing" ? "On its way" : ended ? undefined : "Waiting for your deposit"}
+          message={status?.message ?? "We'll update this as soon as it arrives."}
+        />
+        {!ended ? <ActivityIndicator color={colors.brown} /> : null}
         <ErrorNote error={error} />
       </Screen>
     );
   }
 
+  // Step 2: amount.
+  if (origin) {
+    return (
+      <Screen footer={<Button label="Get deposit details" disabled={!isPositive(amount)} onPress={getQuote} />}>
+        <Row title={origin.label} subtitle="Change" onPress={() => setOrigin(null)} />
+        <View style={styles.amount}>
+          <Text variant="hero" adjustsFontSizeToFit numberOfLines={1}>
+            {displayTyped(typed)}
+          </Text>
+          <Muted variant="small">How much do you want to add?</Muted>
+        </View>
+        <ErrorNote error={error} />
+        <Keypad value={typed} onChange={setTyped} />
+      </Screen>
+    );
+  }
+
+  // Step 1: where from.
   return (
-    <Screen footer={<Button label="Continue" busyLabel="Getting your address…" onPress={start} disabled={!origin || busy} />}>
-      <Text variant="title">Add money from another account</Text>
-      <Muted>Move dollars you already hold elsewhere into BilbyPay.</Muted>
-      <SectionTitle>From</SectionTitle>
-      <View style={styles.list}>
-        {origins.map((o) => (
-          <Pressable
-            key={o.id}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: origin?.id === o.id }}
-            onPress={() => setOrigin(o)}
-            style={[styles.option, origin?.id === o.id && styles.selected]}
-          >
-            <Text variant="bodyStrong">{o.label}</Text>
-          </Pressable>
+    <Screen>
+      <Text variant="title">Add money</Text>
+      <Muted>Move dollars you hold somewhere else into BilbyPay. Pick where they're coming from.</Muted>
+      <ErrorNote error={origins.error} onRetry={origins.reload} />
+      {origins.loading && !origins.data ? <ActivityIndicator color={colors.brown} /> : null}
+      <Card>
+        {origins.data?.origins.map((o) => (
+          <Row key={o.id} title={o.label} subtitle={o.networkLabel} onPress={() => setOrigin(o)} />
         ))}
-      </View>
-      <SectionTitle>Amount</SectionTitle>
-      <View style={styles.chips}>
-        {AMOUNTS.map((a) => (
-          <Pressable key={a} accessibilityRole="radio" accessibilityState={{ selected: amount === a }} onPress={() => setAmount(a)} style={[styles.chip, amount === a && styles.selected]}>
-            <Text variant="bodyStrong">{usd(a)}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <ErrorNote error={error} onRetry={start} />
+      </Card>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  address: { fontFamily: "Menlo", fontSize: 14, marginVertical: space.sm },
-  list: { gap: space.sm },
-  option: { padding: space.lg, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.line },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
-  chip: { paddingVertical: space.md, paddingHorizontal: space.xl, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.line },
-  selected: { borderColor: colors.brown, backgroundColor: colors.sand },
+  copyRow: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 48, borderRadius: radius.sm },
+  mono: { flex: 1, fontFamily: "Menlo" },
+  amount: { alignItems: "center", gap: space.xs, paddingVertical: space.lg },
 });

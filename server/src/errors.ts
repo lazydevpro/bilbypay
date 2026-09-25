@@ -24,7 +24,7 @@ export const errors = {
   invalidRequest: (message = "Something in that request didn't look right. Please try again.") =>
     new ApiError(400, "INVALID_REQUEST", message),
   notFound: (message = "We couldn't find that. It may have been removed.") => new ApiError(404, "NOT_FOUND", message),
-  sessionExpired: () => new ApiError(401, "SESSION_EXPIRED", "You've been signed out. Please sign in again."),
+  sessionExpired: () => new ApiError(401, "SESSION_EXPIRED", "You've been logged out. Please unlock BilbyPay again."),
   phoneRequired: () => new ApiError(403, "PHONE_REQUIRED", "Add your phone number to continue."),
   phoneInvalid: (message = "That doesn't look like a phone number. Check it and try again.") =>
     new ApiError(400, "PHONE_INVALID", message),

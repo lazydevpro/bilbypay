@@ -125,7 +125,14 @@ export type Claim = {
   expiresAt: string;
   phoneMasked: string;
 };
-export type ClaimAcceptResponse = { status: "completed"; amount: string; giftCardId?: string; receipt: Receipt };
+export type ClaimAcceptResponse = {
+  status: "completed";
+  amount: string;
+  giftCardId?: string;
+  receipt: Receipt;
+  /** Gift whose card couldn't be bought: `GIFT_UNAVAILABLE`, and the money went to the balance instead. */
+  error?: { code: string; message: string };
+};
 
 export type Brand = {
   id: string;
@@ -165,8 +172,8 @@ export type TopupQuote = {
   depositAddress: string;
   depositMemo?: string;
   originAsset: string;
+  /** 6-decimal dollars to send, and the same in the origin's own units. */
   amountIn: string;
-  /** What to send, in the origin's own units (decimal string of base units). */
   amountInBaseUnits: string;
   amountOut: string;
   minAmountOut: string;
@@ -175,7 +182,6 @@ export type TopupQuote = {
 };
 export type TopupStatus = {
   status: "waiting" | "processing" | "completed" | "failed" | "refunded";
-  /** Plain-language line from the server. */
   message: string;
   amountOut?: string;
   refundedAmount?: string;
@@ -198,6 +204,12 @@ export type ApiErrorCode =
   | "GIFT_UNAVAILABLE"
   | "NOT_FOUND"
   | "INTERNAL"
+  | "INVALID_REQUEST"
+  | "PHONE_REQUIRED"
+  | "CONFIRMATION_FAILED"
+  | "ALREADY_DONE"
+  | "GIFT_PROCESSING"
+  | "AMOUNT_TOO_LOW"
   | "NETWORK"
   | (string & {});
 

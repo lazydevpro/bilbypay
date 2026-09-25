@@ -8,6 +8,7 @@ export type * from "./types";
 
 let sessionToken: string | null = null;
 let onExpired: (() => void) | null = null;
+let onPhoneRequired: (() => void) | null = null;
 
 export function setSessionToken(token: string | null): void {
   sessionToken = token;
@@ -19,7 +20,15 @@ export function setSessionExpiredHandler(fn: (() => void) | null): void {
   onExpired = fn;
 }
 
-const shared = { getToken: () => sessionToken, onSessionExpired: () => onExpired?.() };
+export function setPhoneRequiredHandler(fn: (() => void) | null): void {
+  onPhoneRequired = fn;
+}
+
+const shared = {
+  getToken: () => sessionToken,
+  onSessionExpired: () => onExpired?.(),
+  onPhoneRequired: () => onPhoneRequired?.(),
+};
 
 /** The app's single API instance: the real server, or the in-app demo when EXPO_PUBLIC_API_URL=mock. */
 export const api: BilbyApi = IS_MOCK

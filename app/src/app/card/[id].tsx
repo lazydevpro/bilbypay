@@ -1,9 +1,9 @@
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from "react-native";
-import { api } from "../../api";
+import { api, isApiError } from "../../api";
 import { usd } from "../../money/amount";
 import { useLoad } from "../../state/useLoad";
 import { BrandLogo } from "../../ui/Avatar";
@@ -24,6 +24,14 @@ export default function CardView() {
     return { card: list.cards.find((c) => c.id === id) ?? null, reveal };
   }, [id]);
   const [copied, setCopied] = useState<string | null>(null);
+  const processing = isApiError(error) && error.code === "GIFT_PROCESSING";
+
+  useEffect(() => {
+    if (!processing) return;
+    const t = setTimeout(() => void reload(), 3000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processing, error]);
 
   const copy = async (what: string, value: string) => {
     await Clipboard.setStringAsync(value);
@@ -32,10 +40,11 @@ export default function CardView() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  if (loading && !data) {
+  if ((loading && !data) || (processing && !data)) {
     return (
       <Screen>
         <ActivityIndicator color={colors.brown} style={{ marginTop: space.xxl }} />
+        {processing ? <Muted style={{ textAlign: "center" }}>Still getting your card ready. This usually takes a few seconds.</Muted> : null}
       </Screen>
     );
   }

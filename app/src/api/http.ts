@@ -7,6 +7,8 @@ export type HttpApiOptions = {
   getToken: () => string | null;
   /** Called when the server says the session is over (the app then asks for Face ID again). */
   onSessionExpired?: () => void;
+  /** Called on PHONE_REQUIRED: signed in, but the account has no number yet (app goes to the phone step). */
+  onPhoneRequired?: () => void;
   fetch?: typeof fetch;
   timeoutMs?: number;
 };
@@ -64,7 +66,9 @@ export function createHttpApi(opts: HttpApiOptions): BilbyApi {
         ...outer,
         ...rest,
       });
-      if (apiError.code === "SESSION_EXPIRED" || (auth && res.status === 401)) opts.onSessionExpired?.();
+      // Only SESSION_EXPIRED ends the session: a 401 OTP_EXPIRED on /claims/:code/accept just means "verify again".
+      if (apiError.code === "SESSION_EXPIRED") opts.onSessionExpired?.();
+      if (apiError.code === "PHONE_REQUIRED") opts.onPhoneRequired?.();
       throw apiError;
     }
     return json as T;

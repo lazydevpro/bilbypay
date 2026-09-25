@@ -38,6 +38,7 @@ import type {
 export type MockApiOptions = {
   getToken: () => string | null;
   onSessionExpired?: () => void;
+  onPhoneRequired?: () => void;
   chainId?: number;
   delayMs?: number;
   /** Starting balance for new accounts, in base units. */
@@ -71,6 +72,13 @@ export const MOCK_BRANDS: Brand[] = [
   { id: "target-us", name: "Target", logoUrl: "", category: "Shopping", country: "US", minAmount: String(10n * USD), maxAmount: String(500n * USD), feePercent: 2, available: true },
   { id: "spotify-us", name: "Spotify", logoUrl: "", category: "Entertainment", country: "US", minAmount: String(10n * USD), maxAmount: String(60n * USD), denominations: [String(10n * USD), String(30n * USD), String(60n * USD)], feePercent: 4, available: true },
   { id: "airbnb-us", name: "Airbnb", logoUrl: "", category: "Travel", country: "US", minAmount: String(25n * USD), maxAmount: String(500n * USD), feePercent: 3, available: false },
+];
+
+// glossary-allow (demo list of places money can come from; shown only on the add-money screen)
+const TOPUP_ORIGINS = [
+  { id: "base:usdc", label: "USDC on Base", symbol: "USDC", networkLabel: "Base" }, // glossary-allow
+  { id: "arb:usdc", label: "USDC on Arbitrum", symbol: "USDC", networkLabel: "Arbitrum" }, // glossary-allow
+  { id: "sol:usdc", label: "USDC on Solana", symbol: "USDC", networkLabel: "Solana" }, // glossary-allow
 ];
 
 type Account = {
@@ -133,6 +141,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
   const actions = new Map<string, PendingAction>();
   const claims = new Map<string, ClaimRecord>();
   let autoSaveNonce = 0n;
+  const topups = new Map<string, { owner: Hex; amountOut: bigint; created: number; credited: boolean }>();
 
   for (const p of SEEDED_PEOPLE) {
     directory.set(p.phone, { address: p.address, name: p.name, reboundAt: p.recentlyChanged ? now() : undefined });
@@ -188,11 +197,18 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
   };
 
   const profileOf = (acct: Account): Profile => {
-    if (!acct.profile) throw new ApiError("PHONE_REQUIRED", "Add your phone number to continue.", 403);
+    if (!acct.profile) {
+      opts.onPhoneRequired?.();
+      throw new ApiError("PHONE_REQUIRED", "Add your phone number to continue.", 403);
+    }
     return acct.profile;
   };
-
-  const topups = new Map<string, { owner: Hex; amount: bigint; readyAt: number; credited: boolean }>();
+  /** Signed in and has a number (the server answers PHONE_REQUIRED otherwise). */
+  const registered = () => {
+    const a = authed();
+    profileOf(a.acct);
+    return a;
+  };
 
   const newSession = (address: Hex) => {
     const token = `mock-${rand(16)}`;
@@ -279,7 +295,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         "BURROW_BUSY",
         `Some of your Burrow money is busy right now — you can pay up to ${fmt(acct.balance + availableNow(acct))} now.`,
         409,
-        { availableNow: availableNow(acct).toString() },
+        { availableNow: (acct.balance + availableNow(acct)).toString() },
       );
     }
     return shortfall;
@@ -294,7 +310,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
       : [];
 
   const prepare = (req: ActionRequest): PreparedAction & { meta: PendingAction["meta"] } => {
-    const { address, acct } = authed();
+    const { address, acct } = registered();
     const id = `act_${rand(12)}`;
     const expiresAt = new Date(now() + 10 * 60_000).toISOString();
     const expect = (amount: bigint, payee?: Hex) => ({ payer: address, amount: amount.toString(), ...(payee ? { payee } : {}) });
@@ -423,7 +439,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         }
         return {
           ...base,
-          summary: summary(`Move ${fmt(amount)} to your balance`, amount, 0n),
+          summary: summary(`Move ${fmt(amount)} to your balance`, amount, amount),
           toSign: [{ key: "burrowPermit", typedData: burrowPermit(address, amount) }],
           expect: expect(amount),
           meta: { shortfall: amount },
@@ -630,7 +646,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
 
     resolve: (phones, region) =>
       wait(() => {
-        authed();
+        registered();
         const results: ResolveResult[] = phones.map((phone) => {
           const e164 = normalise(phone, region);
           if (!e164) return { phone, e164: null, status: "invalid" };
@@ -710,7 +726,19 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         const brand = MOCK_BRANDS.find((b) => b.id === brandId);
         if (!brand) {
           c.status = "waiting";
-          throw new ApiError("GIFT_UNAVAILABLE", "Pick a gift card brand to open your gift.", 400);
+          throw new ApiError("INVALID_REQUEST", "Pick a gift card brand to open your gift.", 400);
+        }
+        if (!brand.available) {
+          // Server behaviour: the card couldn't be bought, so the money goes to the balance instead.
+          acct.balance += amount;
+          const it = item("received", "completed", amount, { counterparty: { name: c.senderName }, note: c.gift?.message });
+          acct.activity.unshift(it);
+          return {
+            status: "completed" as const,
+            amount: c.amount,
+            receipt: it.receipt!,
+            error: { code: "GIFT_UNAVAILABLE", message: `${brand.name} cards are unavailable right now, so ${fmt(amount)} went to your balance instead.` },
+          };
         }
         const card = makeCard(brand, amount, c.senderName);
         acct.cards.unshift(card);
@@ -740,50 +768,51 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         return card.secret;
       }),
 
-    // Demo top-up: the "deposit" lands on its own a few seconds after the quote.
     topupOrigins: () =>
       wait(() => {
-        authed();
-        return {
-          origins: [
-            { id: "base:usdc", label: "USDC on Base", symbol: "USDC", networkLabel: "Base" }, // glossary-allow: top-up sources are named by what the person holds
-            { id: "arbitrum:usdc", label: "USDC on Arbitrum", symbol: "USDC", networkLabel: "Arbitrum" }, // glossary-allow: top-up sources are named by what the person holds
-            { id: "solana:usdc", label: "USDC on Solana", symbol: "USDC", networkLabel: "Solana" }, // glossary-allow: top-up sources are named by what the person holds
-          ],
-        };
+        registered();
+        return { origins: TOPUP_ORIGINS };
       }),
 
     topupQuote: (originAsset, amount) =>
       wait(() => {
-        const { address } = authed();
-        const quoteId = `demo-${rand(8)}`;
-        topups.set(quoteId, { owner: address, amount: BigInt(amount), readyAt: Date.now() + 6_000, credited: false });
+        const { address } = registered();
+        const origin = TOPUP_ORIGINS.find((o) => o.id === originAsset);
+        if (!origin) throw new ApiError("INVALID_REQUEST", "Pick where the money is coming from.", 400);
+        const a = BigInt(amount);
+        if (a < USD) throw new ApiError("AMOUNT_TOO_LOW", "That amount is too small to add. Try a larger amount.", 400, { minAmountBaseUnits: String(USD) });
+        const fee = a / 1000n;
+        const quoteId = `tq_${rand(10)}`;
+        topups.set(quoteId, { owner: address, amountOut: a - fee, created: now(), credited: false });
         return {
           quoteId,
-          depositAddress: `0x${rand(20)}`,
+          depositAddress: `0x${rand(40).toLowerCase().replace(/[^0-9a-f]/g, "a")}`,
           originAsset,
-          amountIn: amount,
-          amountInBaseUnits: amount,
-          amountOut: amount,
-          minAmountOut: amount,
-          expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+          amountIn: a.toString(),
+          amountInBaseUnits: a.toString(),
+          amountOut: (a - fee).toString(),
+          minAmountOut: (a - fee - fee).toString(),
+          expiresAt: new Date(now() + 30 * 60_000).toISOString(),
           etaSeconds: 30,
         };
       }),
 
     topupStatus: (quoteId) =>
       wait(() => {
-        const { address, acct } = authed();
+        const { address, acct } = registered();
         const t = topups.get(quoteId);
-        if (!t || t.owner !== address) throw new ApiError("NOT_FOUND", "We couldn't find that top-up.", 404);
-        if (Date.now() < t.readyAt) return { status: "waiting" as const, message: "Waiting for your money to arrive." };
+        if (!t || t.owner.toLowerCase() !== address.toLowerCase()) throw new ApiError("NOT_FOUND", "We couldn't find that. Start again.", 404);
+        // Demo: pretends the deposit arrives after ~10s and completes after ~20s.
+        const age = now() - t.created;
+        if (age < 10_000) return { status: "waiting" as const, message: "Waiting for your deposit." };
+        if (age < 20_000) return { status: "processing" as const, message: "Deposit received. Adding it to your balance…" };
         if (!t.credited) {
           t.credited = true;
-          acct.balance += t.amount;
-          acct.activity.unshift(item("received", "completed", t.amount, { note: "Added money" }));
+          acct.balance += t.amountOut;
+          acct.activity.unshift(item("received", "completed", t.amountOut, { counterparty: { name: "Added money" } }));
           sweep(acct);
         }
-        return { status: "completed" as const, message: "Your money has arrived.", amountOut: t.amount.toString() };
+        return { status: "completed" as const, message: `${fmt(t.amountOut)} is in your balance.`, amountOut: t.amountOut.toString() };
       }),
   };
 }

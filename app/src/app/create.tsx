@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Platform, StyleSheet, TextInput } from "react-native";
-import { messageFor } from "../api";
+import { isApiError, messageFor } from "../api";
 import { UnlockCancelled } from "../auth/unlock";
 import { formatE164 } from "../phone/phone";
 import { useSession } from "../state/session";
@@ -15,19 +15,24 @@ import { colors, radius, space } from "../ui/theme";
 
 /** Name + passkey. For an account that exists but has no number yet, it just links the number. */
 export default function CreateScreen() {
-  const { status, profile, verification, createAccount, linkNumber } = useSession();
+  const { status, profile, verification, freshVerification, createAccount, linkNumber } = useSession();
   const existing = status === "needsPhone" || status === "ready";
   const [name, setName] = useState(profile?.displayName ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [reverify, setReverify] = useState(false);
 
   const go = async () => {
     setError(null);
+    setReverify(false);
     try {
       if (existing) await linkNumber(name);
       else await createAccount(name);
       router.replace("/");
     } catch (e) {
-      if (!(e instanceof UnlockCancelled)) setError(messageFor(e));
+      if (e instanceof UnlockCancelled) return;
+      setError(messageFor(e));
+      // OTP_EXPIRED from the server, or our own "code expired" (no fresh verification in memory).
+      setReverify((isApiError(e) && e.code === "OTP_EXPIRED") || !freshVerification());
     }
   };
 
@@ -62,7 +67,13 @@ export default function CreateScreen() {
         title={`${Platform.OS === "ios" ? "Face ID" : "Fingerprint"} instead of a password`}
         message="BilbyPay uses a passkey saved to your phone. There's no password to forget and nothing to write down. Every payment asks for your face or fingerprint."
       />
-      {error ? <Notice tone="danger" message={error} /> : null}
+      {error ? (
+        <Notice
+          tone="danger"
+          message={error}
+          action={reverify ? { label: "Verify my number again", onPress: () => router.dismissTo("/phone") } : undefined}
+        />
+      ) : null}
     </Screen>
   );
 }
