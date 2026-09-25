@@ -47,6 +47,7 @@ export default function Home() {
         <Action icon="send" label="Send" onPress={() => router.push("/send")} />
         <Action icon="receive" label="Receive" onPress={() => router.push("/receive")} />
         <Action icon="gift" label="Gift" onPress={() => router.push("/gifts")} />
+        <Action icon="receive" label="Add" onPress={() => router.push("/topup")} />
       </View>
 
       <ErrorNote error={error} onRetry={reload} />

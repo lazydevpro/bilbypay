@@ -89,6 +89,7 @@ export function createHttpApi(opts: HttpApiOptions): BilbyApi {
     quote: (brandId, amount) => call("POST", "/v1/giftcards/quote", { brandId, amount }),
     giftCards: () => call("GET", "/v1/giftcards", undefined, true),
     revealGiftCard: (id) => call("GET", `/v1/giftcards/${enc(id)}/reveal`, undefined, true),
+    topupOrigins: () => call("GET", "/v1/topup/origins", undefined, true),
     topupQuote: (originAsset, amount) => call("POST", "/v1/topup/quote", { originAsset, amount }, true),
     topupStatus: (quoteId) => call("GET", `/v1/topup/${enc(quoteId)}`, undefined, true),
   };

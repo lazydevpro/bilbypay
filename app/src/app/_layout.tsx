@@ -33,6 +33,7 @@ export default function RootLayout() {
           <Stack.Screen name="confirm" options={{ presentation: "modal", title: "Confirm" }} />
           <Stack.Screen name="done" options={{ headerShown: false, gestureEnabled: false }} />
           <Stack.Screen name="receive" options={{ title: "Receive" }} />
+          <Stack.Screen name="topup" options={{ title: "Add money" }} />
           <Stack.Screen name="claim/[code]" options={{ title: "" }} />
           <Stack.Screen name="c/[code]" options={{ headerShown: false }} />
           <Stack.Screen name="gifts/index" options={{ title: "Gift cards" }} />

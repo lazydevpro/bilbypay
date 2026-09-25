@@ -101,7 +101,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setStatus("ready");
       } catch (e) {
         if (!alive) return;
-        if (isApiError(e) && e.code === "NOT_FOUND") setStatus("needsPhone");
+        if (isApiError(e) && (e.code === "PHONE_REQUIRED" || e.code === "NOT_FOUND")) setStatus("needsPhone");
         else if (isApiError(e) && e.code === "NETWORK" && cached) {
           setProfileState(cached);
           setStatus("ready"); // offline: show cached, screens show the offline note

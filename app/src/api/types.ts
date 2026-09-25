@@ -159,17 +159,26 @@ export type GiftCardReveal = {
   instructions?: string;
 };
 
+export type TopupOrigin = { id: string; label: string; symbol: string; networkLabel: string };
 export type TopupQuote = {
+  quoteId: string;
   depositAddress: string;
+  depositMemo?: string;
   originAsset: string;
   amountIn: string;
+  /** What to send, in the origin's own units (decimal string of base units). */
+  amountInBaseUnits: string;
   amountOut: string;
+  minAmountOut: string;
   expiresAt: string;
-  quoteId: string;
+  etaSeconds?: number;
 };
 export type TopupStatus = {
   status: "waiting" | "processing" | "completed" | "failed" | "refunded";
+  /** Plain-language line from the server. */
+  message: string;
   amountOut?: string;
+  refundedAmount?: string;
 };
 
 /** Error codes from docs/api.md, plus NETWORK for "couldn't reach the server". */
@@ -210,6 +219,7 @@ export interface BilbyApi {
   quote(brandId: string, amount: string): Promise<Quote>;
   giftCards(): Promise<{ cards: GiftCard[] }>;
   revealGiftCard(id: string): Promise<GiftCardReveal>;
+  topupOrigins(): Promise<{ origins: TopupOrigin[] }>;
   topupQuote(originAsset: string, amount: string): Promise<TopupQuote>;
   topupStatus(quoteId: string): Promise<TopupStatus>;
 }

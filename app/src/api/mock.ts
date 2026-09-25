@@ -188,9 +188,11 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
   };
 
   const profileOf = (acct: Account): Profile => {
-    if (!acct.profile) throw new ApiError("NOT_FOUND", "Add your phone number to finish setting up.", 404);
+    if (!acct.profile) throw new ApiError("PHONE_REQUIRED", "Add your phone number to continue.", 403);
     return acct.profile;
   };
+
+  const topups = new Map<string, { owner: Hex; amount: bigint; readyAt: number; credited: boolean }>();
 
   const newSession = (address: Hex) => {
     const token = `mock-${rand(16)}`;
@@ -738,8 +740,51 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         return card.secret;
       }),
 
-    topupQuote: () => wait(() => { throw new ApiError("NOT_FOUND", "Adding money from elsewhere isn't available in the demo.", 404); }),
-    topupStatus: () => wait(() => { throw new ApiError("NOT_FOUND", "Adding money from elsewhere isn't available in the demo.", 404); }),
+    // Demo top-up: the "deposit" lands on its own a few seconds after the quote.
+    topupOrigins: () =>
+      wait(() => {
+        authed();
+        return {
+          origins: [
+            { id: "base:usdc", label: "USDC on Base", symbol: "USDC", networkLabel: "Base" }, // glossary-allow: top-up sources are named by what the person holds
+            { id: "arbitrum:usdc", label: "USDC on Arbitrum", symbol: "USDC", networkLabel: "Arbitrum" }, // glossary-allow: top-up sources are named by what the person holds
+            { id: "solana:usdc", label: "USDC on Solana", symbol: "USDC", networkLabel: "Solana" }, // glossary-allow: top-up sources are named by what the person holds
+          ],
+        };
+      }),
+
+    topupQuote: (originAsset, amount) =>
+      wait(() => {
+        const { address } = authed();
+        const quoteId = `demo-${rand(8)}`;
+        topups.set(quoteId, { owner: address, amount: BigInt(amount), readyAt: Date.now() + 6_000, credited: false });
+        return {
+          quoteId,
+          depositAddress: `0x${rand(20)}`,
+          originAsset,
+          amountIn: amount,
+          amountInBaseUnits: amount,
+          amountOut: amount,
+          minAmountOut: amount,
+          expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+          etaSeconds: 30,
+        };
+      }),
+
+    topupStatus: (quoteId) =>
+      wait(() => {
+        const { address, acct } = authed();
+        const t = topups.get(quoteId);
+        if (!t || t.owner !== address) throw new ApiError("NOT_FOUND", "We couldn't find that top-up.", 404);
+        if (Date.now() < t.readyAt) return { status: "waiting" as const, message: "Waiting for your money to arrive." };
+        if (!t.credited) {
+          t.credited = true;
+          acct.balance += t.amount;
+          acct.activity.unshift(item("received", "completed", t.amount, { note: "Added money" }));
+          sweep(acct);
+        }
+        return { status: "completed" as const, message: "Your money has arrived.", amountOut: t.amount.toString() };
+      }),
   };
 }
 
