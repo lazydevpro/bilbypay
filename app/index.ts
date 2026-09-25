@@ -1,7 +1,3 @@
+// Hermes needs crypto.getRandomValues before mera/viem load, so polyfills come first.
 import "./src/polyfills";
-
-import { registerRootComponent } from "expo";
-
-import App from "./App";
-
-registerRootComponent(App);
+import "expo-router/entry";

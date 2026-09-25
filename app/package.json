@@ -9,23 +9,37 @@
     "android": "expo run:android --device",
     "prebuild": "expo prebuild --clean",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"no app tests yet\""
+    "test": "vitest run"
   },
   "dependencies": {
     "@bilbypay/core": "workspace:*",
     "@category-labs/mera": "0.2.0",
     "expo": "~57.0.25",
     "expo-build-properties": "~57.0.22",
+    "expo-clipboard": "~57.0.2",
+    "expo-constants": "~57.0.19",
+    "expo-contacts": "~57.0.6",
     "expo-crypto": "~57.0.3",
     "expo-dev-client": "~57.0.19",
+    "expo-haptics": "~57.0.3",
+    "expo-linking": "~57.0.11",
+    "expo-localization": "~57.0.2",
+    "expo-router": "~57.0.23",
+    "expo-secure-store": "~57.0.4",
     "expo-status-bar": "~57.0.1",
+    "libphonenumber-js": "^1.13.14",
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-passkey": "3.6.1",
+    "react-native-qrcode-svg": "6.3.26",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.2",
+    "react-native-svg": "15.15.4",
     "viem": "^2.56.9"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^3.2.7"
   }
 }

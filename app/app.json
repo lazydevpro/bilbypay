@@ -7,10 +7,11 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "backgroundColor": "#FBF6EE",
     "ios": {
       "bundleIdentifier": "com.bilbypay.app",
       "supportsTablet": false,
-      "associatedDomains": ["webcredentials:bilbypay.com"]
+      "associatedDomains": ["webcredentials:bilbypay.com", "applinks:bilbypay.com"]
     },
     "android": {
       "package": "com.bilbypay.app",
@@ -20,9 +21,31 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "https", "host": "bilbypay.com", "pathPrefix": "/c/" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "plugins": [
+      "expo-router",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "BilbyPay uses Face ID to confirm payments and keep your money safe."
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "BilbyPay uses your contacts so you can pay friends by name. Numbers are only checked when you pick someone, and your contacts are never uploaded."
+        }
+      ],
+      "expo-localization",
       [
         "expo-build-properties",
         {
@@ -30,6 +53,9 @@
           "android": { "minSdkVersion": 28 }
         }
       ]
-    ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
   }
 }
