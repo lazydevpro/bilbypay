@@ -504,6 +504,20 @@ describe("rebind safety", () => {
   });
 });
 
+describe("top-up", () => {
+  it("quotes a deposit address for the signed-in user; status is owner-only", async () => {
+    const origins = await alice.call("GET", "/v1/topup/origins");
+    expect(origins.body.origins.map((o: { id: string }) => o.id)).toContain("base:usdc");
+    const quote = await alice.call("POST", "/v1/topup/quote", { originAsset: "base:usdc", amount: "5000000" });
+    expect(quote.status).toBe(200);
+    expect(quote.body.depositAddress).toBeTruthy();
+    const mine = await alice.call("GET", `/v1/topup/${encodeURIComponent(quote.body.quoteId)}`);
+    expect(mine.body.status).toBe("waiting");
+    const theirs = await bob.call("GET", `/v1/topup/${encodeURIComponent(quote.body.quoteId)}`);
+    expect(theirs.status).toBe(404);
+  });
+});
+
 describe("invariants", () => {
   it("no user ever held MON", async () => {
     for (const u of users) expect(await monOf(u.address)).toBe(0n);

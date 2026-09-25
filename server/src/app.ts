@@ -6,6 +6,7 @@ import { giftCardRoutes } from "./routes/giftcards";
 import { identityRoutes } from "./routes/identity";
 import { moneyRoutes } from "./routes/money";
 import { publicRoutes } from "./routes/public";
+import { topUpRoutes } from "./routes/topup";
 import type { Services } from "./services";
 
 export function createApp(s: Services): Hono<AppEnv> {
@@ -23,6 +24,7 @@ export function createApp(s: Services): Hono<AppEnv> {
   moneyRoutes(app, s);
   claimRoutes(app, s);
   giftCardRoutes(app, s);
+  topUpRoutes(app, s);
   publicRoutes(app, s);
   return app;
 }

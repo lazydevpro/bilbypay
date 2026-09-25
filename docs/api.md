@@ -12,7 +12,11 @@ The single source of truth for `server/` and `app/`. Changing a shape here means
   `message` is safe to show to users as-is (spec §3a glossary — no crypto words). Codes the app must handle:
   `OTP_INVALID`, `OTP_EXPIRED`, `RATE_LIMITED`, `PHONE_INVALID`, `SESSION_EXPIRED`, `INSUFFICIENT_FUNDS`,
   `BURROW_BUSY` (Aave liquidity short; body adds `availableNow`), `RECIPIENT_RECENTLY_CHANGED`, `ACTION_EXPIRED`,
-  `ALREADY_CLAIMED`, `CLAIM_EXPIRED`, `WRONG_PHONE`, `GIFT_UNAVAILABLE`, `NOT_FOUND`, `INTERNAL`.
+  `ALREADY_CLAIMED`, `CLAIM_EXPIRED`, `WRONG_PHONE`, `GIFT_UNAVAILABLE`, `NOT_FOUND`, `INTERNAL`,
+  `INVALID_REQUEST` (bad params), `PHONE_REQUIRED` (403: signed-in account has no number yet — go to the phone step),
+  `CONFIRMATION_FAILED` (bad signature, checked before anything moves), `ALREADY_DONE` (authorization already used),
+  `GIFT_PROCESSING` (409: card not ready to reveal yet). An expired `phoneToken` returns `OTP_EXPIRED`; a stale
+  `issuedAt` on register/sign-in returns `ACTION_EXPIRED`. Unknown codes: show `message`.
 - Idempotency: every `POST .../submit` is idempotent per action id — resubmitting returns the first result.
 - EIP-712 payloads are sent as `TypedDataJson` (`@bilbypay/core`: `serializeTypedData` / `hydrateTypedData`);
   uint fields are decimal strings.
@@ -233,9 +237,24 @@ Codes are decrypted only here, only for the owner, and never logged.
 
 ## Top-up (stretch, Aurora Intents)
 
+### 🔒 `GET /v1/topup/origins` → `{ origins: Array<{ id: string; label: string; symbol: string; networkLabel: string }> }`
 ### 🔒 `POST /v1/topup/quote` `{ originAsset: string /*e.g. "base:usdc"*/, amount }` →
-`{ depositAddress: string; originAsset; amountIn: string; amountOut: string; expiresAt; quoteId }`
-### 🔒 `GET /v1/topup/:quoteId` → `{ status: "waiting" | "processing" | "completed" | "failed" | "refunded"; amountOut?: string }`
+`{ quoteId; depositAddress; depositMemo?; originAsset; amountIn; amountInBaseUnits; amountOut; minAmountOut; expiresAt; etaSeconds? }`
+Errors carry the provider's plain-language message (`AMOUNT_TOO_LOW` adds the minimum).
+> Today the service delivers **USDC** on Monad (AUSD isn't listed by the provider yet — see packages/topup/README.md).
+### 🔒 `GET /v1/topup/:quoteId` → `{ status: "waiting" | "processing" | "completed" | "failed" | "refunded"; message: string; amountOut?: string; refundedAmount?: string }` (owner only)
+
+## Implementation notes (server behaviour beyond the shapes above)
+
+- `BURROW_BUSY.availableNow`: for payments it is balance + what Burrow can release now ("you can pay $X now");
+  for `burrow_withdraw` it is Burrow's `maxWithdraw` only.
+- `POST /v1/claims/:code/accept` for a gift whose purchase fails after the claim returns `completed` with
+  `error: { code: "GIFT_UNAVAILABLE" }`; the money is paid to the recipient's balance instead.
+- A failed `gift_buy` returns `failed` with `giftCardId` and `receipt`; the refund appears as a `refund` activity item.
+- Recipient's-choice gifts (`gift_send` without `brandId`): the sender pays face value plus the highest catalog fee;
+  whatever the chosen card doesn't use goes to the recipient's balance. `GET /v1/claims/:code` shows face value as `amount`.
+- Signed messages accept the account in checksummed or lowercase form.
+- All deadlines/expiries use chain time.
 
 ## Health
 `GET /health` → `{ ok: true, chainId, block, relayerBalance, treasuryFloat }`

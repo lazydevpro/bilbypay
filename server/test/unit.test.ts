@@ -8,6 +8,7 @@ import { MockGiftCardProvider, priceWithFee } from "../src/giftcards/mock";
 import { GiftCardService } from "../src/giftcards/service";
 import { maskPhone, normalizePhone, phoneKey } from "../src/phone";
 import { decryptSecret, encryptSecret } from "../src/secrets";
+import { EncryptedKvStore } from "../src/giftcards/providers";
 import { formatUsdShort, fromJson, KeyedMutex, newClaimCode, newReference, toJson } from "../src/util";
 import { encodeErrorResult, type Hex } from "viem";
 import { bilbyRouterAbi, mockStataAbi } from "@bilbypay/core";
@@ -175,5 +176,19 @@ describe("gift card service", () => {
     expect(priceWithFee(20_000_000n, 2.5)).toBe(20_500_000n);
     expect(priceWithFee(10_000_000n, 0)).toBe(10_000_000n);
     expect(priceWithFee(10_000_001n, 0)).toBe(10_010_000n);
+  });
+});
+
+describe("gift provider store", () => {
+  it("persists provider records encrypted and bound to their key", async () => {
+    const db = openDb(":memory:");
+    const store = new EncryptedKvStore(db, Buffer.alloc(32, 7));
+    await store.set("laso:gift-1", { phase: "done", purchase: { redemption: { code: "SECRET-CODE" } } });
+    const raw = db.prepare("SELECT value FROM kv WHERE key = ?").get("giftprovider:laso:gift-1") as { value: string };
+    expect(raw.value).not.toContain("SECRET-CODE");
+    expect(await store.get("laso:gift-1")).toEqual({ phase: "done", purchase: { redemption: { code: "SECRET-CODE" } } });
+    expect(await store.get("missing")).toBeUndefined();
+    db.prepare("UPDATE kv SET key = ? WHERE key = ?").run("giftprovider:laso:gift-2", "giftprovider:laso:gift-1");
+    await expect(store.get("laso:gift-2")).rejects.toThrow();
   });
 });

@@ -147,7 +147,8 @@ See [`.env.example`](.env.example) for the full list. The important ones:
 | `TOKEN_SECRET`, `GIFT_CODE_KEY` | 32 bytes each (hex or base64). |
 | `OTP_PROVIDER` | `test` or `twilio` (+ `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID`). |
 | `PUBLIC_BASE_URL` | Base of claim links and OG images, e.g. `https://bilbypay.com`. |
-| `GIFT_PROVIDER` | `mock` (default). Register `laso` / `bitrefill` in `src/giftcards/providers.ts`. |
+| `GIFT_PROVIDER` | `mock` (default), `laso` or `bitrefill` (env vars in `packages/giftcards/README.md`; provider records are stored AES-GCM encrypted in the `kv` table). |
+| `TOPUP_PROVIDER`, `INTENTS_API_KEY`, `TOPUP_DESTINATION` | Aurora Intents top-up (`packages/topup/README.md`). Mock without a key. |
 | `REBIND_COOLDOWN_DAYS` | Senders see `recentlyChanged` for this long after a number moves (default 7). |
 
 ## Deploying
