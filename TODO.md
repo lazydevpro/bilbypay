@@ -107,7 +107,7 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 
 ## Later (stretch — only after all acceptance criteria pass)
 - [~] Envio HyperIndex for activity feed #stretch #bounty — `indexer/` built + tested offline; needs contract addresses and Envio Cloud deploy
-- [~] Aurora Intents cross-chain top-up #stretch #bounty — `packages/topup` + server routes + app screen; needs Studio key and one live $5 top-up; lands USDC, not AUSD (decide)
+- [~] Aurora Intents cross-chain top-up #stretch #bounty — `packages/topup` + server routes + app screen; needs Studio key and one live $5 top-up; USDC lands in the treasury and the server credits AUSD 1:1 (keep the treasury AUSD float funded)
 - [ ] WhatsApp bot (or mocked in demo) #stretch
 - [ ] iMessage extension #stretch
 - [ ] Request money / split bill #stretch

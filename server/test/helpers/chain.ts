@@ -81,6 +81,16 @@ export async function deployAll(rpcUrl: string, roles: { deployer: Hex; verifier
   return { chainId: 143, ausd, stata, directory, escrow, router };
 }
 
+/** Another 6-decimal EIP-3009 token (a MockAUSD instance), e.g. to stand in for USDC. */
+export async function deployMockToken(rpcUrl: string, deployer: Hex): Promise<Address> {
+  const chain = { ...monad, rpcUrls: { default: { http: [rpcUrl] } } };
+  const wallet = createWalletClient({ account: privateKeyToAccount(deployer), chain, transport: http(rpcUrl) });
+  const client = createPublicClient({ chain, transport: http(rpcUrl), pollingInterval: 20 });
+  const a = artifact("MockAUSD.sol", "MockAUSD");
+  const receipt = await client.waitForTransactionReceipt({ hash: await wallet.deployContract({ abi: a.abi, bytecode: a.bytecode.object }) });
+  return getAddress(receipt.contractAddress!);
+}
+
 export function testClient(rpcUrl: string) {
   return createTestClient({ mode: "anvil", chain: { ...monad, rpcUrls: { default: { http: [rpcUrl] } } }, transport: http(rpcUrl) });
 }

@@ -2,7 +2,7 @@
 
 Status as of 2026-09-25. Everything is verified **locally** in the dev container:
 - Contracts: 42 Foundry tests; the mainnet fork test needs `MONAD_RPC_URL`.
-- TypeScript: 228 tests across 6 packages.
+- TypeScript: 235 tests across 6 packages.
 - App: iOS and Android bundles build.
 
 What is still missing is anything that needs a real phone, Monad mainnet, SMS, or live provider accounts.
@@ -44,10 +44,9 @@ What is still missing is anything that needs a real phone, Monad mainnet, SMS, o
 7. **App.** Build with `eas build --profile development` for both platforms and run runbook steps B and C on two phones.
 8. **Gift cards.** Run `SMOKE_QUOTE_ONLY=yes` and then the real $5 Laso smoke (`packages/giftcards/README.md`). Apply for Bitrefill Business.
 9. **Top-up.** Run `pnpm --filter @bilbypay/topup smoke:quote` with a Studio key, then do one live $5 USDC top-up from Base (Aurora bounty).
-   - Today the top-up delivers USDC, not AUSD. Pick one before demoing:
-     - AUSD becomes listed by the provider;
-     - the server converts the USDC to AUSD after arrival;
-     - USDC counts as dollars in the balance.
+   - The top-up delivers USDC to the treasury and the server credits the user AUSD 1:1 from the treasury float.
+     Keep the treasury's AUSD float funded, and convert its accumulated USDC back to AUSD from time to time
+     (treasury ops, outside the app). Set `USDC_ADDRESS` only if it differs from Monad mainnet USDC.
 10. **Demo run.** Walk every row above on two phones and record the demo.
 
 ## Known limitations

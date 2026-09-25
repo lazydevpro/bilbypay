@@ -27,10 +27,14 @@ export class Treasury {
     return this.chain.ausdBalance(this.account.address);
   }
 
-  /** Pays `amount` dollars from the treasury to `to` (refunds, gift change). */
-  async pay(to: Address, amount: bigint, label: string): Promise<Sent> {
+  /**
+   * Pays `amount` dollars from the treasury to `to` (refunds, gift change, top-up credits).
+   * Pass a saved `nonce` to make retries safe: EIP-3009 lets one nonce settle only once.
+   */
+  async pay(to: Address, amount: bigint, label: string, nonce?: Hex): Promise<Sent> {
     const cfg = this.chain.config;
     const auth = newAuthorization({ from: this.account.address, to, value: amount, now: await this.chain.now() });
+    if (nonce) auth.nonce = nonce;
     const signature = await this.account.signTypedData(authorizationTypedData("TransferWithAuthorization", cfg.ausd, cfg.chainId, auth));
     const s = toSignedAuthorization(auth, signature);
     const data = encodeFunctionData({
@@ -39,5 +43,15 @@ export class Treasury {
       args: [s.from, s.to, s.value, s.validAfter, s.validBefore, s.nonce, s.v, s.r, s.s],
     });
     return this.relayer.send({ to: cfg.ausd.address, data, label });
+  }
+
+  /** Whether a payment with this nonce already settled. */
+  nonceUsed(nonce: Hex): Promise<boolean> {
+    return this.chain.client.readContract({
+      address: this.chain.config.ausd.address,
+      abi: eip3009Abi,
+      functionName: "authorizationState",
+      args: [this.account.address, nonce],
+    });
   }
 }

@@ -132,6 +132,30 @@ const MIGRATIONS: string[] = [
     value TEXT NOT NULL
   );
   `,
+  // 2: top-ups land as USDC in the treasury; each is credited to the user in AUSD exactly once.
+  `
+  CREATE TABLE topups (
+    quote_id TEXT PRIMARY KEY,
+    owner_address TEXT NOT NULL,
+    origin TEXT NOT NULL,
+    amount_in TEXT NOT NULL,
+    expected_out TEXT NOT NULL,
+    status TEXT NOT NULL,           -- waiting | processing | crediting | completed | failed | refunded
+    credit_amount TEXT,
+    credit_nonce TEXT,              -- EIP-3009 nonce of the treasury → user payment, saved before sending
+    credit_tx TEXT,
+    activity_id TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX topups_open ON topups(status);
+  CREATE INDEX topups_owner ON topups(owner_address, created_at);
+  -- A delivery can back only one credit, even if a provider reports the same hash twice.
+  CREATE TABLE topup_deliveries (
+    tx_hash TEXT PRIMARY KEY,
+    quote_id TEXT NOT NULL REFERENCES topups(quote_id)
+  );
+  `,
 ];
 
 export function openDb(path: string): Db {

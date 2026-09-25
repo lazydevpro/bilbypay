@@ -15,6 +15,8 @@ export type Config = {
   pollingIntervalMs: number;
   deployment: Deployment;
   ausd: TokenInfo;
+  /** Top-ups land as USDC in the treasury; the server credits users the same amount in AUSD. */
+  usdc?: Address;
   stata: TokenInfo;
   explorerUrl?: string;
   keys: { relayer: Hex; verifier: Hex; keeper: Hex; treasury: Hex };
@@ -108,6 +110,7 @@ export function loadConfig(rawEnv: Env = process.env): Config {
     deployment,
     ausd,
     stata,
+    usdc: (env.USDC_ADDRESS ?? network.usdc?.address) as Address | undefined,
     explorerUrl: env.EXPLORER_URL ?? network.chain.blockExplorers?.default.url,
     keys: {
       relayer,

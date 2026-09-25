@@ -8,6 +8,7 @@ import type { Config } from "./config";
 import { type Db, kvGet, kvSet } from "./db";
 import type { GiftCardService } from "./giftcards/service";
 import type { TxSender } from "./relayer";
+import type { TopUpService } from "./topup";
 import type { KeyedMutex } from "./util";
 
 const TRANSFER = parseAbiItem("event Transfer(address indexed from, address indexed to, uint256 value)");
@@ -20,6 +21,7 @@ const MAX_WINDOWS_PER_TICK = 20;
  *  - Burrow auto-save: watch AUSD Transfers into auto-save users, debounce, then router.sweep.
  *  - Escrow expiry: refund deposits nobody opened (anyone may call escrow.refund).
  *  - Gift cards: settle orders left processing.
+ *  - Top-ups: credit AUSD for USDC delivered to the treasury.
  */
 export class Keeper {
   private due = new Map<Address, number>();
@@ -38,6 +40,7 @@ export class Keeper {
     private readonly claims: ClaimService,
     private readonly gifts: GiftCardService,
     private readonly userLocks: KeyedMutex,
+    private readonly topups?: TopUpService,
   ) {}
 
   start() {
@@ -60,6 +63,7 @@ export class Keeper {
         await this.runDueSweeps();
         await this.refundExpired();
         await this.gifts.reconcile();
+        await this.topups?.settlePending();
       } finally {
         this.ticking = undefined;
       }

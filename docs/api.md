@@ -241,8 +241,11 @@ Codes are decrypted only here, only for the owner, and never logged.
 ### 🔒 `POST /v1/topup/quote` `{ originAsset: string /*e.g. "base:usdc"*/, amount }` →
 `{ quoteId; depositAddress; depositMemo?; originAsset; amountIn; amountInBaseUnits; amountOut; minAmountOut; expiresAt; etaSeconds? }`
 Errors carry the provider's plain-language message (`AMOUNT_TOO_LOW` adds the minimum).
-> Today the service delivers **USDC** on Monad (AUSD isn't listed by the provider yet — see packages/topup/README.md).
-### 🔒 `GET /v1/topup/:quoteId` → `{ status: "waiting" | "processing" | "completed" | "failed" | "refunded"; message: string; amountOut?: string; refundedAmount?: string }` (owner only)
+> The provider can only deliver **USDC** on Monad, so top-ups are delivered to the BilbyPay treasury. Once the
+> USDC is seen arriving on-chain, the server pays the user the same amount in AUSD (one treasury payment, never
+> twice). Refunds go back to the user's own account on the origin network. Only origins where that is possible
+> (EVM networks) are offered.
+### 🔒 `GET /v1/topup/:quoteId` → `{ status: "waiting" | "processing" | "completed" | "failed" | "refunded"; message: string; amountOut?: string; refundedAmount?: string }` (owner only). `status` stays `processing` until the AUSD credit has been paid; `amountOut` is the credited amount.
 
 ## Implementation notes (server behaviour beyond the shapes above)
 

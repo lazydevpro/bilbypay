@@ -9,6 +9,7 @@ import type { Config } from "./config";
 import { type Db, openDb } from "./db";
 import { createTopUpProviderFromEnv, type TopUpProvider } from "@bilbypay/topup";
 import { createGiftProvider } from "./giftcards/providers";
+import { TopUpService } from "./topup";
 import { GiftCardService } from "./giftcards/service";
 import type { GiftCardProvider } from "./giftcards/types";
 import { Keeper } from "./keeper";
@@ -35,7 +36,7 @@ export type Services = {
   keeper: Keeper;
   actions: ActionService;
   balances: BalanceService;
-  topup: TopUpProvider;
+  topups: TopUpService;
 };
 
 export function createServices(config: Config, overrides: { db?: Db; giftProvider?: GiftCardProvider; otp?: OtpProvider; topup?: TopUpProvider } = {}): Services {
@@ -52,10 +53,11 @@ export function createServices(config: Config, overrides: { db?: Db; giftProvide
   const accounts = new AccountService(db, config, chain, verifier, relayer, tokens);
   const activity = new ActivityRepo(db, chain, config.publicBaseUrl);
   const gifts = new GiftCardService(db, overrides.giftProvider ?? createGiftProvider(config, db), treasury, activity, config.giftCodeKey);
+  const topups = new TopUpService(db, config, chain, overrides.topup ?? createTopUpProviderFromEnv(), treasury, activity);
   const claims = new ClaimService(db, config, chain, verifier, relayer, accounts, activity, gifts, treasury);
-  const keeper = new Keeper(db, config, chain, keeperSender, accounts, activity, claims, gifts, userLocks);
+  const keeper = new Keeper(db, config, chain, keeperSender, accounts, activity, claims, gifts, userLocks, topups);
   const actions = new ActionService({ db, config, chain, relayer, accounts, activity, claims, gifts, treasury, keeper, userLocks });
   keeper.hasOpenAction = (user) => actions.hasOpenAction(user);
   const balances = new BalanceService(config, chain, accounts, claims);
-  return { config, db, chain, relayer, keeperSender, verifier, treasury, tokens, otp, accounts, activity, gifts, claims, keeper, actions, balances, topup: overrides.topup ?? createTopUpProviderFromEnv() };
+  return { config, db, chain, relayer, keeperSender, verifier, treasury, tokens, otp, accounts, activity, gifts, claims, keeper, actions, balances, topups };
 }
