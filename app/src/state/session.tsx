@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { api, isApiError, setSessionExpiredHandler, setSessionToken } from "../api";
+import { api, isApiError, setPhoneRequiredHandler, setSessionExpiredHandler, setSessionToken } from "../api";
 import type { Hex, OtpVerifyResponse, Profile } from "../api/types";
 import * as store from "../auth/keyStore";
 import { createNewAccount, logInWithPasskey, UnlockFailed, withAccount, withUnlockedSigner } from "../auth/unlock";
@@ -101,7 +101,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setStatus("ready");
       } catch (e) {
         if (!alive) return;
-        if (isApiError(e) && e.code === "NOT_FOUND") setStatus("needsPhone");
+        if (isApiError(e) && (e.code === "PHONE_REQUIRED" || e.code === "NOT_FOUND")) setStatus("needsPhone");
         else if (isApiError(e) && e.code === "NETWORK" && cached) {
           setProfileState(cached);
           setStatus("ready"); // offline: show cached, screens show the offline note
@@ -119,7 +119,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       void store.saveSessionToken("");
       setStatus((s) => (s === "ready" || s === "needsPhone" ? "locked" : s));
     });
-    return () => setSessionExpiredHandler(null);
+    // Signed in, but the account has no number yet (e.g. it was never linked): go to the phone step.
+    setPhoneRequiredHandler(() => setStatus((s) => (s === "ready" ? "needsPhone" : s)));
+    return () => {
+      setSessionExpiredHandler(null);
+      setPhoneRequiredHandler(null);
+    };
   }, []);
 
   const setVerification = useCallback((v: OtpVerifyResponse | null) => {

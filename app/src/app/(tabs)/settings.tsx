@@ -40,6 +40,7 @@ export default function Settings() {
       <Card>
         <Row title="Change number" subtitle="Move BilbyPay to a new phone number" onPress={() => router.push({ pathname: "/phone", params: { purpose: "change" } })} />
         <Row title="Burrow" subtitle="Auto-save and your Burrow money" onPress={() => router.push("/burrow")} />
+        <Row title="Add money" subtitle="From an account you have elsewhere" onPress={() => router.push("/topup")} />
         <Row title="About & disclosures" subtitle="How BilbyPay and Burrow work" onPress={() => router.push("/settings/about")} />
         {__DEV__ ? <Row title="Developer tools" subtitle="Phase 0 passkey check" onPress={() => router.push("/dev/spike")} /> : null}
       </Card>

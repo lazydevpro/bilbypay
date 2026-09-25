@@ -129,11 +129,14 @@ export default function ClaimScreen() {
       >
         <Mascot size={180} />
         <Text variant="display" style={styles.center}>
-          {claim.kind === "gift" ? "It's yours! 🎉" : `${usd(accepted.amount)} is yours! 🎉`}
+          {claim.kind === "gift" && accepted.giftCardId ? "It's yours! 🎉" : `${usd(accepted.amount)} is yours! 🎉`}
         </Text>
         <Muted style={styles.center}>
-          {claim.kind === "gift" ? `Your ${brandName ?? ""} gift card from ${claim.senderName} is ready to use.` : `It's in your balance, from ${claim.senderName}.`}
+          {claim.kind === "gift" && accepted.giftCardId
+            ? `Your ${brandName ?? ""} gift card from ${claim.senderName} is ready to use.`
+            : `It's in your balance, from ${claim.senderName}.`}
         </Muted>
+        {accepted.error ? <Notice tone="info" message={accepted.error.message} /> : null}
       </Screen>
     );
   }
@@ -176,8 +179,12 @@ export default function ClaimScreen() {
       ) : null}
 
       <ErrorNote error={acceptError} />
-      {isApiError(acceptError) && acceptError.code === "WRONG_PHONE" ? (
-        <Button variant="secondary" label="Verify a different number" onPress={verifyNumber} />
+      {isApiError(acceptError) && (acceptError.code === "WRONG_PHONE" || acceptError.code === "OTP_EXPIRED") ? (
+        <Button
+          variant="secondary"
+          label={acceptError.code === "OTP_EXPIRED" ? "Verify my number again" : "Verify a different number"}
+          onPress={verifyNumber}
+        />
       ) : null}
     </Screen>
   );

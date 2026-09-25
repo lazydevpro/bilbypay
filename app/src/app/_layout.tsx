@@ -44,6 +44,7 @@ export default function RootLayout() {
           <Stack.Screen name="burrow/autosave" options={{ title: "Auto-save" }} />
           <Stack.Screen name="activity/[id]" options={{ title: "Receipt" }} />
           <Stack.Screen name="settings/about" options={{ title: "About BilbyPay" }} />
+          <Stack.Screen name="topup" options={{ title: "" }} />
           <Stack.Screen name="dev/spike" options={{ title: "Developer" }} />
         </Stack>
       </SessionProvider>

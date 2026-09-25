@@ -55,6 +55,7 @@ describe("http api client", () => {
     await api.quote("b", "1");
     await api.giftCards();
     await api.revealGiftCard("g1");
+    await api.topupOrigins();
     await api.topupQuote("base:usdc", "1");
     await api.topupStatus("q1");
     expect(calls.map((c) => `${c.init.method} ${c.url.replace("https://x", "")}`)).toEqual([
@@ -71,6 +72,7 @@ describe("http api client", () => {
       "POST /v1/giftcards/quote",
       "GET /v1/giftcards",
       "GET /v1/giftcards/g1/reveal",
+      "GET /v1/topup/origins",
       "POST /v1/topup/quote",
       "GET /v1/topup/q1",
     ]);
@@ -112,6 +114,22 @@ describe("http api client", () => {
     const api = createHttpApi({ baseUrl: "https://x", getToken: () => "old", fetch, onSessionExpired });
     await expect(api.me()).rejects.toMatchObject({ code: "SESSION_EXPIRED" });
     expect(onSessionExpired).toHaveBeenCalledOnce();
+  });
+
+  it("treats a 401 OTP_EXPIRED as 'verify again', not as a lost session", async () => {
+    const onSessionExpired = vi.fn();
+    const { fetch } = fakeFetch(() => ({ status: 401, body: { error: { code: "OTP_EXPIRED", message: "Verify your number again to continue." } } }));
+    const api = createHttpApi({ baseUrl: "https://x", getToken: () => "t", fetch, onSessionExpired });
+    await expect(api.acceptClaim("C", { phoneToken: "old" })).rejects.toMatchObject({ code: "OTP_EXPIRED" });
+    expect(onSessionExpired).not.toHaveBeenCalled();
+  });
+
+  it("reports PHONE_REQUIRED so the app can go to the phone step", async () => {
+    const onPhoneRequired = vi.fn();
+    const { fetch } = fakeFetch(() => ({ status: 403, body: { error: { code: "PHONE_REQUIRED", message: "Add your phone number to continue." } } }));
+    const api = createHttpApi({ baseUrl: "https://x", getToken: () => "t", fetch, onPhoneRequired });
+    await expect(api.me()).rejects.toMatchObject({ code: "PHONE_REQUIRED" });
+    expect(onPhoneRequired).toHaveBeenCalledOnce();
   });
 
   it("does not call protected routes without a session", async () => {

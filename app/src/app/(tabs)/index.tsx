@@ -48,6 +48,11 @@ export default function Home() {
         <Action icon="receive" label="Receive" onPress={() => router.push("/receive")} />
         <Action icon="gift" label="Gift" onPress={() => router.push("/gifts")} />
       </View>
+      <Pressable accessibilityRole="button" onPress={() => router.push("/topup")} style={styles.addMoney}>
+        <Text variant="small" color={colors.brown}>
+          + Add money from another account
+        </Text>
+      </Pressable>
 
       <ErrorNote error={error} onRetry={reload} />
 
@@ -94,4 +99,5 @@ const styles = StyleSheet.create({
   action: { flex: 1, alignItems: "center", gap: space.sm, paddingVertical: space.md, borderRadius: radius.lg, backgroundColor: colors.surface },
   actionIcon: { width: TAP, height: TAP, borderRadius: TAP / 2, backgroundColor: colors.brown, alignItems: "center", justifyContent: "center" },
   empty: { alignItems: "center", gap: space.md, paddingVertical: space.lg },
+  addMoney: { alignSelf: "center", minHeight: 44, justifyContent: "center", paddingHorizontal: space.md },
 });

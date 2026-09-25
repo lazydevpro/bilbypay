@@ -32,6 +32,7 @@ export default function Confirm() {
   const [preparing, setPreparing] = useState(true);
   const [acknowledged, setAcknowledged] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [failedGift, setFailedGift] = useState(false);
   const signatures = useRef<Record<string, Hex> | null>(null);
 
   const prepare = useCallback(async (d: Draft | undefined) => {
@@ -72,6 +73,7 @@ export default function Confirm() {
     if (!prepared) return;
     setError(null);
     setNote(null);
+    setFailedGift(false);
     try {
       let result: ActionResult;
       if (signatures.current) {
@@ -92,7 +94,9 @@ export default function Confirm() {
         result = out.result;
       }
       if (result.status === "failed") {
+        // e.g. a gift card purchase that failed after paying: the server refunds it straight away.
         signatures.current = null;
+        setFailedGift(draft.request.type === "gift_buy" || draft.request.type === "gift_send");
         setError({ userMessage: result.error?.message ?? "That didn't go through and nothing was taken. Please try again." });
         return;
       }
@@ -113,12 +117,33 @@ export default function Confirm() {
   };
 
   const s = prepared?.summary;
-  const fromBurrow = s ? BigInt(s.fromBurrow) : 0n;
+  // For "Move to balance" the whole amount comes from Burrow by definition; the question is only for payments.
+  const fromBurrow = s && draft.request.type !== "burrow_withdraw" ? BigInt(s.fromBurrow) : 0n;
   const fromBalance = s ? BigInt(s.total) - fromBurrow : 0n;
   const rebound = s?.warnings.find((w) => w.code === "RECIPIENT_RECENTLY_CHANGED");
   const otherWarnings = s?.warnings.filter((w) => w !== rebound) ?? [];
   const blocked = !!rebound && !acknowledged;
   const busyAvailable = isApiError(error) && error.code === "BURROW_BUSY" ? String(error.details.availableNow ?? "") : "";
+
+  const retryWith = (next: Draft) => {
+    updateDraft(draftId, next);
+    setDraft(next);
+  };
+
+  /** The next step to offer under an error. */
+  const errorAction = (): { label: string; onPress: () => unknown } | undefined => {
+    const r = draft.request;
+    // BURROW_BUSY.availableNow: Burrow's releasable amount for a withdraw; balance + releasable for a payment.
+    if (isPositive(busyAvailable) && r.type === "burrow_withdraw") {
+      return { label: `Move ${usd(busyAvailable)} now`, onPress: () => retryWith({ ...draft, request: { ...r, params: { amount: busyAvailable } } }) };
+    }
+    if (isPositive(busyAvailable) && r.type === "send") {
+      return { label: `Send ${usd(busyAvailable)} instead`, onPress: () => retryWith({ ...draft, request: { ...r, params: { ...r.params, amount: busyAvailable } } }) };
+    }
+    if (failedGift) return { label: "Pick another gift card", onPress: () => router.dismissTo("/gifts") };
+    if (!prepared) return { label: "Try again", onPress: () => prepare(draft) };
+    return undefined;
+  };
 
   return (
     <Screen
@@ -183,20 +208,7 @@ export default function Confirm() {
         <Notice
           tone={isApiError(error) && error.code === "NETWORK" ? "warning" : "danger"}
           message={messageFor(error)}
-          action={
-            busyAvailable && draft.request.type === "burrow_withdraw" && isPositive(busyAvailable)
-              ? {
-                  label: `Move ${usd(busyAvailable)} now`,
-                  onPress: () => {
-                    const next: Draft = { ...draft, request: { type: "burrow_withdraw", params: { amount: busyAvailable } } };
-                    updateDraft(draftId, next);
-                    setDraft(next);
-                  },
-                }
-              : !prepared
-                ? { label: "Try again", onPress: () => prepare(draft) }
-                : undefined
-          }
+          action={errorAction()}
         />
       ) : null}
     </Screen>
