@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=../node_modules/envio/evm.schema.json
+name: bilbypay-indexer
+description: >-
+  BilbyPay on Monad: phone bindings, phone-number escrow (sends and gifts), Burrow savings
+  (stataAUSD) and every AUSD movement of BilbyPay accounts, rolled up into an activity feed,
+  per-account stats, contact graph and daily/global protocol stats.
+
+# Rows are keyed by (id, chainId): mainnet and testnet data never mix, and the same account
+# address on both chains is two independent Account rows.
+disable_default_cross_chain: true
+# Account ids are lowercase addresses, so clients can query them without checksumming.
+address_format: lowercase
+# Every handler reads the tx hash (ids, receipts). Handlers also list it in `fields`
+# (src/lib/store.ts LOG_FIELDS); selecting it here too types it for test simulations.
+field_selection:
+  transaction_fields:
+    - hash
+
+contracts:
+  # Phone number (HMAC phoneKey) -> account mapper. Bound also registers the account below.
+  - name: BilbyDirectory
+    abi_file_path: ./abis/BilbyDirectory.json
+    events:
+      - event: Bound
+      - event: Unbound
+
+  # Money / gift cards sent to a phone number that has not joined yet.
+  - name: BilbyEscrow
+    abi_file_path: ./abis/BilbyEscrow.json
+    events:
+      - event: Deposited
+      - event: Claimed
+      - event: Refunded
+      - event: Cancelled
+
+  # Burrow: AUSD <-> stataAUSD (Aave) moves on the user's behalf.
+  - name: BilbyRouter
+    abi_file_path: ./abis/BilbyRouter.json
+    events:
+      - event: AutoSaveSet
+      - event: Swept
+      - event: Broken
+      - event: Added
+
+  # A BilbyPay account. Addresses are registered at runtime (contractRegister on Bound,
+  # Deposited, Claimed, AutoSaveSet, Added) and the token events below are matched as
+  # wildcard events whose indexed from/to/owner topic is one of those accounts, so HyperSync
+  # only returns AUSD / stataAUSD logs that touch BilbyPay users instead of the whole token.
+  # The handlers keep only logs emitted by AUSD or stataAUSD (see src/lib/addresses.ts).
+  - name: BilbyAccount
+    abi_file_path: ./abis/AccountTokenEvents.json
+    events:
+      - event: Transfer # ERC-20 Transfer: AUSD balance moves and stataAUSD share moves
+      - event: Deposit # ERC-4626 Deposit on stataAUSD (owner = account)
+      - event: Withdraw # ERC-4626 Withdraw on stataAUSD (owner = account)
+
+chains:
+  # Monad mainnet (HyperSync-supported; needs ENVIO_API_TOKEN). The public RPC is only a
+  # fallback for realtime stalls.
+  - id: 143
+    start_block: ${ENVIO_MONAD_START_BLOCK:-0}
+    rpc:
+      - url: ${ENVIO_MONAD_RPC_URL:-https://rpc.monad.xyz}
+        for: fallback
+    contracts:
+      # Placeholders until BilbyPay is deployed: set the ENVIO_* vars (see .env.example).
+      # The placeholder addresses never emit logs, so an unconfigured indexer is inert.
+      - name: BilbyDirectory
+        address: "${ENVIO_MONAD_DIRECTORY_ADDRESS:-0x00000000000000000000000000000000000B1001}"
+      - name: BilbyEscrow
+        address: "${ENVIO_MONAD_ESCROW_ADDRESS:-0x00000000000000000000000000000000000B1002}"
+      - name: BilbyRouter
+        address: "${ENVIO_MONAD_ROUTER_ADDRESS:-0x00000000000000000000000000000000000B1003}"
+      - name: BilbyAccount
+
+  # Monad testnet, for the staging deployment. Skipped unless ENVIO_TESTNET_SKIP=false.
+  - id: 10143
+    skip: ${ENVIO_TESTNET_SKIP:-true}
+    start_block: ${ENVIO_TESTNET_START_BLOCK:-0}
+    rpc:
+      - url: ${ENVIO_TESTNET_RPC_URL:-https://testnet-rpc.monad.xyz}
+        for: fallback
+    contracts:
+      - name: BilbyDirectory
+        address: "${ENVIO_TESTNET_DIRECTORY_ADDRESS:-0x00000000000000000000000000000000000B1001}"
+      - name: BilbyEscrow
+        address: "${ENVIO_TESTNET_ESCROW_ADDRESS:-0x00000000000000000000000000000000000B1002}"
+      - name: BilbyRouter
+        address: "${ENVIO_TESTNET_ROUTER_ADDRESS:-0x00000000000000000000000000000000000B1003}"
+      - name: BilbyAccount

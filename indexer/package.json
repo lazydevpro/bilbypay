@@ -1,0 +1,27 @@
+{
+  "name": "@bilbypay/indexer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Envio HyperIndex indexer for BilbyPay on Monad: activity feed, escrow lifecycle, Burrow positions and protocol stats.",
+  "scripts": {
+    "codegen": "envio codegen",
+    "dev": "envio dev",
+    "start": "envio start",
+    "abis": "node scripts/export-abis.mjs",
+    "queries": "node scripts/embed-queries.mjs",
+    "typecheck": "envio codegen && tsc --noEmit -p .",
+    "test": "vitest run --test-timeout=20000"
+  },
+  "dependencies": {
+    "envio": "3.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

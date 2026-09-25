@@ -1,0 +1,318 @@
+# BilbyPay indexer schema.
+#
+# Conventions
+# - Amounts are AUSD base units (6 decimals) as BigInt, except `shares` (stataAUSD base units).
+# - Timestamps are unix seconds (Int). Day buckets are UTC.
+# - Every row is per chain (`disable_default_cross_chain: true`), so ids need no chain prefix.
+
+enum ActivityKind {
+  sent
+  received
+  gift_sent
+  gift_received
+  burrow_in
+  burrow_out
+  refund
+}
+
+enum ActivityStatus {
+  completed
+  waiting
+  refunded
+  cancelled
+}
+
+enum DepositKind {
+  TRANSFER
+  GIFT
+}
+
+enum DepositStatus {
+  Pending
+  Claimed
+  Refunded
+  Cancelled
+}
+
+enum BindingAction {
+  BOUND
+  UNBOUND
+}
+
+enum BurrowSource {
+  AUTO_SAVE # keeper sweep above the user's threshold
+  ADD # "Add to Burrow"
+  BREAK # "Move to balance" / top-up before a payment
+  DIRECT # stataAUSD deposit/withdraw that did not go through BilbyRouter
+}
+
+# A BilbyPay user: any address that bound a phone number or used the escrow / Burrow.
+type Account {
+  id: ID! # account address
+  # --- phone binding
+  phoneKey: String @index # current HMAC(pepper, E.164); null when unbound
+  phone: Phone
+  isBound: Boolean!
+  firstBoundAt: Int
+  boundAt: Int # when the current binding was made
+  reboundAt: Int # last time the account moved to a new number
+  bindingCount: Int!
+  # --- AUSD flows observed since the account was first seen by the indexer
+  ausdIn: BigInt!
+  ausdOut: BigInt!
+  ausdNetFlow: BigInt! # ausdIn - ausdOut (equals the balance for accounts funded after joining)
+  # --- activity rollups
+  sentCount: Int!
+  sentVolume: BigInt! # direct transfers + escrow deposits (TRANSFER)
+  receivedCount: Int!
+  receivedVolume: BigInt!
+  giftsSentCount: Int!
+  giftsSentVolume: BigInt!
+  giftsReceivedCount: Int!
+  pendingOutgoing: BigInt! # escrow deposits still waiting to be claimed
+  # --- Burrow
+  autoSaveEnabled: Boolean!
+  autoSaveThreshold: BigInt!
+  # --- lifecycle
+  firstSeenAt: Int!
+  lastActiveAt: Int! @index
+  activity: [ActivityItem!]! @derivedFrom(field: "account")
+  bindings: [PhoneBinding!]! @derivedFrom(field: "account")
+  depositsSent: [EscrowDeposit!]! @derivedFrom(field: "sender")
+  depositsClaimed: [EscrowDeposit!]! @derivedFrom(field: "claimedBy")
+  burrow: [BurrowPosition!]! @derivedFrom(field: "account")
+  burrowEvents: [BurrowEvent!]! @derivedFrom(field: "account")
+  contacts: [ContactEdge!]! @derivedFrom(field: "from")
+}
+
+# A phone number (by its HMAC key) and who it currently resolves to.
+type Phone {
+  id: ID! # phoneKey
+  account: Account # current binding, null when unbound
+  boundAt: Int # when the current binding was made; recent rebinds warrant a sender warning
+  bindCount: Int!
+  rebindCount: Int! # times the number moved from one account to another
+  lastReboundAt: Int
+  depositsReceived: [EscrowDeposit!]! @derivedFrom(field: "phone")
+  history: [PhoneBinding!]! @derivedFrom(field: "phone")
+  escrowReceivedCount: Int! # deposits made to this number
+  escrowReceivedVolume: BigInt!
+}
+
+# Append-only history of Bound / Unbound.
+type PhoneBinding @index(fields: ["phone", ["timestamp", "DESC"]]) {
+  id: ID! # txHash-logIndex
+  phone: Phone!
+  account: Account!
+  action: BindingAction!
+  previousAccount: String # Bound: the account the number moved away from (if any)
+  isRebind: Boolean! # Bound replacing another account's binding of this number
+  timestamp: Int!
+  blockNumber: Int!
+  txHash: String!
+}
+
+# A phone-number escrow deposit and its lifecycle.
+type EscrowDeposit @index(fields: ["status", "expiry"]) {
+  id: ID! # depositId
+  sender: Account!
+  phone: Phone!
+  amount: BigInt!
+  kind: DepositKind!
+  giftId: String # bytes32, GIFT only
+  expiry: Int!
+  status: DepositStatus! @index
+  createdAt: Int!
+  createdBlock: Int!
+  createdTx: String!
+  claimedBy: Account
+  paidTo: String # recipient (TRANSFER) or treasury (GIFT)
+  resolvedAt: Int
+  resolvedTx: String
+  timeToClaim: Int # seconds from deposit to claim
+  senderItem: ActivityItem!
+}
+
+# One row of an account's activity feed (docs/api.md ActivityItem).
+type ActivityItem @index(fields: ["account", ["createdAt", "DESC"]]) {
+  id: ID!
+  account: Account!
+  kind: ActivityKind!
+  status: ActivityStatus!
+  amount: BigInt!
+  counterparty: String # address of the other side, when there is one
+  counterpartyAccount: Account # set when the other side is a BilbyPay account
+  counterpartyPhoneKey: String # escrow sends: the number it was sent to
+  deposit: EscrowDeposit
+  giftId: String
+  expiresAt: Int # waiting escrow items
+  createdAt: Int!
+  updatedAt: Int!
+  blockNumber: Int!
+  logIndex: Int!
+  txHash: String! @index
+}
+
+# stataAUSD held by a BilbyPay account.
+type BurrowPosition {
+  id: ID! # account address
+  account: Account!
+  shares: BigInt!
+  depositedAssets: BigInt! # AUSD in (ERC-4626 Deposit, owner = account)
+  withdrawnAssets: BigInt! # AUSD out (ERC-4626 Withdraw, owner = account)
+  netDeposited: BigInt! # depositedAssets - withdrawnAssets
+  # Value and yield at the last known stataAUSD share price (see GlobalStats.sharePriceWad):
+  # recompute client-side with the latest price for a live number.
+  valueEstimate: BigInt!
+  earnedEstimate: BigInt! # valueEstimate - netDeposited (can be negative only from rounding)
+  sweepCount: Int!
+  sweptAssets: BigInt!
+  addCount: Int!
+  addedAssets: BigInt!
+  breakCount: Int!
+  brokenAssets: BigInt!
+  # Tx of the last share burn: AUSD reaching the account from Aave in the same tx is the
+  # Burrow payout, not an external "received" payment.
+  lastBurnTx: String
+  # Last stataAUSD Deposit/Withdraw of this account; the router event that follows it in the
+  # same tx labels its source (auto-save sweep vs add vs break).
+  lastVaultEvent: BurrowEvent
+  updatedAt: Int!
+}
+
+# Every Burrow movement: one per stataAUSD Deposit/Withdraw whose owner is a BilbyPay account.
+type BurrowEvent @index(fields: ["account", ["timestamp", "DESC"]]) {
+  id: ID! # txHash-logIndex of the stataAUSD Deposit/Withdraw log
+  account: Account!
+  source: BurrowSource!
+  assets: BigInt!
+  shares: BigInt!
+  sharePriceWad: BigInt! # assets * 1e18 / shares at this event
+  timestamp: Int!
+  blockNumber: Int!
+  txHash: String!
+}
+
+enum Token {
+  AUSD
+  STATA_AUSD
+}
+
+enum TransferClass {
+  direct
+  external_in
+  external_out
+  escrow_in
+  escrow_out
+  burrow_in
+  burrow_out
+  unattributed
+}
+
+# Every AUSD / stataAUSD Transfer log that touches a BilbyPay account, with its classification
+# (src/lib/classify.ts). Receipts link here via txHash.
+type TokenTransfer @index(fields: ["from", ["timestamp", "DESC"]]) @index(fields: ["to", ["timestamp", "DESC"]]) {
+  id: ID! # txHash-logIndex
+  token: Token!
+  from: String!
+  to: String!
+  value: BigInt!
+  class: TransferClass!
+  timestamp: Int!
+  blockNumber: Int!
+  txHash: String!
+}
+
+# Directed "who pays whom" edge between two BilbyPay accounts: powers recent contacts and the
+# network view (senders x recipients) without scanning the activity table.
+type ContactEdge {
+  id: ID! # from-to
+  from: Account!
+  to: Account!
+  count: Int!
+  volume: BigInt!
+  firstAt: Int!
+  lastAt: Int! @index
+}
+
+# Marker row: the account was active on that day (dedupes DailyStats.activeAccounts).
+type AccountDay {
+  id: ID! # account-day
+  account: Account!
+  day: Int!
+}
+
+# UTC day rollup.
+type DailyStats {
+  id: ID! # YYYY-MM-DD
+  day: Int! @index # days since unix epoch
+  date: String!
+  activeAccounts: Int!
+  newAccounts: Int!
+  newBindings: Int!
+  rebinds: Int!
+  paymentsCount: Int! # direct transfers between BilbyPay accounts + escrow deposits
+  paymentsVolume: BigInt!
+  directTransferCount: Int!
+  directTransferVolume: BigInt!
+  externalInVolume: BigInt! # AUSD from non-BilbyPay addresses (top-ups)
+  externalOutVolume: BigInt! # AUSD to non-BilbyPay addresses (cash-outs)
+  escrowDepositCount: Int!
+  escrowDepositVolume: BigInt!
+  escrowClaimCount: Int!
+  escrowClaimVolume: BigInt!
+  escrowRefundCount: Int!
+  escrowRefundVolume: BigInt!
+  escrowCancelCount: Int!
+  escrowCancelVolume: BigInt!
+  giftCount: Int!
+  giftVolume: BigInt!
+  timeToClaimSum: BigInt!
+  timeToClaimCount: Int!
+  burrowInVolume: BigInt!
+  burrowOutVolume: BigInt!
+  autoSaveSweeps: Int!
+}
+
+# Protocol-wide totals for one chain (id "global").
+type GlobalStats {
+  id: ID!
+  accounts: Int!
+  boundPhones: Int!
+  bindings: Int!
+  rebinds: Int!
+  paymentsCount: Int!
+  paymentsVolume: BigInt!
+  directTransferCount: Int!
+  directTransferVolume: BigInt!
+  externalInVolume: BigInt!
+  externalOutVolume: BigInt!
+  # escrow
+  escrowDepositCount: Int!
+  escrowDepositVolume: BigInt!
+  escrowPendingCount: Int!
+  escrowPendingValue: BigInt! # AUSD currently held for unclaimed numbers
+  escrowClaimCount: Int!
+  escrowClaimVolume: BigInt!
+  escrowRefundCount: Int!
+  escrowCancelCount: Int!
+  claimRate: Float! # claimed / (claimed + refunded + cancelled)
+  giftCount: Int!
+  giftVolume: BigInt!
+  # time to claim (seconds)
+  timeToClaimSum: BigInt!
+  timeToClaimCount: Int!
+  avgTimeToClaim: Float!
+  # log-scale histogram, bucket upper bounds in src/lib/latency.ts (LATENCY_BUCKETS_SECONDS)
+  timeToClaimHistogram: [Int!]!
+  medianTimeToClaim: Int! # estimated from the histogram
+  p90TimeToClaim: Int!
+  # Burrow
+  burrowAccounts: Int!
+  burrowShares: BigInt!
+  burrowNetDeposited: BigInt!
+  burrowTvlEstimate: BigInt! # burrowShares at sharePriceWad
+  autoSaveEnabledCount: Int!
+  sharePriceWad: BigInt! # last seen stataAUSD assets per share, 1e18 = 1.0
+  updatedAt: Int!
+}
