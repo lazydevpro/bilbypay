@@ -10,6 +10,11 @@ description: >-
 disable_default_cross_chain: true
 # Account ids are lowercase addresses, so clients can query them without checksumming.
 address_format: lowercase
+# Every handler reads the tx hash (ids, receipts). Handlers also list it in `fields`
+# (src/lib/store.ts LOG_FIELDS); selecting it here too types it for test simulations.
+field_selection:
+  transaction_fields:
+    - hash
 
 contracts:
   # Phone number (HMAC phoneKey) -> account mapper. Bound also registers the account below.

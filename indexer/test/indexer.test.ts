@@ -1,26 +1,29 @@
 // End-to-end handler tests with Envio's in-process test indexer: simulated logs, real handlers,
 // real `where` filters (the simulate source applies the BilbyAccount address filter too).
-import { createTestIndexer, indexer as runtime } from "envio";
+import { createTestIndexer, indexer as runtime, type Address } from "envio";
 import { describe, expect, it } from "vitest";
 import { tokensFor } from "../src/lib/tokens.js";
 
+const addr = (value: string) => value.toLowerCase() as Address;
+
 const CHAIN = 143;
 const T0 = 1_790_000_000;
-const ZERO = "0x0000000000000000000000000000000000000000";
+const ZERO = addr("0x0000000000000000000000000000000000000000");
 const ZERO32 = "0x" + "00".repeat(32);
 
-const ALICE = "0x000000000000000000000000000000000000a11c";
-const BOB = "0x0000000000000000000000000000000000000b0b";
-const CAROL = "0x000000000000000000000000000000000000ca01";
-const EXCHANGE = "0x00000000000000000000000000000000000e0c11"; // not a BilbyPay account
-const ATOKEN = "0x000000000000000000000000000000000000a70c"; // Aave aAUSD paying out withdrawals
-const OTHER_TOKEN = "0x0000000000000000000000000000000000070c3e";
+const ALICE = addr("0x000000000000000000000000000000000000a11c");
+const BOB = addr("0x0000000000000000000000000000000000000b0b");
+const CAROL = addr("0x000000000000000000000000000000000000ca01");
+const EXCHANGE = addr("0x00000000000000000000000000000000000e0c11"); // not a BilbyPay account
+const ATOKEN = addr("0x000000000000000000000000000000000000a70c"); // Aave aAUSD paying out withdrawals
+const OTHER_TOKEN = addr("0x0000000000000000000000000000000000070c3e");
 const PHONE_A = "0x" + "aa".repeat(32);
 const PHONE_B = "0x" + "bb".repeat(32);
 
-const { ausd: AUSD, stata: STATA } = tokensFor(CHAIN);
-const ESCROW = runtime.chains[CHAIN].BilbyEscrow.addresses[0]!.toLowerCase();
-const ROUTER = runtime.chains[CHAIN].BilbyRouter.addresses[0]!.toLowerCase();
+const AUSD = addr(tokensFor(CHAIN).ausd);
+const STATA = addr(tokensFor(CHAIN).stata);
+const ESCROW = addr(runtime.chains[CHAIN].BilbyEscrow.addresses[0]!);
+const ROUTER = addr(runtime.chains[CHAIN].BilbyRouter.addresses[0]!);
 
 const usd = (dollars: number) => BigInt(Math.round(dollars * 1_000_000));
 const tx = (n: number) => "0x" + n.toString(16).padStart(64, "0");
@@ -28,36 +31,23 @@ const at = (block: number, seconds = 0, txn = block) => ({
   block: { number: block, timestamp: T0 + seconds },
   transaction: { hash: tx(txn) },
 });
+type At = ReturnType<typeof at>;
 
 // ---- simulate item builders
-const bound = (b: ReturnType<typeof at>, phoneKey: string, account: string, previous = ZERO) =>
+const bound = (b: At, phoneKey: string, account: Address, previous: Address = ZERO) =>
   ({ contract: "BilbyDirectory", event: "Bound", ...b, params: { phoneKey, account, previous } }) as const;
-const unbound = (b: ReturnType<typeof at>, phoneKey: string, account: string) =>
+const unbound = (b: At, phoneKey: string, account: Address) =>
   ({ contract: "BilbyDirectory", event: "Unbound", ...b, params: { phoneKey, account } }) as const;
-const transfer = (b: ReturnType<typeof at>, token: string, from: string, to: string, value: bigint) =>
-  ({
-    contract: "BilbyAccount",
-    event: "Transfer",
-    srcAddress: token as `0x${string}`,
-    ...b,
-    params: { from: from as `0x${string}`, to: to as `0x${string}`, value },
-  }) as const;
-const deposited = (
-  b: ReturnType<typeof at>,
-  depositId: string,
-  sender: string,
-  phoneKey: string,
-  amount: bigint,
-  expiry: number,
-  giftId = ZERO32,
-) =>
+const transfer = (b: At, token: Address, from: Address, to: Address, value: bigint) =>
+  ({ contract: "BilbyAccount", event: "Transfer", srcAddress: token, ...b, params: { from, to, value } }) as const;
+const deposited = (b: At, depositId: string, sender: Address, phoneKey: string, amount: bigint, expiry: number, giftId = ZERO32) =>
   ({
     contract: "BilbyEscrow",
     event: "Deposited",
     ...b,
     params: {
       depositId,
-      sender: sender as `0x${string}`,
+      sender,
       phoneKey,
       amount,
       expiry: BigInt(T0 + expiry),
@@ -65,17 +55,12 @@ const deposited = (
       giftId,
     },
   }) as const;
-const claimed = (b: ReturnType<typeof at>, depositId: string, recipient: string, paidTo: string, amount: bigint) =>
-  ({
-    contract: "BilbyEscrow",
-    event: "Claimed",
-    ...b,
-    params: { depositId, recipient: recipient as `0x${string}`, paidTo: paidTo as `0x${string}`, amount },
-  }) as const;
-const refunded = (b: ReturnType<typeof at>, depositId: string, sender: string, amount: bigint) =>
-  ({ contract: "BilbyEscrow", event: "Refunded", ...b, params: { depositId, sender: sender as `0x${string}`, amount } }) as const;
-const cancelled = (b: ReturnType<typeof at>, depositId: string, sender: string, amount: bigint) =>
-  ({ contract: "BilbyEscrow", event: "Cancelled", ...b, params: { depositId, sender: sender as `0x${string}`, amount } }) as const;
+const claimed = (b: At, depositId: string, recipient: Address, paidTo: Address, amount: bigint) =>
+  ({ contract: "BilbyEscrow", event: "Claimed", ...b, params: { depositId, recipient, paidTo, amount } }) as const;
+const refunded = (b: At, depositId: string, sender: Address, amount: bigint) =>
+  ({ contract: "BilbyEscrow", event: "Refunded", ...b, params: { depositId, sender, amount } }) as const;
+const cancelled = (b: At, depositId: string, sender: Address, amount: bigint) =>
+  ({ contract: "BilbyEscrow", event: "Cancelled", ...b, params: { depositId, sender, amount } }) as const;
 
 const D1 = "0x" + "d1".repeat(32);
 const D2 = "0x" + "d2".repeat(32);
@@ -350,9 +335,9 @@ describe("Burrow", () => {
             {
               contract: "BilbyAccount",
               event: "Deposit",
-              srcAddress: STATA as `0x${string}`,
+              srcAddress: STATA,
               ...at(101, 60),
-              params: { sender: ROUTER as `0x${string}`, owner: ALICE, assets: usd(20), shares: usd(19) },
+              params: { sender: ROUTER, owner: ALICE, assets: usd(20), shares: usd(19) },
             },
             { contract: "BilbyRouter", event: "Swept", ...at(101, 60), params: { user: ALICE, assets: usd(20), shares: usd(19) } },
             // "Move to balance": shares burned, Aave pays AUSD from the aToken, then Withdraw + Broken.
@@ -361,9 +346,9 @@ describe("Burrow", () => {
             {
               contract: "BilbyAccount",
               event: "Withdraw",
-              srcAddress: STATA as `0x${string}`,
+              srcAddress: STATA,
               ...at(102, 3_600),
-              params: { sender: ROUTER as `0x${string}`, receiver: ALICE, owner: ALICE, assets: usd(10.6), shares: usd(10) },
+              params: { sender: ROUTER, receiver: ALICE, owner: ALICE, assets: usd(10.6), shares: usd(10) },
             },
             { contract: "BilbyRouter", event: "Broken", ...at(102, 3_600), params: { user: ALICE, assets: usd(10.6), shares: usd(10) } },
             // Alice deposits into stataAUSD herself (not through BilbyRouter).
@@ -372,7 +357,7 @@ describe("Burrow", () => {
             {
               contract: "BilbyAccount",
               event: "Deposit",
-              srcAddress: STATA as `0x${string}`,
+              srcAddress: STATA,
               ...at(103, 7_200),
               params: { sender: ALICE, owner: ALICE, assets: usd(1.06), shares: usd(1) },
             },

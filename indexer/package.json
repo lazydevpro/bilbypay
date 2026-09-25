@@ -9,7 +9,8 @@
     "dev": "envio dev",
     "start": "envio start",
     "abis": "node scripts/export-abis.mjs",
-    "typecheck": "tsc --noEmit -p .",
+    "queries": "node scripts/embed-queries.mjs",
+    "typecheck": "envio codegen && tsc --noEmit -p .",
     "test": "vitest run --test-timeout=20000"
   },
   "dependencies": {
