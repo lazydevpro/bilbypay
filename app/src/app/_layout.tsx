@@ -1,7 +1,8 @@
-import { Stack } from "expo-router";
+import { router, Stack, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { SessionProvider } from "../state/session";
+import { SessionProvider, useSession } from "../state/session";
 import { colors } from "../ui/theme";
 
 export default function RootLayout() {
@@ -9,6 +10,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <SessionProvider>
         <StatusBar style="dark" />
+        <SessionGuard />
         <Stack
           screenOptions={{
             headerStyle: { backgroundColor: colors.bg },
@@ -47,4 +49,18 @@ export default function RootLayout() {
       </SessionProvider>
     </SafeAreaProvider>
   );
+}
+
+/** Screens anyone can see; everything else needs a signed-in, unlocked session. */
+const PUBLIC = new Set(["", "index", "welcome", "phone", "code", "create", "unlock", "claim", "c", "dev"]);
+
+function SessionGuard() {
+  const { status } = useSession();
+  const segments = useSegments() as string[];
+  const first = segments[0] ?? "";
+  useEffect(() => {
+    if (status === "loading" || status === "ready" || PUBLIC.has(first)) return;
+    router.replace("/");
+  }, [status, first]);
+  return null;
 }

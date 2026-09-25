@@ -47,7 +47,7 @@ export default function Done() {
 
   if (!outcome || !draft || !result) {
     return (
-      <Screen footer={<Button label="Done" onPress={() => router.replace("/(tabs)")} />}>
+      <Screen footer={<Button label="Done" onPress={() => router.navigate("/(tabs)")} />}>
         <Text variant="title">All done</Text>
       </Screen>
     );
@@ -98,7 +98,7 @@ export default function Done() {
         <>
           {result.claimLink ? <Button label="Share the link" onPress={share} /> : null}
           {result.giftCardId ? <Button label="View gift card" onPress={() => router.replace(`/card/${result.giftCardId}`)} /> : null}
-          <Button variant={result.claimLink || result.giftCardId ? "ghost" : "primary"} label="Done" onPress={() => router.replace("/(tabs)")} />
+          <Button variant={result.claimLink || result.giftCardId ? "ghost" : "primary"} label="Done" onPress={() => router.navigate("/(tabs)")} />
         </>
       }
     >
