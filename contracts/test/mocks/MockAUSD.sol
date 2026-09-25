@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-/// @notice Test-only stand-in for AUSD on Monad: 6-decimal ERC-20 with EIP-3009 and the same
+/// @notice Test-only stand-in for AUSD on Monad: 6-decimal ERC-20 with EIP-3009, EIP-2612 and the same
 /// EIP-712 domain as mainnet ("Agora Dollar", version "1"). Anyone can mint. Never deploy to mainnet.
 contract MockAUSD {
     string public constant name = "AUSD";
@@ -15,6 +15,9 @@ contract MockAUSD {
         "ReceiveWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)"
     );
 
+    bytes32 public constant PERMIT_TYPEHASH =
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+
     string private constant DOMAIN_NAME = "Agora Dollar";
     string private constant DOMAIN_VERSION = "1";
 
@@ -22,6 +25,7 @@ contract MockAUSD {
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
     mapping(address => mapping(bytes32 => bool)) public authorizationState;
+    mapping(address => uint256) public nonces;
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
@@ -57,6 +61,17 @@ contract MockAUSD {
         allowance[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
         return true;
+    }
+
+    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+        external
+    {
+        require(block.timestamp <= deadline, "permit is expired");
+        bytes32 structHash = keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline));
+        address signer = ecrecover(keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR(), structHash)), v, r, s);
+        require(signer != address(0) && signer == owner, "invalid signature");
+        allowance[owner][spender] = value;
+        emit Approval(owner, spender, value);
     }
 
     function transfer(address to, uint256 value) external returns (bool) {

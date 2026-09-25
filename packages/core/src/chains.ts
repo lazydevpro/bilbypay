@@ -17,6 +17,8 @@ export type Network = {
   /** The dollar token users hold. */
   ausd: TokenInfo;
   usdc?: TokenInfo;
+  /** Aave v3 ERC-4626 wrapper holding Burrow money. */
+  stata?: TokenInfo;
 };
 
 export const NETWORKS = {
@@ -33,6 +35,12 @@ export const NETWORKS = {
       decimals: 6,
       domainName: "USDC",
       domainVersion: "2",
+    },
+    stata: {
+      address: "0x9e1AcC5BFbf34e2E579763cE14042d957719fE76",
+      decimals: 6,
+      domainName: "Wrapped Aave Monad AUSD",
+      domainVersion: "1",
     },
   },
   [monadTestnet.id]: {
