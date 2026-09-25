@@ -1,0 +1,21 @@
+{
+  "name": "@bilbypay/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "test": "echo \"no server tests yet\"",
+    "spike:relay": "tsx scripts/relay-3009.ts",
+    "spike:relay:local": "bash scripts/local-relay-e2e.sh"
+  },
+  "dependencies": {
+    "@bilbypay/core": "workspace:*",
+    "viem": "^2.56.9"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

@@ -10,8 +10,10 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 - [ ] Claim sponsor perks: Tenderly Pro, Quicknode, Zerion #admin
 - [ ] Read official rules modal + Agora/Mera bounty pages on hackathon.monad.xyz; resolve rubric/open-source conflicts #admin
 - [ ] Email/DM Agora for API key + staging access (cross-border bounty) #admin
-- [ ] Spike: Expo dev build + `@category-labs/mera` react-native client; create passkey on a real iPhone (iOS 18+) and Android; same address after reinstall #app #spike
-- [ ] Spike: script that signs EIP-3009 `transferWithAuthorization` for AUSD from a 0-MON account and relays it on mainnet #contracts #spike
+- [~] Spike: Expo dev build + `@category-labs/mera` react-native client; create passkey on a real iPhone (iOS 18+) and Android; same address after reinstall #app #spike
+  - code done (`app/`, bundles for iOS + Android); remaining: host `.well-known` files on the rpId domain, build dev client, run on devices — [runbook](docs/phase-0-runbook.md) steps A–C
+- [~] Spike: script that signs EIP-3009 `transferWithAuthorization` for AUSD from a 0-MON account and relays it on mainnet #contracts #spike
+  - `server/scripts/relay-3009.ts` done + passing on local anvil (key-signed and app/passkey-signed); remaining: fund relayer (> 10 MON) and run on mainnet — [runbook](docs/phase-0-runbook.md) step D
 - [ ] Apply to Bitrefill Business / partner program (KYB via SumSub); ask: discounts/rev-share, KYB time, webhook signing, idempotency, P2P gifting from a crypto app #admin #giftcards
 - [ ] Pre-fund the Base USDC float (~$50) for Laso demo purchases (users never touch Base) #admin #giftcards
 - [ ] Spike: buy one real $5 card via Laso x402 (wallet sign-in → search → 402 quote → pay) and confirm code/PIN/URL in response #giftcards #spike
@@ -20,7 +22,7 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 
 ## Next
 ### Contracts #contracts
-- [ ] Foundry project in `contracts/`
+- [x] Foundry project in `contracts/` (forge-std, `MockAUSD` with EIP-3009 + tests)
 - [ ] `BilbyDirectory`: EIP-712 verifier-signed bind, `resolve`, `boundAt`, `Bound` event
 - [ ] `BilbyEscrow`: `depositWithAuthorization` (receiveWithAuthorization), `claim` with attestation, `refund` after expiry
 - [ ] `BilbyEscrow` deposit `kind`: `TRANSFER` (→ recipient) vs `GIFT` (→ treasury on claim, emits `giftId`)
@@ -97,7 +99,7 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 
 ### Submission #submission
 - [ ] README: problem, demo, "Why Monad" (300ms/600ms, EIP-3009 gasless, P256), architecture, addresses, tx hashes, AI-tool disclosure
-- [ ] OSI license (MIT)
+- [x] OSI license (MIT)
 - [ ] Repo access for judges: make github.com/lazydevpro/bilbypay public (or grant metropolis@hackathon.monad.xyz) before Oct 13
 - [ ] Demo video ≤ 3 min (real mainnet txs) + pitch video ≤ 2 min + optional 30s ad
 - [ ] Logo (bilby 🐰) + live link
@@ -117,6 +119,9 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 - [ ] Burrow goals ("Trip to Goa" pots) #stretch #burrow
 
 ## Done
+- [x] Phase 0 scaffold: pnpm workspace, `packages/core` (chains, EIP-3009, PRF → key derivation, dollars), MIT license #admin
+- [x] Relay spike script + local anvil e2e (`pnpm --filter @bilbypay/server spike:relay:local`) #contracts #spike
+- [x] Expo SDK 57 dev-build app with mera passkey create / sign-in / sign test payment; `.well-known` templates #app #spike
 - [x] Research: Monad hackathons, ecosystem gaps, tech, pitch (`reports/`) #research
 - [x] Research: Metropolis tracks, bounties, fast-chain winners (`reports/`) #research
 - [x] Risk check: SIM swap/UPI model, mera mobile, gas sponsorship, AUSD EIP-3009, P256 on mainnet #research

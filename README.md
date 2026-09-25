@@ -20,16 +20,29 @@ No seed phrases, no wallet addresses, no gas tokens.
 - Sub-cent fees → gasless relaying is sustainable.
 - EIP-3009 on AUSD/USDC + native P256 (passkey) precompile → no gas token, no seed phrase.
 
-## Repo layout (planned)
+## Repo layout
 
 ```
-contracts/   Foundry — BilbyDirectory, BilbyEscrow
-server/      Node/TS — OTP, verifier, relayer, claim links
-app/         Expo (React Native) — mobile app
-docs/plans/  spec & plan
-reports/     research reports
+packages/core/  shared TS: Monad chains + AUSD, EIP-3009 typed data, passkey → account key derivation
+contracts/      Foundry — BilbyDirectory, BilbyEscrow, BilbyRouter (Phase 1+); MockAUSD for tests
+server/         Node/TS — relay spike now; OTP, verifier, relayer, claim links later
+app/            Expo (React Native dev build) — mera passkey account
+docs/plans/     spec & plan
+docs/phase-0-runbook.md  how to run the passkey + mainnet relay spikes
+reports/        research reports
 research_notes/
 ```
+
+## Develop
+
+```bash
+pnpm install
+pnpm typecheck && pnpm test          # TS packages
+pnpm test:contracts                  # forge test
+pnpm --filter @bilbypay/server spike:relay:local   # EIP-3009 relay e2e on a local anvil "Monad"
+```
+
+Device and mainnet steps: [docs/phase-0-runbook.md](docs/phase-0-runbook.md).
 
 ## Status
 
@@ -41,4 +54,4 @@ Built with assistance from Claude Code (Anthropic) for research, planning, and c
 
 ## License
 
-MIT (to be added).
+[MIT](LICENSE)
