@@ -1,0 +1,12 @@
+{
+  "name": "bilby-mascot-3d",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "view": "node serve.mjs 5173",
+    "build": "cd ../blender && blender -b --factory-startup -P build_bilby.py && blender -b bilby.blend -P export_glb.py"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  }
+}

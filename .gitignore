@@ -36,3 +36,8 @@ build/
 
 # local tooling
 .claude/*.lock
+
+# blender working files
+assets/mascot/blender/renders/
+assets/mascot/blender/bilby_export.blend
+*.blend1

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Bilby mascot viewer</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #f7f7fa; font-family: system-ui, sans-serif; }
+    #ui { position: fixed; top: 12px; left: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+    button { border: 0; border-radius: 999px; padding: 8px 14px; background: #86a0c8; color: #fff; font-weight: 600; cursor: pointer; }
+    button.active { background: #c73a3a; }
+  </style>
+  <script type="importmap">
+    { "imports": {
+        "three": "./node_modules/three/build/three.module.js",
+        "three/addons/": "./node_modules/three/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <div id="ui"></div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(devicePixelRatio);
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    const params = new URLSearchParams(location.search);
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf7f7fa);
+    const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.01, 100);
+    camera.position.set(0, 0.8, 3.2);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0.55, 0);
+    controls.update();
+
+    scene.add(new THREE.AmbientLight(0xffffff, 2.12));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+    sun.position.set(1.5, 3, 2);
+    sun.castShadow = true;
+    scene.add(sun);
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(0.6, 48), new THREE.ShadowMaterial({ opacity: 0.12 }));
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    const clock = new THREE.Clock();
+    let mixer;
+    // flat cel shading to match the 2D art: two tones, no speculars
+    const ramp = new THREE.DataTexture(new Uint8Array([225, 225, 230, 255, 255, 255, 255, 255]), 2, 1);
+    ramp.minFilter = ramp.magFilter = THREE.NearestFilter;
+    ramp.needsUpdate = true;
+    const toon = params.get('toon') !== '0';
+    const model = params.get('model') ?? 'bilby.glb';
+    new GLTFLoader().load('./' + model, (gltf) => {
+      gltf.scene.traverse((o) => {
+        if (!o.isMesh) return;
+        o.castShadow = true;
+        if (toon) {
+          const m = o.material;
+          o.material = new THREE.MeshToonMaterial({ color: m.color, map: m.map, gradientMap: ramp });
+        }
+      });
+      scene.add(gltf.scene);
+      mixer = new THREE.AnimationMixer(gltf.scene);
+      const ui = document.getElementById('ui');
+      let current;
+      const play = (clip, btn) => {
+        current?.stop();
+        document.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+        if (!clip) return;
+        current = mixer.clipAction(clip).reset().play();
+        btn.classList.add('active');
+      };
+      const rest = document.createElement('button');
+      rest.textContent = 'Rest pose';
+      rest.onclick = () => play(null);
+      ui.appendChild(rest);
+      for (const clip of gltf.animations) {
+        const b = document.createElement('button');
+        b.textContent = clip.name;
+        b.onclick = () => play(clip, b);
+        ui.appendChild(b);
+      }
+      const start = params.get('clip');
+      if (start) [...ui.children].find((b) => b.textContent === start)?.click();
+      window.__bilby = { gltf, mixer, camera, controls };
+    });
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+    renderer.setAnimationLoop(() => {
+      mixer?.update(clock.getDelta());
+      renderer.render(scene, camera);
+    });
+  </script>
+</body>
+</html>
