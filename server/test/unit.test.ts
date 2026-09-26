@@ -12,6 +12,9 @@ import { EncryptedKvStore } from "../src/giftcards/providers";
 import { formatUsdShort, fromJson, KeyedMutex, newClaimCode, newReference, toJson } from "../src/util";
 import { encodeErrorResult, type Hex } from "viem";
 import { bilbyRouterAbi, mockStataAbi } from "@bilbypay/core";
+import { MockTopUpProvider } from "@bilbypay/topup";
+import { isNonceTooLow, type TxSender } from "../src/relayer";
+import { TestnetDeliveringTopUpProvider } from "../src/topup-testnet";
 
 describe("phone", () => {
   it("normalises to E.164 with a region hint", () => {
@@ -190,5 +193,61 @@ describe("gift provider store", () => {
     expect(await store.get("missing")).toBeUndefined();
     db.prepare("UPDATE kv SET key = ? WHERE key = ?").run("giftprovider:laso:gift-2", "giftprovider:laso:gift-1");
     await expect(store.get("laso:gift-2")).rejects.toThrow();
+  });
+});
+
+describe("relayer nonce recovery", () => {
+  it("recognises nonce-too-low rejections (viem error and Monad's wording), not other failures", () => {
+    expect(isNonceTooLow({ name: "NonceTooLowError" })).toBe(true);
+    expect(isNonceTooLow(new Error("x", { cause: { details: "Nonce provided for the transaction (17) is lower than the current nonce of the account." } }))).toBe(true);
+    expect(isNonceTooLow({ shortMessage: "nonce too low" })).toBe(true);
+    expect(isNonceTooLow(new Error("request timed out"))).toBe(false);
+    expect(isNonceTooLow(new Error("insufficient funds for gas"))).toBe(false);
+  });
+});
+
+describe("testnet top-up delivery", () => {
+  const usdc = "0x00000000000000000000000000000000000000c0" as const;
+  const treasury = "0x00000000000000000000000000000000000000fe" as const;
+  const fakeSender = (hashes: Hex[], failFirst = false) => {
+    const calls: { to: string; data: Hex }[] = [];
+    let n = 0;
+    const sender = {
+      send: async (call: { to: string; data: Hex }) => {
+        calls.push(call);
+        if (failFirst && n++ === 0) throw new Error("boom");
+        return { hash: hashes[calls.length - 1]!, receipt: {} };
+      },
+    } as unknown as TxSender;
+    return { sender, calls };
+  };
+
+  it("mints test USDC to the quote's recipient once, and reports that real tx as the delivery", async () => {
+    let now = 0;
+    const inner = new MockTopUpProvider({ now: () => now, autoDepositMs: 0, processingMs: 0 });
+    const { sender, calls } = fakeSender(["0xaa", "0xbb"] as Hex[]);
+    const p = new TestnetDeliveringTopUpProvider(inner, usdc, sender);
+    const q = await p.quote({ originAsset: inner.supportedOrigins()[0]!.id, amount: 5_000_000n, recipient: treasury, refundTo: treasury } as any);
+    now = 1;
+    const a = await p.status(q.quoteId);
+    const b = await p.status(q.quoteId);
+    expect(a.status).toBe("completed");
+    expect(a.destinationTxHashes).toEqual(["0xaa"]);
+    expect(b.destinationTxHashes).toEqual(["0xaa"]);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.to).toBe(usdc);
+    expect(calls[0]!.data.toLowerCase()).toContain(treasury.slice(2));
+  });
+
+  it("retries a failed delivery on the next poll", async () => {
+    let now = 0;
+    const inner = new MockTopUpProvider({ now: () => now, autoDepositMs: 0, processingMs: 0 });
+    const { sender, calls } = fakeSender(["0x01", "0xcc"] as Hex[], true);
+    const p = new TestnetDeliveringTopUpProvider(inner, usdc, sender);
+    const q = await p.quote({ originAsset: inner.supportedOrigins()[0]!.id, amount: 5_000_000n, recipient: treasury, refundTo: treasury } as any);
+    now = 1;
+    await expect(p.status(q.quoteId)).rejects.toThrow("boom");
+    expect((await p.status(q.quoteId)).destinationTxHashes).toEqual(["0xcc"]);
+    expect(calls).toHaveLength(2);
   });
 });

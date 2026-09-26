@@ -3,7 +3,7 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { messageFor } from "../api";
 import { UnlockCancelled } from "../auth/unlock";
-import { IS_MOCK } from "../config";
+import { IS_MOCK, IS_TESTNET } from "../config";
 import { useSession } from "../state/session";
 import { Button } from "../ui/Button";
 import { Mascot } from "../ui/Mascot";
@@ -45,6 +45,7 @@ export default function Welcome() {
       </View>
       {pendingClaim ? <Notice tone="success" title="Someone sent you something" message="Set up BilbyPay in under a minute to open it." /> : null}
       {IS_MOCK ? <Notice tone="info" title="Demo mode" message="Nothing real moves. Use the code 000000 when asked." /> : null}
+      {!IS_MOCK && IS_TESTNET ? <Notice tone="info" title="Test mode" message="Test money only. Use the code 000000 when asked." /> : null}
       {error ? <Notice tone="danger" message={error} /> : null}
     </Screen>
   );

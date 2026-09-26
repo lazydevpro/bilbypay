@@ -288,7 +288,9 @@ describe("error mapping", () => {
 describe("createTopUpProviderFromEnv", () => {
   it("defaults to mock without a key, aurora with one", () => {
     expect(createTopUpProviderFromEnv({})).toBeInstanceOf(MockTopUpProvider);
-    const p = createTopUpProviderFromEnv({ INTENTS_API_KEY: "k", TOPUP_SLIPPAGE_BPS: "30" });
+    // blank line copied from .env.example (node --env-file sets "")
+    expect(createTopUpProviderFromEnv({ TOPUP_PROVIDER: "" })).toBeInstanceOf(MockTopUpProvider);
+    const p =createTopUpProviderFromEnv({ INTENTS_API_KEY: "k", TOPUP_SLIPPAGE_BPS: "30" });
     expect(p).toBeInstanceOf(IntentsTopUpProvider);
     expect(p.name).toBe("aurora-intents");
     expect(createTopUpProviderFromEnv({ TOPUP_PROVIDER: "oneclick" }).name).toBe("near-intents-1click");

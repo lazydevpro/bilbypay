@@ -71,7 +71,7 @@ export async function deleteUnlockSecret(): Promise<void> {
   await quietly(SecureStore.deleteItemAsync(K.unlock, { requireAuthentication: true }), undefined);
 }
 
-// ── demo key (mock mode on simulators only) ──────────────────────────────────────────────────
+// ── demo key (mock mode or Monad testnet only; see config.DEMO_KEY) ──────────────────────────────────────────────────
 
 export async function demoSecret(): Promise<Uint8Array> {
   const existing = await quietly(SecureStore.getItemAsync(K.demo), null);

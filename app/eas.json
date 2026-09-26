@@ -1,13 +1,28 @@
 {
-  "cli": { "appVersionSource": "local" },
+  "cli": {
+    "appVersionSource": "local"
+  },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "env": { "EXPO_PUBLIC_CHAIN_ID": "143" }
+      "env": {
+        "EXPO_PUBLIC_CHAIN_ID": "143"
+      }
     },
     "preview": {
       "distribution": "internal"
+    },
+    "testnet": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_CHAIN_ID": "10143",
+        "EXPO_PUBLIC_DEMO_KEY": "1"
+      }
     }
   }
 }

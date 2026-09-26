@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { StyleSheet, TextInput } from "react-native";
 import { api, messageFor } from "../api";
 import { UnlockCancelled } from "../auth/unlock";
-import { IS_MOCK } from "../config";
+import { IS_MOCK, IS_TESTNET } from "../config";
 import { formatE164, type PhonePurpose } from "../phone/phone";
 import { useSession } from "../state/session";
 import { Button } from "../ui/Button";
@@ -94,7 +94,7 @@ export default function CodeScreen() {
         placeholder="••••••"
         placeholderTextColor={colors.sandDeep}
       />
-      {IS_MOCK ? <Notice message="Demo mode: the code is 000000." /> : null}
+      {IS_MOCK || IS_TESTNET ? <Notice message={`${IS_MOCK ? "Demo" : "Test"} mode: the code is 000000.`} /> : null}
       {error ? <ErrorNote error={error} /> : null}
       {error && messageFor(error).includes("expired") ? (
         <Button variant="secondary" label="Change number" onPress={() => router.back()} />

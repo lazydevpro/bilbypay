@@ -57,7 +57,7 @@ export class TxSender {
     return run;
   }
 
-  private async sendNow(call: Call, onSent?: (hash: Hex) => void): Promise<Sent> {
+  private async sendNow(call: Call, onSent?: (hash: Hex) => void, retried = false): Promise<Sent> {
     const client = this.chain.client;
     let estimate: bigint;
     try {
@@ -80,6 +80,9 @@ export class TxSender {
     } catch (err) {
       // Unknown whether the node accepted it: resync the nonce from the node next time.
       this.nonce = undefined;
+      // "Nonce too low" means the node definitely rejected it (the key was used elsewhere, e.g. an operator
+      // script or a restart). Safe to resync and try once more, so the user's action doesn't fail.
+      if (!retried && isNonceTooLow(err)) return this.sendNow(call, onSent, true);
       throw err;
     }
     this.nonce++;
@@ -115,4 +118,15 @@ export class Senders {
     }
     return sender;
   }
+}
+
+/** The node rejected the tx because its nonce was already used (never ambiguous, unlike timeouts). */
+export function isNonceTooLow(err: unknown): boolean {
+  let e: any = err;
+  for (let i = 0; e && i < 8; i++, e = e.cause) {
+    if (e?.name === "NonceTooLowError") return true;
+    const msg = `${e?.shortMessage ?? ""} ${e?.details ?? ""} ${e?.message ?? ""}`;
+    if (/nonce too low|nonce provided for the transaction .* is lower than the current nonce/i.test(msg)) return true;
+  }
+  return false;
 }

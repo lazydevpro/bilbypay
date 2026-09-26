@@ -51,7 +51,8 @@ pnpm --filter @bilbypay/server spike:relay:local   # EIP-3009 relay e2e on a loc
 
 ## Status
 
-Phases 0–5 are implemented and tested locally; see [docs/launch-checklist.md](docs/launch-checklist.md) for each
+Phases 0–5 are implemented, tested locally, and **running end to end on Monad testnet** (20/20 flows:
+[docs/testnet.md](docs/testnet.md)); see [docs/launch-checklist.md](docs/launch-checklist.md) for each
 acceptance criterion's evidence and what still needs a real phone, mainnet funds or provider accounts.
 Tasks: [TODO.md](TODO.md) · Spec: [docs/plans/2026-09-25-bilbypay-spec.md](docs/plans/2026-09-25-bilbypay-spec.md).
 

@@ -172,6 +172,16 @@ describe("sending", () => {
     expect(await ausdOf(bob.address)).toBe(usd(11));
   });
 
+  it("recovers when the relayer key was used outside the server (nonce too low → resync, retry once)", async () => {
+    const outside = createWalletClient({ account: privateKeyToAccount(ANVIL_KEYS[1]), chain: { ...monad, rpcUrls: { default: { http: [anvil.rpcUrl] } } }, transport: http(anvil.rpcUrl) });
+    const hash = await outside.sendTransaction({ to: outside.account.address, value: 0n });
+    await services.chain.client.waitForTransactionReceipt({ hash });
+    const before = await ausdOf(bob.address);
+    const { result } = await alice.act("send", { phone: "+15555550102", amount: s(usd(1)) });
+    expect(result.status).toBe("completed");
+    expect(await ausdOf(bob.address)).toBe(before + usd(1));
+  });
+
   it("refuses a bad signature before touching the chain", async () => {
     const p = await alice.prepare("send", { phone: "+15555550102", amount: s(usd(1)) });
     const wrong = await bob.sign({ ...p.body, toSign: p.body.toSign.map((t) => ({ ...t, typedData: { ...t.typedData, message: { ...t.typedData.message, from: bob.address } } })) });

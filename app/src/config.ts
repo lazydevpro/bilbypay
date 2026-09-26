@@ -14,8 +14,12 @@ export const CHAIN_ID = Number(process.env.EXPO_PUBLIC_CHAIN_ID ?? "143");
 /** Domain for claim links and universal links. */
 export const LINK_DOMAIN: string = process.env.EXPO_PUBLIC_LINK_DOMAIN ?? "bilbypay.com";
 
+/** Monad testnet: test dollars only, nothing of value. */
+export const TESTNET_CHAIN_ID = 10143;
+export const IS_TESTNET = CHAIN_ID === TESTNET_CHAIN_ID;
+
 /**
- * Demo-only: keep a device-local key instead of a passkey so the demo runs on a simulator.
- * Honoured only together with the mock API.
+ * Demo/testing only: keep a device-local key instead of a passkey, so the app runs on a simulator or a phone
+ * before the passkey domain exists. Honoured only with the mock API or on Monad testnet — never on mainnet.
  */
-export const DEMO_KEY = IS_MOCK && process.env.EXPO_PUBLIC_DEMO_KEY === "1";
+export const DEMO_KEY = (IS_MOCK || IS_TESTNET) && process.env.EXPO_PUBLIC_DEMO_KEY === "1";

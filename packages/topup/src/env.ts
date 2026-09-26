@@ -15,7 +15,8 @@ export function createTopUpProviderFromEnv(
   env: Record<string, string | undefined> = process.env,
   opts: { fetch?: FetchLike; logger?: TopUpLogger; now?: () => number } = {},
 ): TopUpProvider {
-  const kind = (env.TOPUP_PROVIDER ?? (env.INTENTS_API_KEY ? "aurora" : "mock")).toLowerCase();
+  // A blank value (copied from .env.example) means "use the default", like every other optional var.
+  const kind = (env.TOPUP_PROVIDER || (env.INTENTS_API_KEY ? "aurora" : "mock")).toLowerCase();
   if (kind === "mock") return new MockTopUpProvider({ now: opts.now });
   if (kind !== "aurora" && kind !== "oneclick") throw new Error(`TOPUP_PROVIDER must be aurora, oneclick or mock (got ${kind})`);
   const slippage = env.TOPUP_SLIPPAGE_BPS ? Number(env.TOPUP_SLIPPAGE_BPS) : undefined;

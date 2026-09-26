@@ -1,6 +1,7 @@
 # Launch checklist: acceptance criteria and remaining steps
 
-Status as of 2026-09-25. Everything is verified **locally** in the dev container:
+Status as of 2026-09-26. Everything is verified locally, and **every flow runs end to end on Monad testnet**
+(20/20, [testnet.md](testnet.md)). Local verification:
 - Contracts: 42 Foundry tests; the mainnet fork test needs `MONAD_RPC_URL`.
 - TypeScript: 235 tests across 6 packages.
 - App: iOS and Android bundles build.
@@ -22,7 +23,7 @@ What is still missing is anything that needs a real phone, Monad mainnet, SMS, o
 | 9 | Self-purchased card appears; retries never buy twice | Unique constraint per giftId + provider idempotency (Laso stored-auth, Bitrefill two-step); tests in `server` and `packages/giftcards` | Live provider |
 | 10 | Unclaimed gift refunds with no card bought | Buy-at-claim design; escrow refund tests | — |
 | 11 | Auto-save threshold with one Face ID, gasless, never below threshold | `testFuzz_sweepNeverBelowThreshold`; `integration` auto-save + keeper | Phone: confirm one biometric prompt |
-| 12 | Pay more than balance: "Take $Y from Burrow?", one tx | `test_breakAndPayInOneTx`; `integration` asserts a single tx; `app-contract` break+pay through the app guard | Mainnet fork test against real stataAUSD (`MONAD_RPC_URL=… forge test --mc ForkTest`) |
+| 12 | Pay more than balance: "Take $Y from Burrow?", one tx | `test_breakAndPayInOneTx`; `integration` asserts a single tx; `app-contract` break+pay through the app guard | — (fork test passes against real AUSD + stataAUSD, 2026-09-26) |
 | 13 | Move to balance any time; auto-save off revokes allowance | `test_disableRevokesAllowanceAndStopsSweeps`; `integration` | — |
 | 14 | Gift card = one tap + Face ID, < 3s, no crypto words | Glossary test (app), banned-word checks (server, topup) | Timing on device with a live provider |
 | 15 | Failed purchase refunds automatically with a plain message | `integration` "refunds automatically when the purchase fails" | — |

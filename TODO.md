@@ -6,6 +6,7 @@ Deadline: **2026-10-13 11:59 PM ET** · Track 02 (Consumer & Payments) · Monad 
 Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 
 ## Now
+- [ ] Try the app on your phone against testnet: `eas build --profile testnet --platform android`, `cp app/.env.testnet.example app/.env`, `npx expo start --dev-client` ([docs/testnet.md](docs/testnet.md#the-app-on-a-phone-testnet)) #app #testnet
 - [ ] Register domain (`bilbypay.com` was unregistered on 2026-09-25) #admin
 - [ ] Claim sponsor perks: Tenderly Pro, Quicknode, Zerion #admin
 - [ ] Read official rules modal + Agora/Mera bounty pages on hackathon.monad.xyz; resolve rubric/open-source conflicts #admin
@@ -27,7 +28,8 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 - [x] `BilbyEscrow`: `depositWithAuthorization` (receiveWithAuthorization), `claim` with attestation, `refund` after expiry
 - [x] `BilbyEscrow` deposit `kind`: `TRANSFER` (→ recipient) vs `GIFT` (→ treasury on claim, emits `giftId`)
 - [x] Tests: happy paths, bad sigs, replay, expiry, double-claim, rebind, fork test against mainnet AUSD
-- [ ] Deploy to testnet (AUSD testnet `0xa9012a…22dC`), then mainnet; verify on explorer
+- [x] Deploy to testnet (full stack + test dollar/stata stand-in/test USDC; testnet AUSD faucet is owner-locked) — [docs/testnet.md](docs/testnet.md); **20/20 flows pass e2e** (`pnpm --filter @bilbypay/server e2e:testnet`)
+- [ ] Deploy to mainnet; verify on explorer
 - [ ] Record contract addresses + tx hashes in README
 
 ### Backend #backend

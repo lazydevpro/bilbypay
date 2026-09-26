@@ -14,6 +14,8 @@ import {IERC3009} from "../src/interfaces/IERC3009.sol";
 contract ForkTest is Test {
     IERC20 constant AUSD = IERC20(0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a);
     IERC4626 constant STATA = IERC4626(0x9e1AcC5BFbf34e2E579763cE14042d957719fE76);
+    /// Aave aAUSD (STATA.aToken()), holds the pool's AUSD.
+    address constant STATA_ATOKEN = 0xdeBFeDF35faEd5d1664E553545e144C02227A2Ec;
     bytes32 constant TRANSFER_TYPEHASH = keccak256(
         "TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)"
     );
@@ -34,7 +36,9 @@ contract ForkTest is Test {
         alice = vm.addr(aliceKey);
         BilbyEscrow escrow = new BilbyEscrow(AUSD, address(this), address(this), address(this));
         router = new BilbyRouter(AUSD, STATA, address(escrow), address(this));
-        deal(address(AUSD), alice, 100e6);
+        // AUSD uses custom storage, so `deal` can't write its balances: fund Alice from Aave's aAUSD, a large holder.
+        vm.prank(STATA_ATOKEN);
+        AUSD.transfer(alice, 100e6);
         vm.startPrank(alice);
         AUSD.approve(address(STATA), 60e6);
         STATA.deposit(60e6, alice);
