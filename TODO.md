@@ -15,14 +15,14 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 - [ ] Apply to Bitrefill Business / partner program (KYB via SumSub); ask: discounts/rev-share, KYB time, webhook signing, idempotency, P2P gifting from a crypto app #admin #giftcards
 - [ ] Pre-fund the Base USDC float (~$50) for Laso demo purchases (users never touch Base) #admin #giftcards
 - [ ] Spike: buy one real $5 card via Laso x402 (wallet sign-in → search → 402 quote → pay) and confirm code/PIN/URL in response #giftcards #spike
-- [ ] Spike: gasless AUSD → stataAUSD deposit, then permit + `withdraw` to the user and pay in one tx on mainnet (stataAUSD permit ✓ verified 2026-09-26) #burrow #spike
+- [x] Spike: Burrow on Monad testnet — 20 unit tests + mainnet fork test (real AUSD/stataAUSD) + live testnet run: auto-save $140→$40 balance/$100 Burrow, then $100 payment = $60 break + pay in ONE tx; user held 0 MON, sent 0 txs (addresses + hashes in `contracts/README.md`) #burrow #spike
 - [ ] Decide feature name (working name "Burrow"; avoid "FD") #burrow
 
 ## Next
 ### Contracts #contracts
-- [ ] Foundry project in `contracts/`
+- [x] Foundry project in `contracts/` (OZ 5.4, submodules)
 - [ ] `BilbyDirectory`: EIP-712 verifier-signed bind, `resolve`, `boundAt`, `Bound` event
-- [ ] `BilbyEscrow`: `depositWithAuthorization` (receiveWithAuthorization), `claim` with attestation, `refund` after expiry
+- [ ] `BilbyEscrow`: `depositWithAuthorization` (receiveWithAuthorization), `claim` with attestation, `refund` after expiry — **payer (`from`) must be the first argument** so BilbyRouter can allow-list it
 - [ ] `BilbyEscrow` deposit `kind`: `TRANSFER` (→ recipient) vs `GIFT` (→ treasury on claim, emits `giftId`)
 - [ ] Tests: happy paths, bad sigs, replay, expiry, double-claim, rebind, fork test against mainnet AUSD
 - [ ] Deploy to testnet (AUSD testnet `0xa9012a…22dC`), then mainnet; verify on explorer
@@ -57,10 +57,11 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 - [ ] README: gift card providers, buy-at-claim design, production path (Bitrefill)
 
 ### Burrow (auto-save, breakable any time) #burrow
-- [ ] `BilbyRouter.topUpAndCall`: stataAUSD permit → `withdraw(shortfall, user, user)` → allow-listed payment call (AUSD 3009 or escrow deposit) in one tx
-- [ ] `BilbyRouter.sweep(user)`: move balance above user's signed threshold into stataAUSD (receiver = user only)
-- [ ] `BilbyRouter.breakToBalance` + enable/disable auto-save (AUSD permit allowance + EIP-712 threshold; disable = allowance 0)
-- [ ] Router tests: fork test vs mainnet stataAUSD/AUSD, break+pay atomicity, sweep never below threshold, only-own-Burrow invariant, replay/expiry
+- [x] `BilbyRouter.topUpAndCall`: stataAUSD permit → `withdraw(shortfall, user, user)` → allow-listed payment call (AUSD 3009 or escrow deposit) in one tx
+- [x] `BilbyRouter.sweep(user)`: move balance above user's signed threshold into stataAUSD (receiver = user only)
+- [x] `BilbyRouter.breakToBalance` + `addToBurrow` + enable/disable auto-save (AUSD permit allowance + EIP-712 threshold; disable = allowance 0)
+- [x] Router tests: fork test vs mainnet stataAUSD/AUSD, break+pay atomicity, sweep never below threshold (fuzz), allowance-abuse guard, replay/expiry, liquidity cap, permit front-run
+- [ ] Router: `lockCalls()` + escrow allow-list before mainnet deploy; mainnet deploy + verify
 - [ ] Keeper: watch incoming AUSD transfers → debounce → relay `sweep`
 - [ ] Backend: `maxWithdraw` check before offering "Take from Burrow"; partial-availability message
 - [ ] Balance API: balance + Burrow (`convertToAssets`) + earned since deposit + current rate
