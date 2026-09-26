@@ -9,7 +9,9 @@
     "typecheck": "tsc -p .",
     "test": "vitest run",
     "spike:relay": "tsx scripts/relay-3009.ts",
-    "spike:relay:local": "bash scripts/local-relay-e2e.sh"
+    "spike:relay:local": "bash scripts/local-relay-e2e.sh",
+    "start:testnet": "node --env-file=.env.testnet --import tsx src/main.ts",
+    "e2e:smoke": "tsx scripts/e2e-smoke.ts"
   },
   "dependencies": {
     "@bilbypay/core": "workspace:*",

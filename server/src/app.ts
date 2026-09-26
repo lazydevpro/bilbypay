@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { ApiError, errors } from "./errors";
 import { claimRoutes } from "./routes/claims";
+import { devRoutes } from "./routes/dev";
 import type { AppEnv } from "./routes/common";
 import { giftCardRoutes } from "./routes/giftcards";
 import { identityRoutes } from "./routes/identity";
@@ -25,6 +26,7 @@ export function createApp(s: Services): Hono<AppEnv> {
   claimRoutes(app, s);
   giftCardRoutes(app, s);
   topUpRoutes(app, s);
+  devRoutes(app, s);
   publicRoutes(app, s);
   return app;
 }

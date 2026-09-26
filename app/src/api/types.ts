@@ -232,6 +232,8 @@ export interface BilbyApi {
   giftCards(): Promise<{ cards: GiftCard[] }>;
   revealGiftCard(id: string): Promise<GiftCardReveal>;
   topupOrigins(): Promise<{ origins: TopupOrigin[] }>;
+  /** Testing only (server DEV_FAUCET=1): adds test money to the balance. */
+  devFaucet(amount?: string): Promise<{ ok: true; amount: string }>;
   topupQuote(originAsset: string, amount: string): Promise<TopupQuote>;
   topupStatus(quoteId: string): Promise<TopupStatus>;
 }

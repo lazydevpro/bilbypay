@@ -10,6 +10,7 @@ import { type Db, openDb } from "./db";
 import { createTopUpProviderFromEnv, type TopUpProvider } from "@bilbypay/topup";
 import { createGiftProvider } from "./giftcards/providers";
 import { TopUpService } from "./topup";
+import { DemoTopUpProvider } from "./topup-demo";
 import { GiftCardService } from "./giftcards/service";
 import type { GiftCardProvider } from "./giftcards/types";
 import { Keeper } from "./keeper";
@@ -53,7 +54,12 @@ export function createServices(config: Config, overrides: { db?: Db; giftProvide
   const accounts = new AccountService(db, config, chain, verifier, relayer, tokens);
   const activity = new ActivityRepo(db, chain, config.publicBaseUrl);
   const gifts = new GiftCardService(db, overrides.giftProvider ?? createGiftProvider(config, db), treasury, activity, config.giftCodeKey);
-  const topups = new TopUpService(db, config, chain, overrides.topup ?? createTopUpProviderFromEnv(), treasury, activity);
+  const topupProvider =
+    overrides.topup ??
+    (process.env.TOPUP_PROVIDER === "demo" && config.usdc
+      ? new DemoTopUpProvider(config.usdc, relayer, { autoDepositMs: Number(process.env.DEMO_TOPUP_DELAY_MS ?? "8000"), processingMs: 4_000 })
+      : createTopUpProviderFromEnv());
+  const topups = new TopUpService(db, config, chain, topupProvider, treasury, activity);
   const claims = new ClaimService(db, config, chain, verifier, relayer, accounts, activity, gifts, treasury);
   const keeper = new Keeper(db, config, chain, keeperSender, accounts, activity, claims, gifts, userLocks, topups);
   const actions = new ActionService({ db, config, chain, relayer, accounts, activity, claims, gifts, treasury, keeper, userLocks });

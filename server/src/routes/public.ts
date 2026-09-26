@@ -49,6 +49,7 @@ export function publicRoutes(app: Hono<AppEnv>, s: Services) {
       block: Number(block),
       relayerBalance: relayerBalance.toString(),
       treasuryFloat: treasuryFloat.toString(),
+      devFaucet: s.config.devFaucet,
     });
   });
 }

@@ -40,10 +40,20 @@ export type Config = {
   burrowRatePercent: number;
   aavePool?: Address;
   trustProxy: boolean;
+  /** Demo/testnet only: POST /v1/dev/faucet mints mock AUSD to the caller. */
+  devFaucet: boolean;
   keeper: { enabled: boolean; intervalMs: number; debounceMs: number; blockRange: number };
 };
 
 type Env = Record<string, string | undefined>;
+
+function devFaucet(env: Env, chainId: number): boolean {
+  if (env.DEV_FAUCET !== "1") return false;
+  // Mainnet AUSD can't be minted anyway; refuse the flag there unless it's a local anvil posing as 143.
+  const local = /^https?:\/\/(127\.0\.0\.1|localhost)[:/]/.test(env.RPC_URL ?? "");
+  if (chainId === 143 && !local) throw new Error("DEV_FAUCET is for testnet and local chains only");
+  return true;
+}
 
 function required(env: Env, name: string): string {
   const value = env[name];
@@ -144,6 +154,7 @@ export function loadConfig(rawEnv: Env = process.env): Config {
     burrowRatePercent: Number(env.BURROW_RATE_PERCENT ?? "4.2"),
     aavePool: env.AAVE_POOL_ADDRESS ? getAddress(env.AAVE_POOL_ADDRESS) : undefined,
     trustProxy: env.TRUST_PROXY === "1",
+    devFaucet: devFaucet(env, chainId),
     keeper: {
       enabled: env.KEEPER_ENABLED !== "0",
       intervalMs: Number(env.KEEPER_INTERVAL_MS ?? "2000"),

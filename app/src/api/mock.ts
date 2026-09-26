@@ -768,6 +768,16 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         return card.secret;
       }),
 
+    devFaucet: (amount) =>
+      wait(() => {
+        const { acct } = authed();
+        const value = amount ? BigInt(amount) : D(100);
+        acct.balance += value;
+        acct.activity.unshift(item("received", "completed", value, { note: "Test money" }));
+        sweep(acct);
+        return { ok: true as const, amount: value.toString() };
+      }),
+
     topupOrigins: () =>
       wait(() => {
         registered();

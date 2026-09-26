@@ -1,6 +1,8 @@
 import { router } from "expo-router";
 import { Alert, StyleSheet, View } from "react-native";
-import { IS_MOCK } from "../../config";
+import { useState } from "react";
+import { api, messageFor } from "../../api";
+import { IS_MOCK, TEST_MONEY } from "../../config";
 import { formatE164 } from "../../phone/phone";
 import { useSession } from "../../state/session";
 import { Avatar } from "../../ui/Avatar";
@@ -13,6 +15,17 @@ import { space } from "../../ui/theme";
 
 export default function Settings() {
   const { profile, logOut } = useSession();
+  const [testMoney, setTestMoney] = useState<string | null>(null);
+
+  const getTestMoney = async () => {
+    setTestMoney("Adding $100…");
+    try {
+      await api.devFaucet();
+      setTestMoney("$100 test money added to your balance.");
+    } catch (e) {
+      setTestMoney(messageFor(e));
+    }
+  };
 
   const confirmLogOut = () =>
     Alert.alert("Log out of BilbyPay?", "Your money stays safe. Log back in any time with Face ID on this phone.", [
@@ -46,6 +59,13 @@ export default function Settings() {
       </Card>
 
       {IS_MOCK ? <Notice message="Demo mode: nothing real moves." /> : null}
+
+      {TEST_MONEY ? (
+        <Card>
+          <Row title="Get $100 test money" subtitle="Test version only: not real dollars" onPress={getTestMoney} />
+          {testMoney ? <Muted variant="small">{testMoney}</Muted> : null}
+        </Card>
+      ) : null}
 
       <Card>
         <Row title="Log out" onPress={confirmLogOut} />
