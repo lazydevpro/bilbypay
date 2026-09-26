@@ -41,7 +41,7 @@ Fund the relayer with testnet MON at <https://faucet.monad.xyz>; users never nee
 On testnet the mock top-up really delivers **test USDC to the treasury on-chain** (`server/src/topup-testnet.ts`),
 so "Add money" goes through the same on-chain delivery check as mainnet.
 
-## E2E result (2026-09-26): 20/20 flows passed
+## E2E result (2026-09-26): all 21 flows passed
 
 | # | Flow | Result |
 |---|---|---|
@@ -53,7 +53,7 @@ so "Add money" goes through the same on-chain delivery check as mainnet.
 | 6–7 | Send to a number not signed up → claim link → they sign up → money lands | ✅ |
 | 8 | Sender sees it opened | ✅ |
 | 9 | Take back an unopened send | ✅ |
-| 10 | Unopened send refunds after expiry (keeper) | checked with `--check-refund` |
+| 10 | Unopened send refunds after expiry (keeper) | ✅ refunded (`--check-refund`, ~65 min later) |
 | 11 | Burrow: add | ✅ |
 | 12 | Burrow auto-save: keep $50, rest swept by the keeper | ✅ |
 | 13 | Incoming money above the threshold is swept too | ✅ |
