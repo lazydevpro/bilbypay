@@ -49,6 +49,13 @@ pnpm --filter @bilbypay/server spike:relay:local   # EIP-3009 relay e2e on a loc
 - Devices, passkey domain and mainnet: [docs/phase-0-runbook.md](docs/phase-0-runbook.md) and
   [docs/launch-checklist.md](docs/launch-checklist.md).
 
+## Deployments
+
+- **Monad testnet (10143):** BilbyDirectory `0x246fa171ff0AE45a34Bb88E4E07E04f44CB75Ae7`, BilbyEscrow
+  `0x623Fa426793aDf2E61BCc50D269E7CaFfBc16aba`, BilbyRouter `0xa0c141F6465eDaA2E7A2483a310Ac72830986cb0`
+  (with mock dollars; details and test transactions in [docs/testnet.md](docs/testnet.md)).
+- **Monad mainnet (143):** not yet.
+
 ## Status
 
 Phases 0–5 are implemented and tested locally; see [docs/launch-checklist.md](docs/launch-checklist.md) for each

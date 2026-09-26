@@ -70,6 +70,42 @@ cd app && npx expo run:ios --device          # or run:android, or eas build --pr
 4. Invite a third number, then open the link on that phone.
 5. Try Burrow, a gift card, and **Add money**.
 
+## Current deployment (Monad testnet, 2026-09-26)
+
+| Contract | Address |
+|---|---|
+| BilbyDirectory | [`0x246fa171ff0AE45a34Bb88E4E07E04f44CB75Ae7`](https://testnet.monadexplorer.com/address/0x246fa171ff0AE45a34Bb88E4E07E04f44CB75Ae7) |
+| BilbyEscrow | [`0x623Fa426793aDf2E61BCc50D269E7CaFfBc16aba`](https://testnet.monadexplorer.com/address/0x623Fa426793aDf2E61BCc50D269E7CaFfBc16aba) |
+| BilbyRouter | [`0xa0c141F6465eDaA2E7A2483a310Ac72830986cb0`](https://testnet.monadexplorer.com/address/0xa0c141F6465eDaA2E7A2483a310Ac72830986cb0) |
+| MockAUSD (test dollars) | `0xa8A4Ec31029dCDE18Fd2c6df493C333E7160219A` |
+| MockStata (Burrow) | `0x89A51d8D453b493672BD4f262eEd32E1223EBea7` |
+| Mock USDC (top-ups) | `0xc0BA2A8B2027C1420A264E8732dE63D227929e4d` |
+
+The same addresses are in `contracts/deployments/10143.json`.
+
+| Role | Address |
+|---|---|
+| Deployer | `0x862FfCB615395c0Ed7667fFEe1A2C5b3c1298582` |
+| Relayer / keeper | `0x1815Ca0B977fd516bd9903eAd9F47F26616F63ED` |
+| Verifier | `0xe24B1836159AB752a854bD1a1443f4f350190f94` |
+| Treasury | `0xE4dd14B08299C7373bd4c1E0b663d7671Aba29a7` |
+
+The treasury started with $10,000 in test dollars.
+
+`e2e:smoke` passed against this deployment: all 11 checks, every step a real testnet transaction. Examples:
+- [Alice → Bob $20 by phone number](https://testnet.monadexplorer.com/tx/0xf29c94a8370abfa82248bcf1276195963f13efd69afcc000e6ef8a89b4de357b)
+- [$95 payment with $30 taken from Burrow in the same transaction](https://testnet.monadexplorer.com/tx/0x5ef44d1092ac111f54a82782e396dd57f65246d87cc4083a60319397245d3dd2)
+
+A full run costs the relayer about 0.18 MON.
+
+The role keys were generated in the session that deployed and live only in that session's `server/.env.testnet`.
+To run the API elsewhere, either:
+- re-run `scripts/testnet-up.sh`, which makes new role keys and redeploys; or
+- reuse this deployment by setting new verifier/treasury/keeper keys on the contracts (owner = deployer).
+
+> Sandboxed environments that only allow egress through `HTTPS_PROXY`: start Node with `NODE_USE_ENV_PROXY=1`.
+> Node's built-in fetch ignores the proxy variables otherwise.
+
 ## Rehearsed locally
 
 `scripts/testnet-up.sh` was run against anvil posing as chain 10143, followed by `start:testnet` and
