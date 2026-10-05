@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {BilbyDirectory} from "../src/BilbyDirectory.sol";
 import {BilbyEscrow} from "../src/BilbyEscrow.sol";
 import {BilbyRouter} from "../src/BilbyRouter.sol";
 import {IERC3009} from "../src/interfaces/IERC3009.sol";
@@ -34,7 +35,8 @@ contract ForkTest is Test {
         }
         vm.createSelectFork(rpc);
         alice = vm.addr(aliceKey);
-        BilbyEscrow escrow = new BilbyEscrow(AUSD, address(this), address(this), address(this));
+        BilbyDirectory directory = new BilbyDirectory(address(this), address(this));
+        BilbyEscrow escrow = new BilbyEscrow(AUSD, directory, address(this), address(this), address(this));
         router = new BilbyRouter(AUSD, STATA, address(escrow), address(this));
         // AUSD uses custom storage, so `deal` can't write its balances: fund Alice from Aave's aAUSD, a large holder.
         vm.prank(STATA_ATOKEN);
@@ -61,8 +63,9 @@ contract ForkTest is Test {
                 keccak256(abi.encode(TRANSFER_TYPEHASH, alice, bob, 70e6, 0, validBefore, nonce))
             )
         );
-        bytes memory pay =
-            abi.encodeCall(IERC3009.transferWithAuthorization, (alice, bob, 70e6, 0, validBefore, nonce, v, r, s));
+        bytes memory pay = abi.encodeCall(
+            IERC3009.transferWithAuthorization, (alice, bob, 70e6, 0, validBefore, nonce, v, r, s)
+        );
 
         BilbyRouter.Permit memory p;
         p.value = STATA.previewWithdraw(shortfall) + 1;
@@ -73,7 +76,12 @@ contract ForkTest is Test {
                 IERC20Permit(address(STATA)).DOMAIN_SEPARATOR(),
                 keccak256(
                     abi.encode(
-                        PERMIT_TYPEHASH, alice, address(router), p.value, IERC20Permit(address(STATA)).nonces(alice), p.deadline
+                        PERMIT_TYPEHASH,
+                        alice,
+                        address(router),
+                        p.value,
+                        IERC20Permit(address(STATA)).nonces(alice),
+                        p.deadline
                     )
                 )
             )

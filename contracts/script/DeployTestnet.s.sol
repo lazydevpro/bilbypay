@@ -14,7 +14,7 @@ import {MockStata} from "../test/mocks/MockStata.sol";
 /// DeployLocal (open-mint test dollar + stataAUSD stand-in) with the three contracts, and funds the treasury
 /// float. Real AUSD/stataAUSD behaviour is covered by the mainnet fork test.
 /// forge script script/DeployTestnet.s.sol --rpc-url monad_testnet --broadcast --private-key $DEPLOYER_PRIVATE_KEY
-/// Env: VERIFIER, TREASURY, KEEPER. Writes deployments/10143.json.
+/// Env: VERIFIER, TREASURY, KEEPER. Writes deployments/10143-v2.json.
 contract DeployTestnet is Script {
     function run() external {
         require(block.chainid == 10143, "not Monad testnet");
@@ -28,8 +28,9 @@ contract DeployTestnet is Script {
         MockAUSD ausd = new MockAUSD();
         MockStata stata = new MockStata(ausd);
         BilbyDirectory directory = new BilbyDirectory(owner, verifier);
-        BilbyEscrow escrow = new BilbyEscrow(IERC20(address(ausd)), owner, verifier, treasury);
-        BilbyRouter router = new BilbyRouter(IERC20(address(ausd)), IERC4626(address(stata)), address(escrow), owner);
+        BilbyEscrow escrow = new BilbyEscrow(IERC20(address(ausd)), directory, owner, verifier, treasury);
+        BilbyRouter router =
+            new BilbyRouter(IERC20(address(ausd)), IERC4626(address(stata)), address(escrow), owner);
         router.setKeeper(keeper, true);
         ausd.mint(treasury, treasuryFloat);
         vm.stopBroadcast();
@@ -42,7 +43,7 @@ contract DeployTestnet is Script {
         vm.serializeAddress(json, "directory", address(directory));
         vm.serializeAddress(json, "escrow", address(escrow));
         string memory out = vm.serializeAddress(json, "router", address(router));
-        vm.writeJson(out, "deployments/10143.json");
+        vm.writeJson(out, "deployments/10143-v2.json");
         console.log(out);
     }
 }

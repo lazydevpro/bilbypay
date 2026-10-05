@@ -1,4 +1,4 @@
-import { bindTypedData, claimTypedData, type Deployment } from "@bilbypay/core";
+import { bindTypedData, claimTypedData, finalizeRecoveryTypedData, requestRecoveryTypedData, type Deployment } from "@bilbypay/core";
 import type { Address, Hex, PrivateKeyAccount } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -20,8 +20,10 @@ export class Verifier {
     return this.account.address;
   }
 
-  signBind(m: { phoneKey: Hex; account: Address; issuedAt: bigint; deadline: bigint }): Promise<Hex> {
-    return this.account.signTypedData(bindTypedData(this.d, m));
+  signDirectory(operation: "bind" | "requestRecovery" | "finalizeRecovery", m: { phoneKey: Hex; account: Address; issuedAt: bigint; deadline: bigint; expectedRevision: bigint; validUntil: bigint }): Promise<Hex> {
+    if (operation === "bind") return this.account.signTypedData(bindTypedData(this.d, m));
+    if (operation === "requestRecovery") return this.account.signTypedData(requestRecoveryTypedData(this.d, m));
+    return this.account.signTypedData(finalizeRecoveryTypedData(this.d, m));
   }
 
   signClaim(m: { depositId: Hex; phoneKey: Hex; recipient: Address; deadline: bigint }): Promise<Hex> {

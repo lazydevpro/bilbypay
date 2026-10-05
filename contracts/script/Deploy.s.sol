@@ -21,7 +21,7 @@ contract Deploy is Script {
         vm.startBroadcast();
         address owner = msg.sender;
         BilbyDirectory directory = new BilbyDirectory(owner, verifier);
-        BilbyEscrow escrow = new BilbyEscrow(IERC20(ausd), owner, verifier, treasury);
+        BilbyEscrow escrow = new BilbyEscrow(IERC20(ausd), directory, owner, verifier, treasury);
         BilbyRouter router = new BilbyRouter(IERC20(ausd), IERC4626(stata), address(escrow), owner);
         router.setKeeper(keeper, true);
         vm.stopBroadcast();
@@ -36,6 +36,6 @@ contract Deploy is Script {
         vm.serializeAddress(json, "directory", address(directory));
         vm.serializeAddress(json, "escrow", address(escrow));
         string memory out = vm.serializeAddress(json, "router", address(router));
-        vm.writeJson(out, string.concat("deployments/", vm.toString(block.chainid), ".json"));
+        vm.writeJson(out, string.concat("deployments/", vm.toString(block.chainid), "-v2.json"));
     }
 }

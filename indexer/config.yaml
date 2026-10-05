@@ -23,6 +23,10 @@ contracts:
     events:
       - event: Bound
       - event: Unbound
+      - event: BindingUpdated
+      - event: RecoveryRequested
+      - event: RecoveryCancelled
+      - event: RecoveryFinalized
 
   # Money / gift cards sent to a phone number that has not joined yet.
   - name: BilbyEscrow

@@ -31,11 +31,24 @@ describe("BitrefillProvider", () => {
     const { provider } = setup();
     const brands = await provider.catalog("US");
     expect(brands.map((b) => b.id)).toEqual(["starbucks-usa", "netflix-usa"]);
-    expect(brands[0]).toMatchObject({ name: "Starbucks USA", category: "food", minAmount: 5_000_000n, maxAmount: 500_000_000n, logoUrl: "https://cdn.test/starbucks.png" });
+    expect(brands[0]).toMatchObject({ name: "Starbucks USA", category: "food", minAmount: 5_000_000n, maxAmount: 500_000_000n,
+      logoUrl: "https://cdn.bitrefill.com/primg/w250h100i1/starbucks-usa.png",
+      artworkUrl: "https://cdn.bitrefill.com/primg/w600h400/starbucks-usa.png" });
     expect(brands[0]!.denominations).toBeUndefined();
     expect(brands[1]!.denominations).toEqual([25_000_000n, 50_000_000n]);
     const withTest = await setup({ includeTestProducts: true }).provider.catalog("US");
     expect(withTest.map((b) => b.id)).toContain("test-gift-card-code");
+  });
+
+  it("derives artwork from the exact product ID even when image is missing or only an image ID", async () => {
+    const { br, provider } = setup();
+    br.products[0]!.id = "merchant/US & cafe";
+    br.products[0]!.image = "opaque-provider-image-id";
+    br.products[1]!.image = undefined;
+    const brands = await provider.catalog("US");
+    expect(brands[0]!.artworkUrl).toBe("https://cdn.bitrefill.com/primg/w600h400/merchant%2FUS%20%26%20cafe.png");
+    expect(brands[0]!.logoUrl).toBe("https://cdn.bitrefill.com/primg/w250h100i1/merchant%2FUS%20%26%20cafe.png");
+    expect(brands[1]!.artworkUrl).toBe("https://cdn.bitrefill.com/primg/w600h400/netflix-usa.png");
   });
 
   it("quotes from the package USD price when listed, face value + fee otherwise", async () => {

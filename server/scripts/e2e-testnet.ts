@@ -8,23 +8,31 @@
  *
  * Env: E2E_API_URL (default http://localhost:8787), RPC_URL, RELAYER_PRIVATE_KEY (mints test dollars; testnet only).
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { randomInt } from "node:crypto";
+import { chmodSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { mockAusdAbi } from "@bilbypay/core";
-import { type Address, createPublicClient, createWalletClient, type Hex, http } from "viem";
+import { hydrateTypedData, mockAusdAbi, type Deployment } from "@bilbypay/core";
+import { type Address, createPublicClient, createWalletClient, type Hex, http, isAddress, parseAbi, zeroAddress } from "viem";
 import { generatePrivateKey, type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
 import { monadTestnet } from "viem/chains";
 import { createHttpApi } from "../../app/src/api/http";
-import type { ActionRequest, BilbyApi } from "../../app/src/api/types";
+import type { ActionRequest, BilbyApi, DirectoryOperation, PreparedAction } from "../../app/src/api/types";
 import { authorizeAndSubmit } from "../../app/src/flows/authorize";
+import { createPinnedDirectoryReader } from "../../app/src/directory/verification";
+import type { Recipient } from "../../app/src/flows/drafts";
+import { checkDirectoryConsent } from "../../app/src/signing/directory";
+import { checkPreparedAction } from "../../app/src/signing/guard";
 import { registerMessage, sessionMessage } from "../../app/src/signing/messages";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const STATE_FILE = resolve(ROOT, "data/e2e-testnet-state.json");
+const STATE_FILE = resolve(ROOT, "data/e2e-testnet-v2-state.json");
 const API = process.env.E2E_API_URL ?? "http://localhost:8787";
 const RPC = process.env.RPC_URL ?? "https://testnet-rpc.monad.xyz";
 const CHAIN_ID = 10143;
+let directoryAddress: Hex;
+let escrowAddress: Hex;
+let deployment: Deployment;
 const USD = 1_000_000n;
 const usd = (units: bigint | string) => `$${(Number(BigInt(units)) / 1e6).toFixed(2)}`;
 
@@ -32,7 +40,7 @@ const chain = { ...monadTestnet, rpcUrls: { default: { http: [RPC] } } };
 const publicClient = createPublicClient({ chain, transport: http(RPC) });
 
 /** A random +1 555 number so reruns never collide (OTP test mode accepts 000000). */
-const testNumber = () => `+1 555 ${String(Math.floor(Math.random() * 1e7)).padStart(7, "0").replace(/(\d{3})(\d{4})/, "$1 $2")}`;
+const testNumber = () => `+1 555 ${String(randomInt(1e7)).padStart(7, "0").replace(/(\d{3})(\d{4})/, "$1 $2")}`;
 
 class Phone {
   readonly account: PrivateKeyAccount;
@@ -52,13 +60,25 @@ class Phone {
     this.phoneToken = v.phoneToken;
     return v;
   }
-  async onboard() {
+  async onboard(operation: DirectoryOperation = "bind", requireUnusedNumber = true) {
     const v = await this.verify();
     const issuedAt = Math.floor(Date.now() / 1000);
     const signature = await this.account.signMessage({ message: registerMessage(v.phone, this.address, issuedAt) });
-    const res = await this.api.register({ phoneToken: v.phoneToken, address: this.address, displayName: this.name, issuedAt, signature });
+    const consent = await this.api.prepareRegistration({ phoneToken: v.phoneToken, address: this.address });
+    check(consent.operation === operation, `Expected ${operation}, server prepared ${consent.operation}`);
+    if (requireUnusedNumber && operation === "bind") check(consent.revision === "0", "Random test number is already registered; refusing to modify it");
+    const typedData = checkDirectoryConsent(consent, { account: this.address, chainId: CHAIN_ID, operation, directoryAddress });
+    const consentSignature = await this.account.signTypedData(typedData as never);
+    const res = await this.api.register({ phoneToken: v.phoneToken, address: this.address, displayName: this.name, issuedAt, signature, registrationId: consent.id, consentSignature });
     this.token = res.sessionToken;
+    check(res.status === (operation === "requestRecovery" ? "pending" : "registered"), `Unexpected enrollment result ${res.status}`);
     return res;
+  }
+  async manage(operation: "revoke" | "cancelRecovery") {
+    const consent = await this.api.preparePhoneAction(operation);
+    const typedData = checkDirectoryConsent(consent, { account: this.address, chainId: CHAIN_ID, operation, directoryAddress });
+    const signature = await this.account.signTypedData(typedData as never);
+    return this.api.submitPhoneAction({ id: consent.id, signature });
   }
   async signIn() {
     const issuedAt = Math.floor(Date.now() / 1000);
@@ -68,8 +88,19 @@ class Phone {
     return res;
   }
   /** The app's confirm path: prepare → guard → one unlock → sign all → submit. */
-  async act(request: ActionRequest, resolvedPayee?: Hex) {
+  async act(request: ActionRequest, resolvedPayee?: Hex, expectInvite = false) {
+    let recipient: Recipient | undefined;
+    if (request.type === "send" || request.type === "gift_send") {
+      const selected = (await this.api.resolve([request.params.phone], "US")).results[0]!;
+      if (!selected.e164 || (selected.status !== "registered" && selected.status !== "invite")) throw new Error("Recipient unavailable");
+      if (expectInvite) check(selected.status === "invite", "Random invitation number already belongs to someone; refusing to send");
+      recipient = { ...selected, status: selected.status, e164: selected.e164, name: selected.displayName ?? selected.e164 };
+      request = request.type === "send"
+        ? { ...request, params: { ...request.params, phone: selected.e164 } }
+        : { ...request, params: { ...request.params, phone: selected.e164 } };
+    }
     const prepared = await this.api.prepareAction(request);
+    checkPreparedPins(prepared);
     const t0 = Date.now();
     const { result } = await authorizeAndSubmit({
       api: this.api,
@@ -78,6 +109,9 @@ class Phone {
       account: this.address,
       chainId: CHAIN_ID,
       resolvedPayee,
+      recipient,
+      escrow: escrowAddress,
+      readDirectory: createPinnedDirectoryReader({ chainId: CHAIN_ID, directory: directoryAddress, rpcUrl: RPC }),
       unlock: (fn) => fn(this.account),
     });
     return { prepared, result, ms: Date.now() - t0 };
@@ -132,17 +166,71 @@ async function mint(to: Address, amount: bigint, ausd: Address) {
   check(key, "RELAYER_PRIVATE_KEY is needed to mint test dollars");
   const wallet = createWalletClient({ account: privateKeyToAccount(key), chain, transport: http(RPC) });
   const hash = await wallet.writeContract({ address: ausd, abi: mockAusdAbi, functionName: "mint", args: [to, amount] });
-  await publicClient.waitForTransactionReceipt({ hash });
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  check(receipt.status === "success", `Test mint reverted: ${hash}`);
   return hash;
+}
+
+/** Pin every signature to the local deployment, including the token and savings contracts. */
+function checkPreparedPins(prepared: PreparedAction) {
+  for (const entry of prepared.toSign) {
+    const td = hydrateTypedData(entry.typedData);
+    const expected = entry.key === "cancel" ? deployment.escrow
+      : entry.key === "autoSave" ? deployment.router
+      : entry.key === "burrowPermit" ? deployment.stata : deployment.ausd;
+    check(td.domain?.chainId === CHAIN_ID && td.domain?.verifyingContract?.toLowerCase() === expected.toLowerCase(), `${entry.key} uses a different deployment`);
+    if (td.primaryType === "Permit") {
+      check(String((td.message as Record<string, unknown>).spender).toLowerCase() === deployment.router.toLowerCase(), "Permit spender is not the pinned router");
+    }
+  }
+}
+
+async function preflight() {
+  const response = await fetch(`${API}/health`);
+  check(response.ok, `Health check failed: ${response.status}`);
+  const health = await response.json();
+  const rpcChainId = await publicClient.getChainId();
+  check(health.ok && health.chainId === CHAIN_ID && rpcChainId === CHAIN_ID, `Server/RPC must both use Monad testnet ${CHAIN_ID}`);
+  deployment = JSON.parse(readFileSync(process.env.DEPLOYMENT_FILE ? resolve(ROOT, process.env.DEPLOYMENT_FILE) : resolve(ROOT, "../contracts/deployments/10143-v2.json"), "utf8"));
+  check(deployment.chainId === CHAIN_ID, "Deployment manifest is for a different chain");
+  const names = ["ausd", "stata", "directory", "escrow", "router"] as const;
+  for (const name of names) {
+    check(isAddress(deployment[name]) && deployment[name] !== zeroAddress, `Invalid ${name} pin`);
+    const override = process.env[`${name.toUpperCase()}_ADDRESS`];
+    check(!override || override.toLowerCase() === deployment[name].toLowerCase(), `${name} environment override differs from the manifest`);
+  }
+  const code = await Promise.all(names.map((name) => publicClient.getCode({ address: deployment[name] })));
+  check(code.every((c) => c && c !== "0x"), "Pinned bundle contains an address without deployed code");
+  const abi = parseAbi([
+    "function VERSION() view returns (uint256)", "function directory() view returns (address)",
+    "function token() view returns (address)", "function ausd() view returns (address)",
+    "function stata() view returns (address)", "function escrow() view returns (address)",
+    "function asset() view returns (address)",
+  ]);
+  const [directoryVersion, escrowVersion, escrowDirectory, escrowToken, routerToken, routerStata, routerEscrow, stataAsset] = await Promise.all([
+    publicClient.readContract({ address: deployment.directory, abi, functionName: "VERSION" }),
+    publicClient.readContract({ address: deployment.escrow, abi, functionName: "VERSION" }),
+    publicClient.readContract({ address: deployment.escrow, abi, functionName: "directory" }),
+    publicClient.readContract({ address: deployment.escrow, abi, functionName: "token" }),
+    publicClient.readContract({ address: deployment.router, abi, functionName: "ausd" }),
+    publicClient.readContract({ address: deployment.router, abi, functionName: "stata" }),
+    publicClient.readContract({ address: deployment.router, abi, functionName: "escrow" }),
+    publicClient.readContract({ address: deployment.stata, abi, functionName: "asset" }),
+  ]);
+  check(directoryVersion === 2n && escrowVersion === 2n, "Expected v2 directory and escrow");
+  const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+  check(same(escrowDirectory, deployment.directory) && same(escrowToken, deployment.ausd)
+    && same(routerToken, deployment.ausd) && same(routerStata, deployment.stata)
+    && same(routerEscrow, deployment.escrow) && same(stataAsset, deployment.ausd), "Deployed bundle wiring differs from the manifest");
+  directoryAddress = deployment.directory;
+  escrowAddress = deployment.escrow;
+  console.log(`Server ${API} on Monad testnet · block ${health.block} · v2 directory ${directoryAddress}\n`);
 }
 
 // ---------------------------------------------------------------- flows
 
 async function main() {
-  const health = await (await fetch(`${API}/health`)).json();
-  check(health.chainId === CHAIN_ID, `server is on chain ${health.chainId}, expected ${CHAIN_ID}`);
-  const deployment = JSON.parse(readFileSync(resolve(ROOT, "../contracts/deployments/10143.json"), "utf8"));
-  console.log(`Server ${API} on Monad testnet · block ${health.block}\n`);
+  await preflight();
 
   const alice = new Phone("Alice");
   const bob = new Phone("Bob");
@@ -192,7 +280,7 @@ async function main() {
 
   let carolCode = "";
   await step("6. Send $15 to Carol (not signed up) → waits for her, claim link", async () => {
-    const { result } = await alice.act({ type: "send", params: { phone: carol.phone, amount: String(15n * USD) } });
+    const { result } = await alice.act({ type: "send", params: { phone: carol.phone, amount: String(15n * USD) } }, undefined, true);
     note(result);
     check(result.status === "waiting", `status ${result.status}`);
     carolCode = result.claimLink!.split("/c/")[1]!;
@@ -222,10 +310,10 @@ async function main() {
   });
 
   await step("9. Take back an unopened send", async () => {
-    const { result } = await alice.act({ type: "send", params: { phone: testNumber(), amount: String(5n * USD) } });
+    const { result } = await alice.act({ type: "send", params: { phone: testNumber(), amount: String(5n * USD) } }, undefined, true);
     note(result);
     check(result.status === "waiting", `send ${result.status}`);
-    const item = (await alice.api.activity()).items.find((i: any) => i.canCancel);
+    const item = (await alice.api.activity()).items.find((i) => i.canCancel && i.claimLink === result.claimLink);
     check(item, "no cancellable item");
     const { result: c } = await alice.act({ type: "cancel", params: { activityId: item.id } });
     note(c);
@@ -234,10 +322,11 @@ async function main() {
 
   let refundActivityId = "";
   await step("10. Send $3 to a number that never signs up (refund checked after expiry)", async () => {
-    const { result } = await alice.act({ type: "send", params: { phone: refundee, amount: String(3n * USD) } });
+    const { result } = await alice.act({ type: "send", params: { phone: refundee, amount: String(3n * USD) } }, undefined, true);
     note(result);
     check(result.status === "waiting", `status ${result.status}`);
-    refundActivityId = (await alice.api.activity()).items.find((i: any) => i.canCancel)?.id ?? "";
+    refundActivityId = (await alice.api.activity()).items.find((i) => i.canCancel && i.claimLink === result.claimLink)?.id ?? "";
+    check(refundActivityId, "Missing activity for the exact refund claim");
     return `expires in ~1 h; run --check-refund afterwards`;
   });
 
@@ -260,8 +349,11 @@ async function main() {
   });
 
   await step("13. Money arriving above the threshold is swept too", async () => {
-    await bob.act({ type: "send", params: { phone: alice.phone, amount: String(10n * USD) } }, alice.address).then(({ result }) => note(result));
-    const b = await until(() => alice.balance(), (x) => BigInt(x.balance) === 50n * USD && BigInt(x.burrow.amount) > 0n, 60_000, "sweep of incoming money");
+    const before = await alice.balance();
+    const sent = await bob.act({ type: "send", params: { phone: alice.phone, amount: String(10n * USD) } }, alice.address);
+    note(sent.result);
+    check(sent.result.status === "completed", `Incoming send ${sent.result.status}`);
+    const b = await until(() => alice.balance(), (x) => BigInt(x.balance) === 50n * USD && BigInt(x.burrow.amount) >= BigInt(before.burrow.amount) + 10n * USD, 60_000, "sweep of incoming money");
     return `balance back to ${usd(b.balance)}`;
   });
 
@@ -309,7 +401,7 @@ async function main() {
   });
 
   await step("17. Gift card to Dave (not signed up) → he opens it, picks a brand, card appears", async () => {
-    const sent = await alice.act({ type: "gift_send", params: { phone: dave.phone, brandId: null, amount: String(10n * USD), message: "Happy birthday" } });
+    const sent = await alice.act({ type: "gift_send", params: { phone: dave.phone, brandId: null, amount: String(10n * USD), message: "Happy birthday" } }, undefined, true);
     note(sent.result);
     check(sent.result.status === "waiting", `send ${sent.result.status}`);
     const code = sent.result.claimLink!.split("/c/")[1]!;
@@ -354,18 +446,83 @@ async function main() {
     return "4 users: 0 MON, 0 transactions sent";
   });
 
+  const replacement = new Phone("Replacement Bob", bob.phone);
+  await step("21. Recovery freezes the number for seven days and rejects a previously signed payment", async () => {
+    const selected = (await alice.api.resolve([bob.phone], "US")).results[0]!;
+    check(selected.status === "registered" && selected.address?.toLowerCase() === bob.address.toLowerCase() && selected.e164, "Bob is not the current recipient");
+    const recipient: Recipient = { ...selected, status: "registered", e164: selected.e164, name: "Bob" };
+    const request: ActionRequest = { type: "send", params: { phone: selected.e164, amount: String(USD) } };
+    const prepared = await alice.api.prepareAction(request);
+    checkPreparedPins(prepared);
+    const signatures: Record<string, Hex> = {};
+    for (const entry of checkPreparedAction({ request, prepared, account: alice.address, chainId: CHAIN_ID, recipient, escrow: escrowAddress })) {
+      signatures[entry.key] = await alice.account.signTypedData(entry.typedData as never);
+    }
+    const before = await bob.balance();
+    const result = await replacement.onboard("requestRecovery", false);
+    check(result.profile === null && result.availableAt && Date.parse(result.availableAt) > Date.now() + 6 * 86400_000, "Recovery did not start its seven-day delay");
+    const frozen = (await alice.api.resolve([bob.phone], "US")).results[0]!;
+    check(frozen.status === "unavailable" && frozen.directory?.pending, "Pending recovery did not freeze discovery");
+    let unlocked = false;
+    try {
+      await authorizeAndSubmit({
+        api: alice.api, request, prepared, account: alice.address, chainId: CHAIN_ID, recipient,
+        escrow: escrowAddress, readDirectory: createPinnedDirectoryReader({ chainId: CHAIN_ID, directory: directoryAddress, rpcUrl: RPC }),
+        unlock: (fn) => { unlocked = true; return fn(alice.account); },
+      });
+      throw new Error("App accepted stale recipient");
+    } catch (error) {
+      check(!unlocked && error instanceof Error && error.message !== "App accepted stale recipient", "App did not stop before the account unlock");
+    }
+    const rejected = await alice.api.submitAction(prepared.id, signatures);
+    check(rejected.status === "failed" && rejected.error?.code === "RECIPIENT_CHANGED", `Stale signed payment: ${JSON.stringify(rejected)}`);
+    check((await bob.balance()).balance === before.balance, "Existing account lost access to its balance");
+    return `Pending until ${result.availableAt}; app and relay both refused the stale destination`;
+  });
+
+  await step("22. Existing controller cancels recovery and the number resolves again", async () => {
+    const cancelled = await bob.manage("cancelRecovery");
+    check(cancelled.status === "active", `Cancel recovery: ${cancelled.status}`);
+    const resolved = (await alice.api.resolve([bob.phone], "US")).results[0]!;
+    check(resolved.status === "registered" && resolved.address?.toLowerCase() === bob.address.toLowerCase(), "Bob was not restored as recipient");
+    return `Binding revision ${cancelled.revision}`;
+  });
+
+  await step("23. Revocation preserves the balance, refunds an older gift, and renewal restores receiving", async () => {
+    const before = await bob.balance();
+    const gift = await alice.act({ type: "gift_send", params: { phone: bob.phone, brandId: null, amount: String(10n * USD) } });
+    note(gift.result);
+    check(gift.result.status === "waiting" && gift.result.claimLink, "Gift was not held for Bob");
+    const code = gift.result.claimLink.split("/c/")[1]!;
+    const aliceAfterGift = await alice.balance();
+    const revoked = await bob.manage("revoke");
+    check(revoked.status === "revoked", `Revocation: ${revoked.status}`);
+    const unavailable = (await alice.api.resolve([bob.phone], "US")).results[0]!;
+    check(unavailable.status === "unavailable", "Revoked number can still receive");
+    check((await bob.balance()).balance === before.balance, "Revocation changed Bob's balance");
+    await until(() => alice.api.claim(code), (claim) => claim.status === "returned", 60_000, "refund after ownership epoch change");
+    const refunded = await alice.balance();
+    check(BigInt(refunded.balance) === BigInt(aliceAfterGift.balance) + BigInt(gift.prepared.expect.amount), "Gift was not fully refunded to its original sender");
+    await bob.onboard("bind", false);
+    check((await bob.api.phoneStatus()).status === "active", "Fresh proof did not renew the binding");
+    return "Old gift refunded before expiry; original account and renewed number remain usable";
+  });
+
   mkdirSync(dirname(STATE_FILE), { recursive: true });
   writeFileSync(
     STATE_FILE,
-    JSON.stringify({ at: new Date().toISOString(), alice: { phone: alice.phone, address: alice.address }, refundee, refundActivityId, txs }, null, 2),
+    JSON.stringify({ at: new Date().toISOString(), chainId: CHAIN_ID, deployment, api: API, alice: { phone: alice.phone, address: alice.address }, refundee, refundActivityId, txs }, null, 2),
   );
   // Keep Alice's key so --check-refund can sign in as her (testnet-only throwaway key, gitignored data/ dir).
   writeFileSync(STATE_FILE.replace(".json", ".key"), alice.key, { mode: 0o600 });
+  chmodSync(STATE_FILE.replace(".json", ".key"), 0o600);
   report();
 }
 
 async function checkRefund() {
+  await preflight();
   const state = JSON.parse(readFileSync(STATE_FILE, "utf8"));
+  check(state.chainId === CHAIN_ID && state.api === API && state.deployment?.directory?.toLowerCase() === directoryAddress.toLowerCase() && state.deployment?.escrow?.toLowerCase() === escrowAddress.toLowerCase(), "Refund state belongs to a different deployment or API");
   console.log(`Checking refund for the send to ${state.refundee} made at ${state.at}`);
   const key = readFileSync(STATE_FILE.replace(".json", ".key"), "utf8").trim() as Hex;
   const alice = new Phone("Alice", state.alice.phone, key);
@@ -384,13 +541,16 @@ function report() {
   const failed = rows.filter((r) => !r.ok);
   console.log(`\n${rows.length - failed.length}/${rows.length} flows passed on Monad testnet (chain ${CHAIN_ID}).`);
   if (txs.length) console.log(`Transactions: ${[...new Set(txs)].length} (first: ${txs[0]})`);
-  const out = resolve(ROOT, "data/e2e-testnet-report.json");
-  writeFileSync(out, JSON.stringify({ at: new Date().toISOString(), api: API, rows, txs: [...new Set(txs)] }, null, 2));
+  const out = resolve(ROOT, process.argv.includes("--check-refund") ? "data/e2e-testnet-v2-refund-report.json" : "data/e2e-testnet-v2-report.json");
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, JSON.stringify({ at: new Date().toISOString(), api: API, chainId: CHAIN_ID, deployment, rows, txs: [...new Set(txs)], deferred: ["Seven-day recovery finalization and lease expiry require elapsed testnet time; covered locally with controlled time."] }, null, 2));
   console.log(`Report: ${out}`);
   process.exitCode = failed.length ? 1 : 0;
 }
 
 (process.argv.includes("--check-refund") ? checkRefund() : main()).catch((e) => {
   console.error(e);
+  rows.push({ step: "Fatal setup or execution error", ok: false, detail: e instanceof Error ? e.message : String(e) });
+  report();
   process.exitCode = 1;
 });

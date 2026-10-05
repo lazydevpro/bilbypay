@@ -43,7 +43,11 @@ describe("http api client", () => {
     const { fetch, calls } = fakeFetch(() => ({ body: {} }));
     const api = createHttpApi({ baseUrl: "https://x", getToken: () => "t", fetch });
     await api.otpVerify("+1", "000000");
-    await api.register({ phoneToken: "p", address: "0x1", displayName: "A", issuedAt: 1, signature: "0x2" });
+    await api.prepareRegistration({ phoneToken: "p", address: "0x1" });
+    await api.register({ phoneToken: "p", address: "0x1", displayName: "A", issuedAt: 1, signature: "0x2", registrationId: "reg1", consentSignature: "0x3" });
+    await api.phoneStatus();
+    await api.preparePhoneAction("cancelRecovery");
+    await api.submitPhoneAction({ id: "change1", signature: "0x4" });
     await api.session({ address: "0x1", issuedAt: 1, signature: "0x2" });
     await api.me();
     await api.balance();
@@ -58,9 +62,16 @@ describe("http api client", () => {
     await api.topupOrigins();
     await api.topupQuote("base:usdc", "1");
     await api.topupStatus("q1");
+    await api.fundingOptions();
+    await api.createFundingSession({ amount: "25000000", returnUrl: "https://bilbypay.example/funding", idempotencyKey: "attempt-1" });
+    await api.fundingSession("funding/1");
     expect(calls.map((c) => `${c.init.method} ${c.url.replace("https://x", "")}`)).toEqual([
       "POST /v1/otp/verify",
+      "POST /v1/accounts/registration/prepare",
       "POST /v1/accounts/register",
+      "GET /v1/accounts/phone",
+      "POST /v1/accounts/phone/prepare",
+      "POST /v1/accounts/phone/submit",
       "POST /v1/session",
       "GET /v1/me",
       "GET /v1/balance",
@@ -75,7 +86,13 @@ describe("http api client", () => {
       "GET /v1/topup/origins",
       "POST /v1/topup/quote",
       "GET /v1/topup/q1",
+      "GET /v1/funding/options",
+      "POST /v1/funding/sessions",
+      "GET /v1/funding/sessions/funding%2F1",
     ]);
+    const fundingCalls = calls.slice(-3);
+    for (const call of fundingCalls) expect((call.init.headers as Record<string, string>).Authorization).toBe("Bearer t");
+    expect(JSON.parse(fundingCalls[1]!.init.body as string)).toEqual({ amount: "25000000", returnUrl: "https://bilbypay.example/funding", idempotencyKey: "attempt-1" });
   });
 
   it("surfaces the server's error code, message and extra fields", async () => {

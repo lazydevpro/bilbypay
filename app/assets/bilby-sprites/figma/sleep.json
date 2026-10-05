@@ -1,0 +1,1545 @@
+{
+  "source": "Figma 1\u00d7 PNG exports of authored vector animation frames",
+  "fileKey": "EQX5sbStSZeFf2lZCpvEJI",
+  "sequenceNodeId": "1:1971",
+  "key": "sleep",
+  "name": "Sleeping - Animation Sequence",
+  "columns": 8,
+  "rows": 8,
+  "frames": 57,
+  "fps": 24,
+  "cellSize": 320,
+  "frameAspect": 1,
+  "atlas": "sleep.png",
+  "poster": "sleep-poster.png",
+  "registration": {
+    "method": "source-grid-translation; original 1\u00d7 PNG pixels; uniform spatial resampling",
+    "sourceGridColumns": 8,
+    "stepX": 257.9182652064732,
+    "stepY": 286.455078125,
+    "sharedCanvas": [
+      35.671460979822925,
+      77.96531909924254,
+      197.47512352026493,
+      197.47512352026493
+    ],
+    "uniformScale": 1.6204572722657977,
+    "paddingFraction": 0.055,
+    "sourcePixelRange": {
+      "width": [
+        173,
+        174
+      ],
+      "height": [
+        78,
+        203
+      ]
+    },
+    "frames": [
+      {
+        "index": 0,
+        "nodeId": "1:1972",
+        "png": "docs/design/figma-import/png/sleep/frame_000.png",
+        "sha256": "e93613c577aba294bcbb31ece0b876fa04c7d48b6f2f84f55de829a44abeca76",
+        "sourcePixels": [
+          174,
+          78
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 46.919677734375,
+          "y": 160.6366424560547,
+          "width": 173.16806030273438,
+          "height": 77.38290405273438
+        },
+        "registeredOrigin": [
+          46.919677734375,
+          160.6366424560547
+        ]
+      },
+      {
+        "index": 1,
+        "nodeId": "1:1999",
+        "png": "docs/design/figma-import/png/sleep/frame_001.png",
+        "sha256": "1cd8e7b32f04a656ee5de9c254cf07dfc3a8f835ecb109f105bf9b14e1220f51",
+        "sourcePixels": [
+          174,
+          78
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 304.8544921875,
+          "y": 160.5718231201172,
+          "width": 173.154541015625,
+          "height": 77.39036560058594
+        },
+        "registeredOrigin": [
+          46.93622698102678,
+          160.5718231201172
+        ]
+      },
+      {
+        "index": 2,
+        "nodeId": "1:2025",
+        "png": "docs/design/figma-import/png/sleep/frame_002.png",
+        "sha256": "9ede58fd6ae53b0995ed4490288aea77d790f0e94a080713533367f51251b828",
+        "sourcePixels": [
+          174,
+          78
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 562.814697265625,
+          "y": 160.58323669433594,
+          "width": 173.1331787109375,
+          "height": 77.39026641845703
+        },
+        "registeredOrigin": [
+          46.978166852678555,
+          160.58323669433594
+        ]
+      },
+      {
+        "index": 3,
+        "nodeId": "1:2052",
+        "png": "docs/design/figma-import/png/sleep/frame_003.png",
+        "sha256": "69fa6b9f4b75185b727382d8fe7dc97ab5b133cf335a47f89e14559905786259",
+        "sourcePixels": [
+          174,
+          78
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 820.7001953125,
+          "y": 160.5839385986328,
+          "width": 173.1378631591797,
+          "height": 77.38575744628906
+        },
+        "registeredOrigin": [
+          46.94539969308039,
+          160.5839385986328
+        ]
+      },
+      {
+        "index": 4,
+        "nodeId": "1:2081",
+        "png": "docs/design/figma-import/png/sleep/frame_004.png",
+        "sha256": "d2276e299a27dc9f6aebc6d038e951850a8c7ac30ccdf88f2ac636ed48a83779",
+        "sourcePixels": [
+          174,
+          78
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1078.6177978515625,
+          "y": 161.03466796875,
+          "width": 173.0662384033203,
+          "height": 77.40069580078125
+        },
+        "registeredOrigin": [
+          46.94473702566961,
+          161.03466796875
+        ]
+      },
+      {
+        "index": 5,
+        "nodeId": "1:2108",
+        "png": "docs/design/figma-import/png/sleep/frame_005.png",
+        "sha256": "cd0a4e9bbea4623a09f43a32ef9ee1dbdfb1cca67c74b2b82223eaf9cc3591a3",
+        "sourcePixels": [
+          174,
+          78
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1336.322021484375,
+          "y": 161.0341796875,
+          "width": 173.30511474609375,
+          "height": 77.39691162109375
+        },
+        "registeredOrigin": [
+          46.73069545200883,
+          161.0341796875
+        ]
+      },
+      {
+        "index": 6,
+        "nodeId": "1:2136",
+        "png": "docs/design/figma-import/png/sleep/frame_006.png",
+        "sha256": "78c71bb24079b9b27745261881946141923e84fd7ff5a318ba483b702697bc4a",
+        "sourcePixels": [
+          174,
+          78
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1594.530517578125,
+          "y": 161.00048828125,
+          "width": 173.06759643554688,
+          "height": 77.38807678222656
+        },
+        "registeredOrigin": [
+          47.02092633928578,
+          161.00048828125
+        ]
+      },
+      {
+        "index": 7,
+        "nodeId": "1:2164",
+        "png": "docs/design/figma-import/png/sleep/frame_007.png",
+        "sha256": "4fb8e2c4579ed9b89d9d474ce0f2c3df515253cabbd4ae1b1ecee397dd734b25",
+        "sourcePixels": [
+          173,
+          78
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1852.4072265625,
+          "y": 160.870849609375,
+          "width": 172.96853637695312,
+          "height": 77.52082061767578
+        },
+        "registeredOrigin": [
+          46.9793701171875,
+          160.870849609375
+        ]
+      },
+      {
+        "index": 8,
+        "nodeId": "1:2190",
+        "png": "docs/design/figma-import/png/sleep/frame_008.png",
+        "sha256": "7cc9015fd73dd367779be520a57c53ca58ac098d809687812259c10ca912f163",
+        "sourcePixels": [
+          173,
+          79
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 46.9267578125,
+          "y": 446.73486328125,
+          "width": 172.99513244628906,
+          "height": 78.02120971679688
+        },
+        "registeredOrigin": [
+          46.9267578125,
+          160.27978515625
+        ]
+      },
+      {
+        "index": 9,
+        "nodeId": "1:2219",
+        "png": "docs/design/figma-import/png/sleep/frame_009.png",
+        "sha256": "2956ed0b2899617fba7cc6094c1e5d110a0ab99e9796305e05342b496dbc6fe7",
+        "sourcePixels": [
+          174,
+          80
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 305.027099609375,
+          "y": 445.483154296875,
+          "width": 173.13226318359375,
+          "height": 79.20419311523438
+        },
+        "registeredOrigin": [
+          47.10883440290178,
+          159.028076171875
+        ]
+      },
+      {
+        "index": 10,
+        "nodeId": "1:2250",
+        "png": "docs/design/figma-import/png/sleep/frame_010.png",
+        "sha256": "16c9b844dbdf22cea15fcb0bf7446b1ee960b118bf7025e836a09e2559fc5699",
+        "sourcePixels": [
+          174,
+          82
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 562.825927734375,
+          "y": 443.17449951171875,
+          "width": 173.15122985839844,
+          "height": 81.32220458984375
+        },
+        "registeredOrigin": [
+          46.989397321428555,
+          156.71942138671875
+        ]
+      },
+      {
+        "index": 11,
+        "nodeId": "1:2280",
+        "png": "docs/design/figma-import/png/sleep/frame_011.png",
+        "sha256": "825ab9db159a5f46e2b0f5748a50527efbacae0301789c4302c0edbb659215ee",
+        "sourcePixels": [
+          173,
+          83
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 820.77880859375,
+          "y": 442.3544006347656,
+          "width": 172.92620849609375,
+          "height": 82.27021789550781
+        },
+        "registeredOrigin": [
+          47.02401297433039,
+          155.89932250976562
+        ]
+      },
+      {
+        "index": 12,
+        "nodeId": "1:2310",
+        "png": "docs/design/figma-import/png/sleep/frame_012.png",
+        "sha256": "5249e37a9de5178ef192d1fd90f6baabad34ffb1668914bd960ea7232b48f165",
+        "sourcePixels": [
+          173,
+          84
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1078.59130859375,
+          "y": 440.7563781738281,
+          "width": 172.96990966796875,
+          "height": 83.47235107421875
+        },
+        "registeredOrigin": [
+          46.91824776785711,
+          154.30130004882812
+        ]
+      },
+      {
+        "index": 13,
+        "nodeId": "1:2342",
+        "png": "docs/design/figma-import/png/sleep/frame_013.png",
+        "sha256": "7e66934533b0bfeb329810e0ddecf4d47c4b4dc08e827df70e839f90da78e776",
+        "sourcePixels": [
+          174,
+          85
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1336.418701171875,
+          "y": 439.5323791503906,
+          "width": 173.24453735351562,
+          "height": 84.65798950195312
+        },
+        "registeredOrigin": [
+          46.82737513950883,
+          153.07730102539062
+        ]
+      },
+      {
+        "index": 14,
+        "nodeId": "1:2370",
+        "png": "docs/design/figma-import/png/sleep/frame_014.png",
+        "sha256": "af0e67e827961a567250788abd0d419df40bebb288aae1f32c1aaec6f86081dc",
+        "sourcePixels": [
+          174,
+          86
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1594.28125,
+          "y": 438.4972229003906,
+          "width": 173.26190185546875,
+          "height": 85.7082748413086
+        },
+        "registeredOrigin": [
+          46.77165876116078,
+          152.04214477539062
+        ]
+      },
+      {
+        "index": 15,
+        "nodeId": "1:2400",
+        "png": "docs/design/figma-import/png/sleep/frame_015.png",
+        "sha256": "2f74bda00370365e82ebc206051a95f0a25b22046ce4eecb83b58d289d9d6e95",
+        "sourcePixels": [
+          174,
+          87
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1852.193603515625,
+          "y": 437.826416015625,
+          "width": 173.08139038085938,
+          "height": 86.45478820800781
+        },
+        "registeredOrigin": [
+          46.7657470703125,
+          151.371337890625
+        ]
+      },
+      {
+        "index": 16,
+        "nodeId": "1:2430",
+        "png": "docs/design/figma-import/png/sleep/frame_016.png",
+        "sha256": "b142712a47814fd8801efa80cbd3d3f9d5618a833d7e5586811118c495030d1b",
+        "sourcePixels": [
+          174,
+          89
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 46.876953125,
+          "y": 723.151611328125,
+          "width": 173.05137634277344,
+          "height": 88.0600814819336
+        },
+        "registeredOrigin": [
+          46.876953125,
+          150.241455078125
+        ]
+      },
+      {
+        "index": 17,
+        "nodeId": "1:2461",
+        "png": "docs/design/figma-import/png/sleep/frame_017.png",
+        "sha256": "e775896d23fa2928974b49f356fffc9ad7b205165461df390b1adb67e3a17304",
+        "sourcePixels": [
+          174,
+          90
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 304.692626953125,
+          "y": 722.00341796875,
+          "width": 173.1417236328125,
+          "height": 89.16609954833984
+        },
+        "registeredOrigin": [
+          46.77436174665178,
+          149.09326171875
+        ]
+      },
+      {
+        "index": 18,
+        "nodeId": "1:2491",
+        "png": "docs/design/figma-import/png/sleep/frame_018.png",
+        "sha256": "6f4b6d2f7e040b191533f88717f450e2006d050c67997aa6f19525070d8df05c",
+        "sourcePixels": [
+          174,
+          91
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 562.5986328125,
+          "y": 721.05419921875,
+          "width": 173.08963012695312,
+          "height": 90.03286743164062
+        },
+        "registeredOrigin": [
+          46.762102399553555,
+          148.14404296875
+        ]
+      },
+      {
+        "index": 19,
+        "nodeId": "1:2519",
+        "png": "docs/design/figma-import/png/sleep/frame_019.png",
+        "sha256": "4bf49634d3e72c92769633906ecdb89b764d90d3b952c639c2b68f05ae1bf696",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              135,
+              4
+            ],
+            "rgbaPixelsRemoved": 11,
+            "gapToSignificantArtwork": 107.0
+          }
+        ],
+        "sourceBounds": {
+          "x": 820.547119140625,
+          "y": 608.280029296875,
+          "width": 173.24159240722656,
+          "height": 202.78549194335938
+        },
+        "registeredOrigin": [
+          46.79232352120539,
+          35.369873046875
+        ]
+      },
+      {
+        "index": 20,
+        "nodeId": "1:2550",
+        "png": "docs/design/figma-import/png/sleep/frame_020.png",
+        "sha256": "f7ae45663167050938d924b6cb9be569bcd4340e80abbaca55758963bbb32dbe",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              135,
+              4
+            ],
+            "rgbaPixelsRemoved": 11,
+            "gapToSignificantArtwork": 106.0
+          }
+        ],
+        "sourceBounds": {
+          "x": 1078.47412109375,
+          "y": 608.30029296875,
+          "width": 173.1706085205078,
+          "height": 202.739990234375
+        },
+        "registeredOrigin": [
+          46.80106026785711,
+          35.39013671875
+        ]
+      },
+      {
+        "index": 21,
+        "nodeId": "1:2581",
+        "png": "docs/design/figma-import/png/sleep/frame_021.png",
+        "sha256": "40351a849a7a40ca29ec11970f5102efda1337053949ba218a9cc9b15f5cd078",
+        "sourcePixels": [
+          173,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              135,
+              4
+            ],
+            "rgbaPixelsRemoved": 11,
+            "gapToSignificantArtwork": 105.0
+          }
+        ],
+        "sourceBounds": {
+          "x": 1336.5677490234375,
+          "y": 608.302734375,
+          "width": 172.99978637695312,
+          "height": 202.6968536376953
+        },
+        "registeredOrigin": [
+          46.97642299107133,
+          35.392578125
+        ]
+      },
+      {
+        "index": 22,
+        "nodeId": "1:2615",
+        "png": "docs/design/figma-import/png/sleep/frame_022.png",
+        "sha256": "64789d2e639ece6a0414fa655f5896dcf5bd78378bdffffd0983fdc8ee2fc2ea",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              136,
+              4
+            ],
+            "rgbaPixelsRemoved": 12,
+            "gapToSignificantArtwork": 104.0
+          }
+        ],
+        "sourceBounds": {
+          "x": 1594.188232421875,
+          "y": 608.2861328125,
+          "width": 173.16281127929688,
+          "height": 202.73789978027344
+        },
+        "registeredOrigin": [
+          46.67864118303578,
+          35.3759765625
+        ]
+      },
+      {
+        "index": 23,
+        "nodeId": "1:2649",
+        "png": "docs/design/figma-import/png/sleep/frame_023.png",
+        "sha256": "2a8242b50d567a40a20a6f5ff5cd3c160518b592dd5ec551cc4de47c12fb29be",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              136,
+              4
+            ],
+            "rgbaPixelsRemoved": 11,
+            "gapToSignificantArtwork": 121.0
+          }
+        ],
+        "sourceBounds": {
+          "x": 1851.96044921875,
+          "y": 608.35107421875,
+          "width": 173.31845092773438,
+          "height": 202.7040557861328
+        },
+        "registeredOrigin": [
+          46.5325927734375,
+          35.44091796875
+        ]
+      },
+      {
+        "index": 24,
+        "nodeId": "1:2679",
+        "png": "docs/design/figma-import/png/sleep/frame_024.png",
+        "sha256": "27dc1ab06f17f2dfcd7390efd37c72476687d727ecbc4c1bc1417790dc5e1afd",
+        "sourcePixels": [
+          174,
+          202
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              136,
+              3
+            ],
+            "rgbaPixelsRemoved": 10,
+            "gapToSignificantArtwork": 120.95040305844375
+          }
+        ],
+        "sourceBounds": {
+          "x": 46.713623046875,
+          "y": 895.66015625,
+          "width": 173.368896484375,
+          "height": 201.93255615234375
+        },
+        "registeredOrigin": [
+          46.713623046875,
+          36.294921875
+        ]
+      },
+      {
+        "index": 25,
+        "nodeId": "1:2710",
+        "png": "docs/design/figma-import/png/sleep/frame_025.png",
+        "sha256": "f045d8602ee107ae32f99c0e36f97669778d8878999a28c3a1270cffc8c56aac",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              136,
+              3
+            ],
+            "rgbaPixelsRemoved": 10,
+            "gapToSignificantArtwork": 119.26860441876563
+          }
+        ],
+        "sourceBounds": {
+          "x": 304.56005859375,
+          "y": 895.60986328125,
+          "width": 173.27728271484375,
+          "height": 202.1085205078125
+        },
+        "registeredOrigin": [
+          46.64179338727678,
+          36.24462890625
+        ]
+      },
+      {
+        "index": 26,
+        "nodeId": "1:2741",
+        "png": "docs/design/figma-import/png/sleep/frame_026.png",
+        "sha256": "9862e9d789704ce02593ef72452a72205dceba8eb37f5cdd79e76a5d2003d317",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              136,
+              4
+            ],
+            "rgbaPixelsRemoved": 12,
+            "gapToSignificantArtwork": 119.54078801814885
+          }
+        ],
+        "sourceBounds": {
+          "x": 562.58203125,
+          "y": 894.76318359375,
+          "width": 173.36636352539062,
+          "height": 202.88307189941406
+        },
+        "registeredOrigin": [
+          46.745500837053555,
+          35.39794921875
+        ]
+      },
+      {
+        "index": 27,
+        "nodeId": "1:2773",
+        "png": "docs/design/figma-import/png/sleep/frame_027.png",
+        "sha256": "088fc6b9d2068d3d90ecda2b9147327f031f686ebbb442ec39dea2408d7d2d37",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              135,
+              4
+            ],
+            "rgbaPixelsRemoved": 11,
+            "gapToSignificantArtwork": 120.10412149464314
+          }
+        ],
+        "sourceBounds": {
+          "x": 820.602294921875,
+          "y": 894.80224609375,
+          "width": 173.2626190185547,
+          "height": 202.91624450683594
+        },
+        "registeredOrigin": [
+          46.84749930245539,
+          35.43701171875
+        ]
+      },
+      {
+        "index": 28,
+        "nodeId": "1:2804",
+        "png": "docs/design/figma-import/png/sleep/frame_028.png",
+        "sha256": "6caafcf3eb0d07fe8defce38eff9b40bc59326aacbd40e75d049ca1dea6c993a",
+        "sourcePixels": [
+          174,
+          101
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1078.564208984375,
+          "y": 997.029296875,
+          "width": 173.21292114257812,
+          "height": 100.66730499267578
+        },
+        "registeredOrigin": [
+          46.89114815848211,
+          137.6640625
+        ]
+      },
+      {
+        "index": 29,
+        "nodeId": "1:2835",
+        "png": "docs/design/figma-import/png/sleep/frame_029.png",
+        "sha256": "ef02b55b7df319a9a3277dda82cec5b58cf7257ea4cfb693f2b9664cea75e08a",
+        "sourcePixels": [
+          174,
+          102
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1336.51611328125,
+          "y": 996.2900390625,
+          "width": 173.18411254882812,
+          "height": 101.3929443359375
+        },
+        "registeredOrigin": [
+          46.92478724888383,
+          136.9248046875
+        ]
+      },
+      {
+        "index": 30,
+        "nodeId": "1:2866",
+        "png": "docs/design/figma-import/png/sleep/frame_030.png",
+        "sha256": "b2ddb780c9c89166357322b065702d3ebb7ebcb2ab3af405afd1939e91dc5569",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              135,
+              4
+            ],
+            "rgbaPixelsRemoved": 11,
+            "gapToSignificantArtwork": 119.4026800369238
+          }
+        ],
+        "sourceBounds": {
+          "x": 1594.427734375,
+          "y": 894.767578125,
+          "width": 173.10104370117188,
+          "height": 202.86550903320312
+        },
+        "registeredOrigin": [
+          46.91814313616078,
+          35.40234375
+        ]
+      },
+      {
+        "index": 31,
+        "nodeId": "1:2899",
+        "png": "docs/design/figma-import/png/sleep/frame_031.png",
+        "sha256": "18ee1644b25707d7794d1b707fe77136c568a1b86c950668d86a24c70b3f3cd7",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              135,
+              4
+            ],
+            "rgbaPixelsRemoved": 11,
+            "gapToSignificantArtwork": 119.20151005754919
+          }
+        ],
+        "sourceBounds": {
+          "x": 1852.299560546875,
+          "y": 894.7822265625,
+          "width": 173.1217498779297,
+          "height": 202.8341064453125
+        },
+        "registeredOrigin": [
+          46.8717041015625,
+          35.4169921875
+        ]
+      },
+      {
+        "index": 32,
+        "nodeId": "1:2932",
+        "png": "docs/design/figma-import/png/sleep/frame_032.png",
+        "sha256": "e933a7dfc01c2313bcfcee370f2d0017ffde8233579c90a958ba7d7feb310c37",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              136,
+              4
+            ],
+            "rgbaPixelsRemoved": 12,
+            "gapToSignificantArtwork": 119.0
+          }
+        ],
+        "sourceBounds": {
+          "x": 46.91796875,
+          "y": 1181.357421875,
+          "width": 173.18948364257812,
+          "height": 202.69696044921875
+        },
+        "registeredOrigin": [
+          46.91796875,
+          35.537109375
+        ]
+      },
+      {
+        "index": 33,
+        "nodeId": "1:2966",
+        "png": "docs/design/figma-import/png/sleep/frame_033.png",
+        "sha256": "0d55d63433e384c14906f0cbaab6877f19354627b76f5b8fb1d1f97c2d2cefae",
+        "sourcePixels": [
+          174,
+          106
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 305.92333984375,
+          "y": 1278.8465576171875,
+          "width": 173.2821502685547,
+          "height": 105.20670318603516
+        },
+        "registeredOrigin": [
+          48.00507463727678,
+          133.0262451171875
+        ]
+      },
+      {
+        "index": 34,
+        "nodeId": "1:2999",
+        "png": "docs/design/figma-import/png/sleep/frame_034.png",
+        "sha256": "92f7b16ed2415bff97b374a299483550b01889944c24aa9173580e173f0a6ca7",
+        "sourcePixels": [
+          174,
+          107
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 563.96826171875,
+          "y": 1277.9140625,
+          "width": 173.06179809570312,
+          "height": 106.15050506591797
+        },
+        "registeredOrigin": [
+          48.131731305803555,
+          132.09375
+        ]
+      },
+      {
+        "index": 35,
+        "nodeId": "1:3034",
+        "png": "docs/design/figma-import/png/sleep/frame_035.png",
+        "sha256": "55785ff884d5eeb363de8985cf67c14e5856b4b051c906c42149891150ac5b9a",
+        "sourcePixels": [
+          174,
+          108
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 821.53271484375,
+          "y": 1276.9649658203125,
+          "width": 173.2135467529297,
+          "height": 107.10027313232422
+        },
+        "registeredOrigin": [
+          47.77791922433039,
+          131.1446533203125
+        ]
+      },
+      {
+        "index": 36,
+        "nodeId": "1:3071",
+        "png": "docs/design/figma-import/png/sleep/frame_036.png",
+        "sha256": "f6cc10187bac5d844621f40c3ce54d2cf8f07056bce1b08917c814efc734090b",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              126,
+              0,
+              129,
+              4
+            ],
+            "rgbaPixelsRemoved": 8,
+            "gapToSignificantArtwork": 114.0175425099138
+          },
+          {
+            "sourceBounds": [
+              132,
+              0,
+              136,
+              3
+            ],
+            "rgbaPixelsRemoved": 9,
+            "gapToSignificantArtwork": 116.0
+          }
+        ],
+        "sourceBounds": {
+          "x": 1078.603759765625,
+          "y": 1181.90478515625,
+          "width": 173.20867919921875,
+          "height": 202.0419158935547
+        },
+        "registeredOrigin": [
+          46.93069893973211,
+          36.08447265625
+        ]
+      },
+      {
+        "index": 37,
+        "nodeId": "1:3107",
+        "png": "docs/design/figma-import/png/sleep/frame_037.png",
+        "sha256": "bd4de62dcdc22a2c3f98afdec80f1e01d3227f83c685565d9bb33ca7b5cb4e84",
+        "sourcePixels": [
+          174,
+          109
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1337.455322265625,
+          "y": 1275.1722412109375,
+          "width": 173.19851684570312,
+          "height": 108.76344299316406
+        },
+        "registeredOrigin": [
+          47.86399623325883,
+          129.3519287109375
+        ]
+      },
+      {
+        "index": 38,
+        "nodeId": "1:3139",
+        "png": "docs/design/figma-import/png/sleep/frame_038.png",
+        "sha256": "7109893d0b86d9874a8d965b25d132be405f706062d27e6dde8f1f267f4ff637",
+        "sourcePixels": [
+          174,
+          110
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1595.6014404296875,
+          "y": 1273.81640625,
+          "width": 173.15284729003906,
+          "height": 109.81082153320312
+        },
+        "registeredOrigin": [
+          48.09184919084828,
+          127.99609375
+        ]
+      },
+      {
+        "index": 39,
+        "nodeId": "1:3171",
+        "png": "docs/design/figma-import/png/sleep/frame_039.png",
+        "sha256": "ebea142c2f5e98b225a5d47ebcf9ae1bb81a0cb2431eabb5694d282c5aafcd5a",
+        "sourcePixels": [
+          174,
+          111
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1853.5860595703125,
+          "y": 1272.90869140625,
+          "width": 173.193359375,
+          "height": 110.71923828125
+        },
+        "registeredOrigin": [
+          48.158203125,
+          127.08837890625
+        ]
+      },
+      {
+        "index": 40,
+        "nodeId": "1:3204",
+        "png": "docs/design/figma-import/png/sleep/frame_040.png",
+        "sha256": "5701d8309e4579ca26a1e29748fffbcd307232e3698c1873c47c385506f4c0df",
+        "sourcePixels": [
+          174,
+          112
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 48.016845703125,
+          "y": 1559.0986328125,
+          "width": 173.20265197753906,
+          "height": 111.25135040283203
+        },
+        "registeredOrigin": [
+          48.016845703125,
+          126.8232421875
+        ]
+      },
+      {
+        "index": 41,
+        "nodeId": "1:3237",
+        "png": "docs/design/figma-import/png/sleep/frame_041.png",
+        "sha256": "f65d3e42624b25463110574a8892f51334717d54741ec2579cea2f9539eeb6be",
+        "sourcePixels": [
+          174,
+          113
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 305.90673828125,
+          "y": 1557.77392578125,
+          "width": 173.1982879638672,
+          "height": 112.57841491699219
+        },
+        "registeredOrigin": [
+          47.98847307477678,
+          125.49853515625
+        ]
+      },
+      {
+        "index": 42,
+        "nodeId": "1:3272",
+        "png": "docs/design/figma-import/png/sleep/frame_042.png",
+        "sha256": "febcc9dfe12817c95ef0a49c307ed8492028535d1e0ad08819010d5d92a25d14",
+        "sourcePixels": [
+          174,
+          114
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 563.981201171875,
+          "y": 1556.97119140625,
+          "width": 173.02407836914062,
+          "height": 113.38603973388672
+        },
+        "registeredOrigin": [
+          48.144670758928555,
+          124.69580078125
+        ]
+      },
+      {
+        "index": 43,
+        "nodeId": "1:3304",
+        "png": "docs/design/figma-import/png/sleep/frame_043.png",
+        "sha256": "875e822807e41d2bc68ce274c5c74b5acea2322bac10f5eb3eba6b9cfc484ede",
+        "sourcePixels": [
+          174,
+          114
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 821.879638671875,
+          "y": 1556.509765625,
+          "width": 173.05148315429688,
+          "height": 113.84495544433594
+        },
+        "registeredOrigin": [
+          48.12484305245539,
+          124.234375
+        ]
+      },
+      {
+        "index": 44,
+        "nodeId": "1:3337",
+        "png": "docs/design/figma-import/png/sleep/frame_044.png",
+        "sha256": "21dff2b1a714add4e272108718406a35a2bbcf7ba3b1be47717a3b17043aafaf",
+        "sourcePixels": [
+          174,
+          116
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1079.685546875,
+          "y": 1555.052734375,
+          "width": 173.20558166503906,
+          "height": 115.2164306640625
+        },
+        "registeredOrigin": [
+          48.01248604910711,
+          122.77734375
+        ]
+      },
+      {
+        "index": 45,
+        "nodeId": "1:3371",
+        "png": "docs/design/figma-import/png/sleep/frame_045.png",
+        "sha256": "b7e630e7b71943f9c4b310c0b5f9cc71d21b6c8f3b6e6b8f45f57f6e10a7d0d0",
+        "sourcePixels": [
+          174,
+          117
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1337.598876953125,
+          "y": 1553.8763427734375,
+          "width": 173.34881591796875,
+          "height": 116.20585632324219
+        },
+        "registeredOrigin": [
+          48.00755092075883,
+          121.6009521484375
+        ]
+      },
+      {
+        "index": 46,
+        "nodeId": "1:3402",
+        "png": "docs/design/figma-import/png/sleep/frame_046.png",
+        "sha256": "7a99eb5f88aea8e1051eccc23b640927fe162c635c0e64926ded7c8db10793a1",
+        "sourcePixels": [
+          174,
+          118
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1595.7950439453125,
+          "y": 1553.2039794921875,
+          "width": 173.07565307617188,
+          "height": 117.16571044921875
+        },
+        "registeredOrigin": [
+          48.28545270647328,
+          120.9285888671875
+        ]
+      },
+      {
+        "index": 47,
+        "nodeId": "1:3432",
+        "png": "docs/design/figma-import/png/sleep/frame_047.png",
+        "sha256": "47649f218c4842c372e11eaf6a4d73bfae3ac91f65bc6aa5ca2395f8b9704ff1",
+        "sourcePixels": [
+          174,
+          118
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1853.5601806640625,
+          "y": 1552.65380859375,
+          "width": 173.19749450683594,
+          "height": 117.65145111083984
+        },
+        "registeredOrigin": [
+          48.13232421875,
+          120.37841796875
+        ]
+      },
+      {
+        "index": 48,
+        "nodeId": "1:3463",
+        "png": "docs/design/figma-import/png/sleep/frame_048.png",
+        "sha256": "ecc8bde300ad9fdbe8cf34faf8914f2695b5a8535aa996abe3c560e0d9771adf",
+        "sourcePixels": [
+          174,
+          119
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 47.96728515625,
+          "y": 1838.24560546875,
+          "width": 173.2349090576172,
+          "height": 118.71499633789062
+        },
+        "registeredOrigin": [
+          47.96728515625,
+          119.51513671875
+        ]
+      },
+      {
+        "index": 49,
+        "nodeId": "1:3498",
+        "png": "docs/design/figma-import/png/sleep/frame_049.png",
+        "sha256": "ca4030ca0fb11a9346dcb6bbc722817b58593fbc92b67c0ffc05793e98a614c7",
+        "sourcePixels": [
+          174,
+          120
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 306.02490234375,
+          "y": 1837.439453125,
+          "width": 173.25021362304688,
+          "height": 119.52367401123047
+        },
+        "registeredOrigin": [
+          48.10663713727678,
+          118.708984375
+        ]
+      },
+      {
+        "index": 50,
+        "nodeId": "1:3531",
+        "png": "docs/design/figma-import/png/sleep/frame_050.png",
+        "sha256": "255039786bec114df917e220cbf9a26093c627010b433afa0a67843ce64b2299",
+        "sourcePixels": [
+          174,
+          121
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 563.87255859375,
+          "y": 1836.62939453125,
+          "width": 173.2638702392578,
+          "height": 120.3448486328125
+        },
+        "registeredOrigin": [
+          48.036028180803555,
+          117.89892578125
+        ]
+      },
+      {
+        "index": 51,
+        "nodeId": "1:3564",
+        "png": "docs/design/figma-import/png/sleep/frame_051.png",
+        "sha256": "ae76eedd32af39e51a9072ed2c062f8fa049c8d4f094f785ecacefe15f4b665c",
+        "sourcePixels": [
+          174,
+          203
+        ],
+        "exportScale": 1,
+        "clearedDebris": [
+          {
+            "sourceBounds": [
+              132,
+              0,
+              136,
+              4
+            ],
+            "rgbaPixelsRemoved": 13,
+            "gapToSignificantArtwork": 117.0341830406826
+          }
+        ],
+        "sourceBounds": {
+          "x": 821.78173828125,
+          "y": 1754.61328125,
+          "width": 173.3001708984375,
+          "height": 202.37002563476562
+        },
+        "registeredOrigin": [
+          48.02694266183039,
+          35.8828125
+        ]
+      },
+      {
+        "index": 52,
+        "nodeId": "1:3599",
+        "png": "docs/design/figma-import/png/sleep/frame_052.png",
+        "sha256": "ace0edd9af484e2a409b898de69fb3d552fa75338a1d721445ed3353025c8784",
+        "sourcePixels": [
+          174,
+          123
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1079.697998046875,
+          "y": 1834.3804931640625,
+          "width": 173.24327087402344,
+          "height": 122.55049896240234
+        },
+        "registeredOrigin": [
+          48.02493722098211,
+          115.6500244140625
+        ]
+      },
+      {
+        "index": 53,
+        "nodeId": "1:3634",
+        "png": "docs/design/figma-import/png/sleep/frame_053.png",
+        "sha256": "e076ec006722e2da9239bfe1d73d9da84a3fda85b658c4554c2acc69a15be7af",
+        "sourcePixels": [
+          174,
+          124
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1337.712158203125,
+          "y": 1833.5556640625,
+          "width": 173.30209350585938,
+          "height": 123.29356384277344
+        },
+        "registeredOrigin": [
+          48.12083217075883,
+          114.8251953125
+        ]
+      },
+      {
+        "index": 54,
+        "nodeId": "1:3668",
+        "png": "docs/design/figma-import/png/sleep/frame_054.png",
+        "sha256": "77de77ab1d6c4a2c93959dc0eb67c7f893d09d0482bd86d8c2826028e27c8099",
+        "sourcePixels": [
+          174,
+          124
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1595.6546630859375,
+          "y": 1832.8916015625,
+          "width": 173.21385192871094,
+          "height": 123.97056579589844
+        },
+        "registeredOrigin": [
+          48.14507184709828,
+          114.1611328125
+        ]
+      },
+      {
+        "index": 55,
+        "nodeId": "1:3701",
+        "png": "docs/design/figma-import/png/sleep/frame_055.png",
+        "sha256": "fd4c5958ecbef14b2649408ef40fb1cdb257a9b1eb9788adb21271879ddaea18",
+        "sourcePixels": [
+          174,
+          102
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 1852.2962646484375,
+          "y": 1855.25390625,
+          "width": 173.60379028320312,
+          "height": 101.99281311035156
+        },
+        "registeredOrigin": [
+          46.868408203125,
+          136.5234375
+        ]
+      },
+      {
+        "index": 56,
+        "nodeId": "1:3730",
+        "png": "docs/design/figma-import/png/sleep/frame_056.png",
+        "sha256": "624fa6d5327195cd26a7e77b6052ecd528599cc88a79b4d443e359b75eef6b4f",
+        "sourcePixels": [
+          174,
+          102
+        ],
+        "exportScale": 1,
+        "clearedDebris": [],
+        "sourceBounds": {
+          "x": 46.868408203125,
+          "y": 2141.708984375,
+          "width": 173.60403442382812,
+          "height": 101.99285888671875
+        },
+        "registeredOrigin": [
+          46.868408203125,
+          136.5234375
+        ]
+      }
+    ]
+  },
+  "qa": {
+    "sourceFramesPreserved": 57,
+    "interpolation": false,
+    "redrawing": false,
+    "minAlphaMarginPx": 18,
+    "posterIdenticalToFirstFrame": true,
+    "finalDuplicateDistance": 9.42415681493003e-06,
+    "adjacentDistanceMedian": 0.018226049840450287,
+    "adjacentDistanceMaximum": 0.08026353269815445,
+    "lastToFirstDistance": 0.061438657343387604,
+    "cyclicRangeCandidates": [
+      {
+        "start": 30,
+        "end": 56,
+        "distance": 0.02644285187125206
+      },
+      {
+        "start": 30,
+        "end": 55,
+        "distance": 0.02644295245409012
+      },
+      {
+        "start": 0,
+        "end": 15,
+        "distance": 0.030847424641251564
+      },
+      {
+        "start": 31,
+        "end": 56,
+        "distance": 0.03257147967815399
+      },
+      {
+        "start": 31,
+        "end": 55,
+        "distance": 0.03257278725504875
+      },
+      {
+        "start": 32,
+        "end": 56,
+        "distance": 0.032856643199920654
+      },
+      {
+        "start": 32,
+        "end": 55,
+        "distance": 0.032856810837984085
+      },
+      {
+        "start": 29,
+        "end": 56,
+        "distance": 0.03384033218026161
+      },
+      {
+        "start": 29,
+        "end": 55,
+        "distance": 0.03384097293019295
+      },
+      {
+        "start": 28,
+        "end": 56,
+        "distance": 0.03680775314569473
+      },
+      {
+        "start": 28,
+        "end": 55,
+        "distance": 0.036807768046855927
+      },
+      {
+        "start": 27,
+        "end": 56,
+        "distance": 0.039074648171663284
+      }
+    ],
+    "reviewedDebrisCleanup": {
+      "components": 15,
+      "frames": 14,
+      "rgbaPixels": 163,
+      "originalSourceFilesUnchanged": true,
+      "rule": "Reviewed isolated top specks: <=25 alpha pixels, <=8px extent, x>=120/y<8, >80px from significant artwork. Character and real bubbles unchanged."
+    }
+  },
+  "recommendedPlayback": {
+    "mode": "ping-pong",
+    "fps": 24,
+    "repeatDelayMs": 1500,
+    "reason": "Return through authored breathing and bubble poses before resting at the original pose."
+  }
+}

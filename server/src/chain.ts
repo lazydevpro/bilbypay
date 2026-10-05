@@ -12,6 +12,17 @@ import {
 import { type Address, type Chain, createPublicClient, domainSeparator, erc20Abi, type Hex, http, type PublicClient } from "viem";
 import type { Config } from "./config";
 
+export type DirectoryState = {
+  binding: { account: Address; boundAt: bigint; validUntil: bigint; revision: bigint; phoneEpoch: bigint; revoked: boolean };
+  pending: { account: Address; requestedAt: bigint; executableAt: bigint; expiresAt: bigint; expectedRevision: bigint };
+  blockNumber: bigint;
+  timestamp: bigint;
+};
+
+export const isZeroAddress = (account: string) => /^0x0{40}$/i.test(account);
+export const pendingActive = (state: DirectoryState) => !isZeroAddress(state.pending.account) && state.pending.expiresAt >= state.timestamp;
+export const bindingActive = (state: DirectoryState) => !isZeroAddress(state.binding.account) && !state.binding.revoked && state.binding.validUntil > state.timestamp && !pendingActive(state);
+
 /** Read-side access to the chain and our contracts. Writes go through relayer.ts. */
 export class ChainService {
   readonly client: PublicClient;
@@ -72,6 +83,16 @@ export class ChainService {
     return { account: /^0x0{40}$/i.test(account) ? null : account, boundAt: Number(boundAt) };
   }
 
+  /** Read every field at one block so a concurrent reassignment cannot mix revisions. */
+  async directoryState(phoneKey: Hex, blockNumber?: bigint): Promise<DirectoryState> {
+    const block = await this.client.getBlock(blockNumber === undefined ? { blockTag: "latest" } : { blockNumber });
+    const [binding, pending] = await Promise.all([
+      this.client.readContract({ address: this.d.directory, abi: bilbyDirectoryAbi, functionName: "getBinding", args: [phoneKey], blockNumber: block.number }),
+      this.client.readContract({ address: this.d.directory, abi: bilbyDirectoryAbi, functionName: "getPendingChange", args: [phoneKey], blockNumber: block.number }),
+    ]);
+    return { binding, pending, blockNumber: block.number, timestamp: block.timestamp };
+  }
+
   lastIssuedAt(phoneKey: Hex) {
     return this.client.readContract({ address: this.d.directory, abi: bilbyDirectoryAbi, functionName: "lastIssuedAt", args: [phoneKey] });
   }
@@ -102,6 +123,10 @@ export class ChainService {
   async verifyDomains(): Promise<void> {
     const rpcChainId = await this.client.getChainId();
     if (rpcChainId !== this.config.chainId) throw new Error(`RPC is chain ${rpcChainId}, expected ${this.config.chainId}`);
+    const directoryVersion = await this.client.readContract({ address: this.d.directory, abi: bilbyDirectoryAbi, functionName: "VERSION" });
+    if (Number(directoryVersion) !== 2) throw new Error("Directory v2 deployment required; do not use the v1 deployment manifest with this server.");
+    const escrowDirectory = await this.client.readContract({ address: this.d.escrow, abi: bilbyEscrowAbi, functionName: "directory" });
+    if (escrowDirectory.toLowerCase() !== this.d.directory.toLowerCase()) throw new Error("Escrow is connected to a different directory.");
     const check = async (token: TokenInfo) => {
       const onChain = await this.client.readContract({ address: token.address, abi: erc20PermitAbi, functionName: "DOMAIN_SEPARATOR" });
       const ours = domainSeparator({

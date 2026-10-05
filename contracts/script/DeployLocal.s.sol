@@ -11,7 +11,7 @@ import {MockAUSD} from "../test/mocks/MockAUSD.sol";
 import {MockStata} from "../test/mocks/MockStata.sol";
 
 /// Local dev chain (anvil --chain-id 143): mocks for AUSD and stataAUSD + the three contracts.
-/// Env: VERIFIER, TREASURY, KEEPER. Writes deployments/local.json.
+/// Env: VERIFIER, TREASURY, KEEPER. Writes deployments/local-v2.json.
 contract DeployLocal is Script {
     function run() external {
         address verifier = vm.envAddress("VERIFIER");
@@ -22,8 +22,9 @@ contract DeployLocal is Script {
         MockAUSD ausd = new MockAUSD();
         MockStata stata = new MockStata(ausd);
         BilbyDirectory directory = new BilbyDirectory(owner, verifier);
-        BilbyEscrow escrow = new BilbyEscrow(IERC20(address(ausd)), owner, verifier, treasury);
-        BilbyRouter router = new BilbyRouter(IERC20(address(ausd)), IERC4626(address(stata)), address(escrow), owner);
+        BilbyEscrow escrow = new BilbyEscrow(IERC20(address(ausd)), directory, owner, verifier, treasury);
+        BilbyRouter router =
+            new BilbyRouter(IERC20(address(ausd)), IERC4626(address(stata)), address(escrow), owner);
         router.setKeeper(keeper, true);
         vm.stopBroadcast();
 
@@ -34,7 +35,7 @@ contract DeployLocal is Script {
         vm.serializeAddress(json, "directory", address(directory));
         vm.serializeAddress(json, "escrow", address(escrow));
         string memory out = vm.serializeAddress(json, "router", address(router));
-        vm.writeJson(out, "deployments/local.json");
+        vm.writeJson(out, "deployments/local-v2.json");
         console.log(out);
     }
 }

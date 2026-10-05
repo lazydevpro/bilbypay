@@ -76,7 +76,7 @@ export default function Amount() {
             {isPositive(balance.burrow.amount) ? ` · Burrow ${usd(balance.burrow.amount)}` : ""}
           </Muted>
         ) : null}
-        {tooMuch ? <Text variant="small" color={colors.red}>That's more than you have.</Text> : null}
+        {tooMuch ? <Text variant="small" color={colors.red}>That&apos;s more than you have.</Text> : null}
       </View>
 
       <TextInput

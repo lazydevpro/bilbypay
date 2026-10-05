@@ -32,6 +32,123 @@ export const bilbyDirectoryAbi = [
   },
   {
     "type": "function",
+    "name": "CANCEL_RECOVERY_TYPEHASH",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "FINALIZE_RECOVERY_TYPEHASH",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_LEASE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_PROOF_AGE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "RECOVERY_DELAY",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "RECOVERY_WINDOW",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "REQUEST_RECOVERY_TYPEHASH",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "REVOKE_TYPEHASH",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "VERSION",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "acceptOwnership",
     "inputs": [],
     "outputs": [],
@@ -42,17 +159,72 @@ export const bilbyDirectoryAbi = [
     "name": "bind",
     "inputs": [
       {
+        "name": "request",
+        "type": "tuple",
+        "internalType": "struct BilbyDirectory.BindRequest",
+        "components": [
+          {
+            "name": "phoneKey",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "account",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "issuedAt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "deadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expectedRevision",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "validUntil",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      },
+      {
+        "name": "verifierSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "accountSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "controllerSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "cancelRecovery",
+    "inputs": [
+      {
         "name": "phoneKey",
         "type": "bytes32",
         "internalType": "bytes32"
       },
       {
-        "name": "account",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "issuedAt",
+        "name": "expectedRevision",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -122,6 +294,187 @@ export const bilbyDirectoryAbi = [
         "name": "extensions",
         "type": "uint256[]",
         "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "finalizeRecovery",
+    "inputs": [
+      {
+        "name": "request",
+        "type": "tuple",
+        "internalType": "struct BilbyDirectory.BindRequest",
+        "components": [
+          {
+            "name": "phoneKey",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "account",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "issuedAt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "deadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expectedRevision",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "validUntil",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      },
+      {
+        "name": "verifierSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "accountSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getBinding",
+    "inputs": [
+      {
+        "name": "phoneKey",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct BilbyDirectory.Binding",
+        "components": [
+          {
+            "name": "account",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "boundAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "validUntil",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "revision",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "phoneEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "revoked",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getPendingChange",
+    "inputs": [
+      {
+        "name": "phoneKey",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct BilbyDirectory.PendingChange",
+        "components": [
+          {
+            "name": "account",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "requestedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "executableAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "expiresAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "expectedRevision",
+            "type": "uint64",
+            "internalType": "uint64"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isClaimable",
+    "inputs": [
+      {
+        "name": "phoneKey",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "phoneEpoch",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "recipient",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -199,6 +552,61 @@ export const bilbyDirectoryAbi = [
   },
   {
     "type": "function",
+    "name": "requestRecovery",
+    "inputs": [
+      {
+        "name": "request",
+        "type": "tuple",
+        "internalType": "struct BilbyDirectory.BindRequest",
+        "components": [
+          {
+            "name": "phoneKey",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "account",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "issuedAt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "deadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expectedRevision",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "validUntil",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      },
+      {
+        "name": "verifierSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "accountSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "resolve",
     "inputs": [
       {
@@ -220,6 +628,34 @@ export const bilbyDirectoryAbi = [
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "revoke",
+    "inputs": [
+      {
+        "name": "phoneKey",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "expectedRevision",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "controllerSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -259,6 +695,55 @@ export const bilbyDirectoryAbi = [
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "BindingUpdated",
+    "inputs": [
+      {
+        "name": "phoneKey",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "revision",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "phoneEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "boundAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "validUntil",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "revoked",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -331,6 +816,99 @@ export const bilbyDirectoryAbi = [
   },
   {
     "type": "event",
+    "name": "RecoveryCancelled",
+    "inputs": [
+      {
+        "name": "phoneKey",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "revision",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RecoveryFinalized",
+    "inputs": [
+      {
+        "name": "phoneKey",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "previous",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "revision",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RecoveryRequested",
+    "inputs": [
+      {
+        "name": "phoneKey",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "currentAccount",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "proposedAccount",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "expectedRevision",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "executableAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "expiresAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "Unbound",
     "inputs": [
       {
@@ -363,7 +941,12 @@ export const bilbyDirectoryAbi = [
   },
   {
     "type": "error",
-    "name": "AlreadyBound",
+    "name": "AccountAlreadyBound",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "AlreadyRevoked",
     "inputs": []
   },
   {
@@ -373,34 +956,12 @@ export const bilbyDirectoryAbi = [
   },
   {
     "type": "error",
-    "name": "ECDSAInvalidSignature",
+    "name": "InvalidAccount",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "ECDSAInvalidSignatureLength",
-    "inputs": [
-      {
-        "name": "length",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "ECDSAInvalidSignatureS",
-    "inputs": [
-      {
-        "name": "s",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "InvalidAccount",
+    "name": "InvalidAccountConsent",
     "inputs": []
   },
   {
@@ -410,7 +971,22 @@ export const bilbyDirectoryAbi = [
   },
   {
     "type": "error",
+    "name": "InvalidControllerConsent",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidLease",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidShortString",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoPendingRecovery",
     "inputs": []
   },
   {
@@ -434,6 +1010,36 @@ export const bilbyDirectoryAbi = [
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "RecoveryAccountMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RecoveryExpired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RecoveryNotReady",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RecoveryNotRequired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RecoveryPending",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RevisionMismatch",
+    "inputs": []
   },
   {
     "type": "error",
@@ -461,6 +1067,11 @@ export const bilbyEscrowAbi = [
         "name": "token_",
         "type": "address",
         "internalType": "contract IERC20"
+      },
+      {
+        "name": "directory_",
+        "type": "address",
+        "internalType": "contract BilbyDirectory"
       },
       {
         "name": "owner_",
@@ -541,6 +1152,19 @@ export const bilbyEscrowAbi = [
         "name": "",
         "type": "bytes32",
         "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "VERSION",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -662,6 +1286,11 @@ export const bilbyEscrowAbi = [
             "internalType": "bytes32"
           },
           {
+            "name": "phoneEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
             "name": "expiry",
             "type": "uint40",
             "internalType": "uint40"
@@ -707,6 +1336,19 @@ export const bilbyEscrowAbi = [
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "directory",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract BilbyDirectory"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -809,6 +1451,11 @@ export const bilbyEscrowAbi = [
             "name": "status",
             "type": "uint8",
             "internalType": "enum BilbyEscrow.Status"
+          },
+          {
+            "name": "phoneEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
           }
         ]
       }
@@ -900,6 +1547,11 @@ export const bilbyEscrowAbi = [
             "name": "phoneKey",
             "type": "bytes32",
             "internalType": "bytes32"
+          },
+          {
+            "name": "phoneEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
           },
           {
             "name": "expiry",
@@ -1086,6 +1738,12 @@ export const bilbyEscrowAbi = [
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
+      },
+      {
+        "name": "phoneEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
       }
     ],
     "anonymous": false
@@ -1192,6 +1850,11 @@ export const bilbyEscrowAbi = [
   },
   {
     "type": "error",
+    "name": "ClaimExpired",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "DepositExists",
     "inputs": []
   },
@@ -1268,6 +1931,16 @@ export const bilbyEscrowAbi = [
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "PhoneEpochMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RecipientUnavailable",
+    "inputs": []
   },
   {
     "type": "error",

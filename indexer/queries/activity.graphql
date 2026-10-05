@@ -95,6 +95,50 @@ query PhoneStatus($chainId: Int!, $phoneKey: String!) {
     boundAt
     rebindCount
     lastReboundAt
+    revision
+    phoneEpoch
+    validUntil
+    revoked
+    pendingAccount
+    pendingExecutableAt
+    pendingExpiresAt
+    pendingRevision
+    lastUpdatedBlock
+    lastUpdatedLog
+  }
+}
+
+# Optional discovery/history feed. Check the deployment address and reconcile against finalized
+# RPC state before persisting an authoritative binding. A cursor alone does not survive reorgs.
+query DirectoryChanges($chainId: Int!, $afterBlock: Int!, $afterLog: Int!, $toBlock: Int!, $limit: Int!) {
+  DirectoryChange(
+    where: {
+      chainId: { _eq: $chainId }
+      blockNumber: { _lte: $toBlock }
+      _or: [
+        { blockNumber: { _gt: $afterBlock } }
+        { blockNumber: { _eq: $afterBlock }, logIndex: { _gt: $afterLog } }
+      ]
+    }
+    order_by: [{ blockNumber: asc }, { logIndex: asc }]
+    limit: $limit
+  ) {
+    id
+    phone_id
+    action
+    account
+    proposedAccount
+    revision
+    phoneEpoch
+    validUntil
+    revoked
+    executableAt
+    expiresAt
+    timestamp
+    blockNumber
+    logIndex
+    txHash
+    directoryAddress
   }
 }
 

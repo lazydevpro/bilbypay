@@ -9,7 +9,6 @@ import { Button } from "../../ui/Button";
 import { Card, Line } from "../../ui/Card";
 import { ErrorNote, Notice } from "../../ui/Notice";
 import { Screen } from "../../ui/Screen";
-import { TechnicalDetails } from "../../ui/TechnicalDetails";
 import { Muted, Text } from "../../ui/Text";
 import { colors, space } from "../../ui/theme";
 
@@ -84,7 +83,6 @@ export default function Receipt() {
         {item.note ? <Line label="Note" value={item.note} /> : null}
         <Line label="When" value={new Date(item.receipt?.at ?? item.createdAt).toLocaleString()} />
         {item.receipt ? <Line label="Reference" value={item.receipt.reference} /> : null}
-        <TechnicalDetails technical={item.receipt?.technical} />
       </Card>
     </Screen>
   );

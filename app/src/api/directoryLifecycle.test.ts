@@ -1,0 +1,72 @@
+import { hydrateTypedData } from "@bilbypay/core";
+import { privateKeyToAccount } from "viem/accounts";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { authorizeAndSubmit } from "../flows/authorize";
+import { MOCK_ESCROW, registerMockNumber, selectedRecipient, signedInMockApi } from "../testing/fixtures";
+
+const PHONE = "+15555550123";
+const nextOwner = privateKeyToAccount("0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a");
+afterEach(() => vi.restoreAllMocks());
+describe("demo phone lifecycle matches enforced recovery", () => {
+  it("delays reassignment, requires a fresh code after the delay, and retains the former account", async () => {
+    let clock = Date.now(); vi.spyOn(Date, "now").mockImplementation(() => clock);
+    const ctx = await signedInMockApi(); const oldSession = ctx.getToken(); const originalBalance = await ctx.api.balance();
+    const pending = await registerMockNumber(ctx.api, nextOwner, PHONE, "New number holder");
+    expect(pending.status).toBe("pending"); expect(pending.profile).toBeNull();
+    ctx.setToken(pending.sessionToken);
+    expect((await ctx.api.phoneStatus()).status).toBe("pending");
+    await expect(registerMockNumber(ctx.api, nextOwner, PHONE)).rejects.toMatchObject({ code: "PHONE_CHANGE_PENDING" });
+    clock = Date.parse(pending.availableAt!) - 1000;
+    const early = await ctx.api.otpVerify(PHONE, "000000"); clock += 2000;
+    await expect(ctx.api.prepareRegistration({ phoneToken: early.phoneToken, address: nextOwner.address })).rejects.toMatchObject({ code: "OTP_EXPIRED" });
+    const final = await registerMockNumber(ctx.api, nextOwner, PHONE, "New number holder");
+    expect(final.status).toBe("registered"); expect(final.profile?.address).toBe(nextOwner.address);
+    ctx.setToken(oldSession);
+    expect((await ctx.api.me()).phoneStatus).toBe("reassigned");
+    expect(await ctx.api.balance()).toEqual(originalBalance);
+  });
+  it("lets the current controller cancel a move and revoke before linking a different number", async () => {
+    const ctx = await signedInMockApi();
+    await registerMockNumber(ctx.api, nextOwner, PHONE);
+    expect((await ctx.api.phoneStatus()).status).toBe("pending");
+    const cancel = await ctx.api.preparePhoneAction("cancelRecovery");
+    const signature = await ctx.signer.signTypedData(hydrateTypedData(cancel.typedData));
+    expect((await ctx.api.submitPhoneAction({ id: cancel.id, signature })).status).toBe("active");
+    await expect(ctx.api.submitPhoneAction({ id: cancel.id, signature })).rejects.toMatchObject({ code: "INVALID_REQUEST" });
+    await expect(registerMockNumber(ctx.api, ctx.signer, "+15555550188")).rejects.toMatchObject({ code: "PHONE_ALREADY_LINKED" });
+    const revoke = await ctx.api.preparePhoneAction("revoke");
+    expect((await ctx.api.submitPhoneAction({ id: revoke.id, signature: await ctx.signer.signTypedData(hydrateTypedData(revoke.typedData)) })).status).toBe("revoked");
+    const renewed = await registerMockNumber(ctx.api, ctx.signer, "+15555550188");
+    expect(renewed.profile?.phone).toBe("+15555550188");
+    expect((await ctx.api.resolve([PHONE])).results[0]?.status).toBe("unavailable");
+  });
+  it("lets a waiting candidate cancel without taking over the number or replacing either account", async () => {
+    const ctx = await signedInMockApi();
+    const originalSession = ctx.getToken();
+    const originalBalance = await ctx.api.balance();
+    const pending = await registerMockNumber(ctx.api, nextOwner, PHONE);
+    ctx.setToken(pending.sessionToken);
+    const cancel = await ctx.api.preparePhoneAction("cancelRecovery");
+    const signature = await nextOwner.signTypedData(hydrateTypedData(cancel.typedData));
+    const canceled = await ctx.api.submitPhoneAction({ id: cancel.id, signature });
+    expect(canceled.pending).toBeNull();
+    expect(canceled.status).not.toBe("active");
+    const linked = await registerMockNumber(ctx.api, nextOwner, "+15555550189");
+    expect(linked.profile?.address).toBe(nextOwner.address);
+    expect(linked.status).toBe("registered");
+    ctx.setToken(originalSession);
+    expect((await ctx.api.phoneStatus()).status).toBe("active");
+    expect((await ctx.api.me()).address).toBe(ctx.address);
+    expect(await ctx.api.balance()).toEqual(originalBalance);
+  });
+  it("blocks old pending gifts after number reassignment", async () => {
+    let clock = Date.now(); vi.spyOn(Date, "now").mockImplementation(() => clock);
+    const ctx = await signedInMockApi(); const request = { type: "gift_send" as const, params: { phone: PHONE, amount: "10000000", brandId: "starbucks-us" } };
+    const recipient = await selectedRecipient(ctx.api, PHONE); const prepared = await ctx.api.prepareAction(request);
+    const { result } = await authorizeAndSubmit({ api: ctx.api, account: ctx.address, chainId: 143, request, prepared, recipient, readDirectory: ctx.api.readDirectory, escrow: MOCK_ESCROW, unlock: fn => fn(ctx.signer) });
+    const pending = await registerMockNumber(ctx.api, nextOwner, PHONE); clock = Date.parse(pending.availableAt!) + 1000;
+    const final = await registerMockNumber(ctx.api, nextOwner, PHONE); ctx.setToken(final.sessionToken);
+    const proof = await ctx.api.otpVerify(PHONE, "000000");
+    await expect(ctx.api.acceptClaim(result.claimLink!.split("/c/")[1]!, { phoneToken: proof.phoneToken })).rejects.toMatchObject({ code: "PHONE_UNAVAILABLE" });
+  });
+});

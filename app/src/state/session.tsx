@@ -1,11 +1,13 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { api, isApiError, setPhoneRequiredHandler, setSessionExpiredHandler, setSessionToken } from "../api";
-import type { Hex, OtpVerifyResponse, Profile } from "../api/types";
+import type { DirectoryConsent, Hex, OtpVerifyResponse, Profile, RegisterResponse } from "../api/types";
 import * as store from "../auth/keyStore";
 import { createNewAccount, logInWithPasskey, UnlockFailed, withAccount, withUnlockedSigner } from "../auth/unlock";
+import { CHAIN_ID } from "../config";
+import { checkDirectoryConsent } from "../signing/directory";
 import { nowSeconds, registerMessage, sessionMessage } from "../signing/messages";
 
-export type Status = "loading" | "signedOut" | "needsPhone" | "locked" | "ready";
+export type Status = "loading" | "signedOut" | "needsPhone" | "pendingPhone" | "locked" | "ready";
 
 /** A verified number (from /v1/otp/verify). Proves the number for 15 minutes; never moves money. */
 export type Verification = OtpVerifyResponse & { at: number };
@@ -21,12 +23,11 @@ type Session = {
   /** A claim link opened before onboarding; resumed once the person is in. */
   pendingClaim: string | null;
   setPendingClaim: (code: string | null) => void;
-  /** New person: passkey (Face ID) → link the verified number. */
-  createAccount: (displayName: string) => Promise<void>;
+  /** Prepare exact number-link consent for review before confirmation. */
+  prepareNumber: (displayName: string) => Promise<DirectoryConsent>;
+  confirmNumber: (prepared: DirectoryConsent, displayName: string) => Promise<RegisterResponse>;
   /** "I already have an account": passkey → session. */
   logIn: () => Promise<void>;
-  /** Link the verified number to this (existing) account: first number, new number, or a claim. */
-  linkNumber: (displayName?: string) => Promise<void>;
   /** Session ran out: one Face ID to get a new one. */
   unlock: () => Promise<void>;
   logOut: () => Promise<void>;
@@ -53,6 +54,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [pendingClaim, setPendingClaimState] = useState<string | null>(null);
   const verificationRef = useRef<Verification | null>(null);
   const addressRef = useRef<Hex | null>(null);
+  const enrollmentRef = useRef<{ id: string; phone: string; address: Hex } | null>(null);
 
   const setProfile = useCallback((p: Profile | null) => {
     setProfileState(p);
@@ -70,7 +72,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setSessionToken(token);
       await store.saveSessionToken(token);
       setProfile(p);
-      setStatus(p ? "ready" : "needsPhone");
+      if (p) setStatus("ready");
+      else {
+        const number = await api.phoneStatus().catch(() => null);
+        setStatus(number?.status === "pending" ? "pendingPhone" : "needsPhone");
+      }
     },
     [setProfile],
   );
@@ -101,7 +107,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setStatus("ready");
       } catch (e) {
         if (!alive) return;
-        if (isApiError(e) && (e.code === "PHONE_REQUIRED" || e.code === "NOT_FOUND")) setStatus("needsPhone");
+        if (isApiError(e) && (e.code === "PHONE_REQUIRED" || e.code === "NOT_FOUND")) {
+          const number = await api.phoneStatus().catch(() => null);
+          if (alive) setStatus(number?.status === "pending" ? "pendingPhone" : "needsPhone");
+        }
         else if (isApiError(e) && e.code === "NETWORK" && cached) {
           setProfileState(cached);
           setStatus("ready"); // offline: show cached, screens show the offline note
@@ -117,17 +126,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setSessionExpiredHandler(() => {
       setSessionToken(null);
       void store.saveSessionToken("");
-      setStatus((s) => (s === "ready" || s === "needsPhone" ? "locked" : s));
+      setStatus((s) => (s === "ready" || s === "needsPhone" || s === "pendingPhone" ? "locked" : s));
     });
     // Signed in, but the account has no number yet (e.g. it was never linked): go to the phone step.
-    setPhoneRequiredHandler(() => setStatus((s) => (s === "ready" ? "needsPhone" : s)));
+    setPhoneRequiredHandler(() => {
+      // A former number holder retains their account and balance. Number-specific
+      // actions show their own recovery instructions without replacing the key.
+      if (!profile) setStatus((s) => (s === "ready" ? "needsPhone" : s));
+    });
     return () => {
       setSessionExpiredHandler(null);
       setPhoneRequiredHandler(null);
     };
-  }, []);
+  }, [profile]);
 
   const setVerification = useCallback((v: OtpVerifyResponse | null) => {
+    enrollmentRef.current = null;
     const next = v ? { ...v, at: Date.now() } : null;
     verificationRef.current = next;
     setVerificationState(next);
@@ -143,41 +157,41 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     void store.savePendingClaim(code);
   }, []);
 
-  const register = useCallback(
-    async (v: Verification, a: Hex, displayName: string, sign: (message: string) => Promise<Hex>) => {
-      const issuedAt = nowSeconds();
-      const signature = await sign(registerMessage(v.phone, a, issuedAt));
-      const res = await api.register({ phoneToken: v.phoneToken, address: a, displayName, issuedAt, signature });
-      await startSession(res.sessionToken, res.profile);
-    },
-    [startSession],
-  );
-
-  const linkNumber = useCallback(
-    async (displayName?: string) => {
-      const v = freshVerification();
-      if (!v) throw expiredVerification();
-      const a = addressRef.current;
-      if (!a) throw new UnlockFailed("Please log in first.");
-      const name = (displayName ?? profile?.displayName ?? "").trim();
-      if (!name) throw new UnlockFailed("Add your name so friends know it's you.");
-      await register(v, a, name, (message) => withUnlockedSigner(a, (s) => s.signMessage({ message })));
-    },
-    [freshVerification, profile, register],
-  );
-
-  const createAccount = useCallback(
-    async (displayName: string) => {
-      const v = freshVerification();
-      if (!v) throw expiredVerification();
-      // A retry after a failed link must not create a second passkey.
-      if (addressRef.current) return linkNumber(displayName);
+  const prepareNumber = useCallback(async (displayName: string) => {
+    const v = freshVerification();
+    if (!v) throw expiredVerification();
+    if (!displayName.trim()) throw new UnlockFailed("Add your name so friends know it's you.");
+    let a = addressRef.current;
+    if (!a) {
       const acct = await createNewAccount(displayName.trim());
-      await rememberAddress(acct.address);
-      await register(v, acct.address, displayName.trim(), (message) => withAccount(acct, (s) => s.signMessage({ message })));
-    },
-    [freshVerification, linkNumber, register, rememberAddress],
-  );
+      try { await rememberAddress(acct.address); a = acct.address; }
+      finally { acct.prfOutput.fill(0); }
+    }
+    const prepared = await api.prepareRegistration({ phoneToken: v.phoneToken, address: a });
+    if (!["bind", "requestRecovery", "finalizeRecovery"].includes(prepared.operation)) throw new UnlockFailed("We couldn't confirm these details. Please try again.");
+    checkDirectoryConsent(prepared, { account: a, chainId: CHAIN_ID, operation: prepared.operation });
+    enrollmentRef.current = { id: prepared.id, phone: v.phone, address: a };
+    return prepared;
+  }, [freshVerification, rememberAddress]);
+
+  const confirmNumber = useCallback(async (prepared: DirectoryConsent, displayName: string) => {
+    const v = freshVerification();
+    if (!v) throw expiredVerification();
+    const a = addressRef.current;
+    if (!a) throw new UnlockFailed("Please log in first.");
+    if (enrollmentRef.current?.id !== prepared.id || enrollmentRef.current.phone !== v.phone || enrollmentRef.current.address !== a) throw new UnlockFailed("The details changed. Please review your number again.");
+    if (!["bind", "requestRecovery", "finalizeRecovery"].includes(prepared.operation)) throw new UnlockFailed("We couldn't confirm these details. Please try again.");
+    const td = checkDirectoryConsent(prepared, { account: a, chainId: CHAIN_ID, operation: prepared.operation });
+    const issuedAt = nowSeconds();
+    const proofs = await withUnlockedSigner(a, async signer => ({
+      signature: await signer.signMessage({ message: registerMessage(v.phone, a, issuedAt) }),
+      consentSignature: await signer.signTypedData(td),
+    }));
+    const res = await api.register({ phoneToken: v.phoneToken, address: a, displayName: displayName.trim(), issuedAt, registrationId: prepared.id, ...proofs });
+    await startSession(res.sessionToken, res.profile);
+    setVerification(null);
+    return res;
+  }, [freshVerification, setVerification, startSession]);
 
   const openSession = useCallback(
     async (a: Hex, sign: (message: string) => Promise<Hex>) => {
@@ -227,15 +241,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       freshVerification,
       pendingClaim,
       setPendingClaim,
-      createAccount,
+      prepareNumber,
+      confirmNumber,
       logIn,
-      linkNumber,
       unlock,
       logOut,
       refreshProfile,
       setProfile,
     }),
-    [status, address, profile, verification, setVerification, freshVerification, pendingClaim, setPendingClaim, createAccount, logIn, linkNumber, unlock, logOut, refreshProfile, setProfile],
+    [status, address, profile, verification, setVerification, freshVerification, pendingClaim, setPendingClaim, prepareNumber, confirmNumber, logIn, unlock, logOut, refreshProfile, setProfile],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

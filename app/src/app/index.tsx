@@ -17,6 +17,8 @@ export default function Index() {
       return <Redirect href="/welcome" />;
     case "locked":
       return <Redirect href="/unlock" />;
+    case "pendingPhone":
+      return <Redirect href="/settings/phone" />;
     case "needsPhone":
       return <Redirect href={{ pathname: "/phone", params: { purpose: pendingClaim ? "claim" : "onboard", code: pendingClaim ?? "" } }} />;
     case "ready":

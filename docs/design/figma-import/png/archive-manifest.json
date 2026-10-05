@@ -1,0 +1,2059 @@
+{
+  "archive": "Bilby Animations.zip",
+  "sha256": "dbb5393da7b68c34b1f678d375e4b5e7a8749867007b8deae649e27b6ace0ecd",
+  "members": 171,
+  "frames": [
+    {
+      "key": "wave",
+      "index": 0,
+      "archiveName": "Waving.png",
+      "file": "docs/design/figma-import/png/wave/frame_000.png",
+      "sha256": "a482767bffca4124d66fbc2e7ec4512e1d4aa90e2d92dae2c49fe3c0e9377375",
+      "pixels": [
+        144,
+        155
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 1,
+      "archiveName": "Waving-1.png",
+      "file": "docs/design/figma-import/png/wave/frame_001.png",
+      "sha256": "fed0b34d0cf249e5410598324de04de397deaa1d9dd1bd59636032ad5e4142bc",
+      "pixels": [
+        144,
+        156
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 2,
+      "archiveName": "Waving-2.png",
+      "file": "docs/design/figma-import/png/wave/frame_002.png",
+      "sha256": "26c93961cf4b82da60965dc90b6ee356a0be97555979dc9e9da263501ddfcd53",
+      "pixels": [
+        145,
+        155
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 3,
+      "archiveName": "Waving-3.png",
+      "file": "docs/design/figma-import/png/wave/frame_003.png",
+      "sha256": "ced61d6cf638af92285950c2d408d8a2d9460d4d7baa12be58d7236fef7d1122",
+      "pixels": [
+        148,
+        154
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 4,
+      "archiveName": "Waving-4.png",
+      "file": "docs/design/figma-import/png/wave/frame_004.png",
+      "sha256": "1367c2281a116c498218ea4e16e57fc51821ed560a74f7b1bc91c0500bb78b4d",
+      "pixels": [
+        151,
+        152
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 5,
+      "archiveName": "Waving-5.png",
+      "file": "docs/design/figma-import/png/wave/frame_005.png",
+      "sha256": "c01ad0565146d6ced1de2ec4b525f2fde16bb5034879ca9e6a30ea17b5fa3a2f",
+      "pixels": [
+        153,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 6,
+      "archiveName": "Waving-6.png",
+      "file": "docs/design/figma-import/png/wave/frame_006.png",
+      "sha256": "0956fcaf655d1993436eafc507a522ee2320a6ae1137fc713f45e55b6d692a33",
+      "pixels": [
+        156,
+        150
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 7,
+      "archiveName": "Waving-7.png",
+      "file": "docs/design/figma-import/png/wave/frame_007.png",
+      "sha256": "5e0e52c5b752fc23bbc1f55ab9603077f46f519cbcc0853409bc3fbd7026a771",
+      "pixels": [
+        157,
+        150
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 8,
+      "archiveName": "Waving-8.png",
+      "file": "docs/design/figma-import/png/wave/frame_008.png",
+      "sha256": "052c4f2c7b4fa721f04126d703c51a16493e28984482dab9cd706b9ef5aadcca",
+      "pixels": [
+        159,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 9,
+      "archiveName": "Waving-9.png",
+      "file": "docs/design/figma-import/png/wave/frame_009.png",
+      "sha256": "4a51de21dbb82a868256597ef29d6ec2d7bff20c14702905e42debcab8dd3a97",
+      "pixels": [
+        159,
+        150
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 10,
+      "archiveName": "Waving-10.png",
+      "file": "docs/design/figma-import/png/wave/frame_010.png",
+      "sha256": "3b46746550c0814998cae72f62e3390f2f00f84c4ecbeeeb2f5c98c36f8cac87",
+      "pixels": [
+        159,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 11,
+      "archiveName": "Waving-11.png",
+      "file": "docs/design/figma-import/png/wave/frame_011.png",
+      "sha256": "baf74b4c0f975f7bacc4c495185002f2f0ed132e9339249b34c414da050caf3f",
+      "pixels": [
+        159,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 12,
+      "archiveName": "Waving-12.png",
+      "file": "docs/design/figma-import/png/wave/frame_012.png",
+      "sha256": "2bdd943a2a51bda8e2fbb3a6c4429964659844901c9b356688376bcbb077775f",
+      "pixels": [
+        158,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 13,
+      "archiveName": "Waving-13.png",
+      "file": "docs/design/figma-import/png/wave/frame_013.png",
+      "sha256": "0850f695753d094ae320323ccf462021575385172e38978eb5daad17c824359a",
+      "pixels": [
+        158,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 14,
+      "archiveName": "Waving-14.png",
+      "file": "docs/design/figma-import/png/wave/frame_014.png",
+      "sha256": "64b22e05a92ddc80c41f12de5f4c5449441cbc872b509319d4320169c44a7fa6",
+      "pixels": [
+        156,
+        150
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 15,
+      "archiveName": "Waving-15.png",
+      "file": "docs/design/figma-import/png/wave/frame_015.png",
+      "sha256": "b02455d41fe8345bf0df342b561b95fb8c5c3f639d8ce75e9c8b40d34fc702c0",
+      "pixels": [
+        154,
+        150
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 16,
+      "archiveName": "Waving-16.png",
+      "file": "docs/design/figma-import/png/wave/frame_016.png",
+      "sha256": "b48de7839c54f2696ec7afe573fd85347af1aa8481405098cc0cfef6b850262a",
+      "pixels": [
+        152,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 17,
+      "archiveName": "Waving-17.png",
+      "file": "docs/design/figma-import/png/wave/frame_017.png",
+      "sha256": "b30ee57b409e10961bbc8d4b9c9f84c93bdb12d05153d31ab0f3a6234651914c",
+      "pixels": [
+        151,
+        153
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 18,
+      "archiveName": "Waving-18.png",
+      "file": "docs/design/figma-import/png/wave/frame_018.png",
+      "sha256": "8e8c8dc308fda3de50840e03e6803de5d640a09cf59a6d88bb9a0b817a10f01d",
+      "pixels": [
+        150,
+        154
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 19,
+      "archiveName": "Waving-19.png",
+      "file": "docs/design/figma-import/png/wave/frame_019.png",
+      "sha256": "9f888921ff4557d667cf811566cac0dffd9b0a19e8522d9f7390169036d0cc30",
+      "pixels": [
+        148,
+        156
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 20,
+      "archiveName": "Waving-20.png",
+      "file": "docs/design/figma-import/png/wave/frame_020.png",
+      "sha256": "f3c6543fd414e2f7ffd943ab10ca775342a801f40643d72afd9adf7466996137",
+      "pixels": [
+        147,
+        157
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 21,
+      "archiveName": "Waving-21.png",
+      "file": "docs/design/figma-import/png/wave/frame_021.png",
+      "sha256": "a1d863b5ace614877bb684964acc58e7369eba66361bf8ae03c37427088dcf02",
+      "pixels": [
+        146,
+        158
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 22,
+      "archiveName": "Waving-22.png",
+      "file": "docs/design/figma-import/png/wave/frame_022.png",
+      "sha256": "df2d5a954adfbac61a4abb823f05c300ccc2ef508e347a05ee3cbc49e8154ede",
+      "pixels": [
+        145,
+        158
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 23,
+      "archiveName": "Waving-23.png",
+      "file": "docs/design/figma-import/png/wave/frame_023.png",
+      "sha256": "d9c781f0d6af9a015bdc9d073830c0eaa7d8fc94dceb49a4d12f6f868ddba9aa",
+      "pixels": [
+        144,
+        159
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 24,
+      "archiveName": "Waving-24.png",
+      "file": "docs/design/figma-import/png/wave/frame_024.png",
+      "sha256": "874925272b6551dfcd7948c081602ca8abe0c9e08e72abf3165e0530e913827c",
+      "pixels": [
+        144,
+        158
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 25,
+      "archiveName": "Waving-25.png",
+      "file": "docs/design/figma-import/png/wave/frame_025.png",
+      "sha256": "f12f8441a021138ea1d2ce8379d2d45b6a5aab34e0d90448f66a6cd6d748aefb",
+      "pixels": [
+        144,
+        157
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 26,
+      "archiveName": "Waving-26.png",
+      "file": "docs/design/figma-import/png/wave/frame_026.png",
+      "sha256": "4a454c08feaa694f247dddad8443127d20bfa1d82284c94aaef91383f88eb83d",
+      "pixels": [
+        144,
+        156
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 27,
+      "archiveName": "Waving-27.png",
+      "file": "docs/design/figma-import/png/wave/frame_027.png",
+      "sha256": "7888aa94f70ad54a30f8602b30c6c7d44d6b633e5b04a5921331058c39036f88",
+      "pixels": [
+        148,
+        155
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 28,
+      "archiveName": "Waving-28.png",
+      "file": "docs/design/figma-import/png/wave/frame_028.png",
+      "sha256": "852d4f1f543327b55eff0b9100ad9d3138cc9f03e2314603932b34378cfaf163",
+      "pixels": [
+        151,
+        153
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 29,
+      "archiveName": "Waving-29.png",
+      "file": "docs/design/figma-import/png/wave/frame_029.png",
+      "sha256": "7b9f30f924982a879fc40e90321a1e1a38b6944667ab4a87305eafcb58c77def",
+      "pixels": [
+        155,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 30,
+      "archiveName": "Waving-30.png",
+      "file": "docs/design/figma-import/png/wave/frame_030.png",
+      "sha256": "f4b57323ae5d1ed917a0f663f849901dd3c1726aaefa380337d936493c9e33f9",
+      "pixels": [
+        157,
+        150
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 31,
+      "archiveName": "Waving-31.png",
+      "file": "docs/design/figma-import/png/wave/frame_031.png",
+      "sha256": "a5bba6d1c8237aa9d5585f56b353ab3c16c9d07afb67b84c3037b08346ec7c60",
+      "pixels": [
+        159,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 32,
+      "archiveName": "Waving-32.png",
+      "file": "docs/design/figma-import/png/wave/frame_032.png",
+      "sha256": "276efe34ba0f71a42f66460c15541340f7b35f95d758350947f4b5320f0dab06",
+      "pixels": [
+        160,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 33,
+      "archiveName": "Waving-33.png",
+      "file": "docs/design/figma-import/png/wave/frame_033.png",
+      "sha256": "3c3915dceaf44c8556dcbca5e2802a27b6bf6ab3c5061f887e3120d8f76b2109",
+      "pixels": [
+        159,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 34,
+      "archiveName": "Waving-34.png",
+      "file": "docs/design/figma-import/png/wave/frame_034.png",
+      "sha256": "3985a9ff211467116b0f24cc325364bebb55386939c608fbe4205dc39b92ddcb",
+      "pixels": [
+        159,
+        152
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 35,
+      "archiveName": "Waving-35.png",
+      "file": "docs/design/figma-import/png/wave/frame_035.png",
+      "sha256": "f84f445f913daf8d4c4e9f422cbf4e42e83d5dc7016bc2bb979bd2cc02a8b3ba",
+      "pixels": [
+        158,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 36,
+      "archiveName": "Waving-36.png",
+      "file": "docs/design/figma-import/png/wave/frame_036.png",
+      "sha256": "3b60d327be42e064083a1cc9d3eb3e48cbeb8946a337028fc44b36fc64f72368",
+      "pixels": [
+        157,
+        150
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 37,
+      "archiveName": "Waving-37.png",
+      "file": "docs/design/figma-import/png/wave/frame_037.png",
+      "sha256": "9dfadf4f5121607b3762693bba090876294e7029a9edb6854bdc2990d8609853",
+      "pixels": [
+        155,
+        150
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 38,
+      "archiveName": "Waving-38.png",
+      "file": "docs/design/figma-import/png/wave/frame_038.png",
+      "sha256": "fc7993e5275553433945056ab67e41da592cb5546a49c6e2fb7a8078bd5ff99a",
+      "pixels": [
+        153,
+        150
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 39,
+      "archiveName": "Waving-39.png",
+      "file": "docs/design/figma-import/png/wave/frame_039.png",
+      "sha256": "f0d02931559c71efa6e3fd02c6beb83f97dedac7faa1aacd6002dd958d6616d8",
+      "pixels": [
+        151,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 40,
+      "archiveName": "Waving-40.png",
+      "file": "docs/design/figma-import/png/wave/frame_040.png",
+      "sha256": "f3a653af57a49aef5bfc0463fd2321e477234c9b9c23750eb71104510515f816",
+      "pixels": [
+        150,
+        153
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 41,
+      "archiveName": "Waving-41.png",
+      "file": "docs/design/figma-import/png/wave/frame_041.png",
+      "sha256": "61b7a8f92e50f3a1dbd3d712eba0def7015fbb1e01f1b7519c036cc7fbb0087f",
+      "pixels": [
+        149,
+        155
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 42,
+      "archiveName": "Waving-42.png",
+      "file": "docs/design/figma-import/png/wave/frame_042.png",
+      "sha256": "99e6e077b718dd83a6872fb49ca720df4af3c569c5982e7b759cfa986fcbc077",
+      "pixels": [
+        149,
+        156
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 43,
+      "archiveName": "Waving-43.png",
+      "file": "docs/design/figma-import/png/wave/frame_043.png",
+      "sha256": "a31da4798eb722a3b4802744926bedf3371fa67217bb67d916ba09e9c923c952",
+      "pixels": [
+        148,
+        157
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 44,
+      "archiveName": "Waving-44.png",
+      "file": "docs/design/figma-import/png/wave/frame_044.png",
+      "sha256": "8a1e984a8fa30acd74d25237f5e72ddcf92d1d1af74001718534911e843c098e",
+      "pixels": [
+        147,
+        158
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 45,
+      "archiveName": "Waving-45.png",
+      "file": "docs/design/figma-import/png/wave/frame_045.png",
+      "sha256": "2c4f9e539138c29d541a9e0afbfdfdf254e7f033f421b23ae8493a35ccca5310",
+      "pixels": [
+        146,
+        158
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 46,
+      "archiveName": "Waving-46.png",
+      "file": "docs/design/figma-import/png/wave/frame_046.png",
+      "sha256": "43a77c819c311edd76439cb4bd9a892f4e69bab6534c765ecf9800c85f952f2c",
+      "pixels": [
+        146,
+        158
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 47,
+      "archiveName": "Waving-47.png",
+      "file": "docs/design/figma-import/png/wave/frame_047.png",
+      "sha256": "56ca5e0e33b322fc04a7812f057311addd0ecb1d4fbcd3d84011aedd2ec4864b",
+      "pixels": [
+        146,
+        158
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 48,
+      "archiveName": "Waving-48.png",
+      "file": "docs/design/figma-import/png/wave/frame_048.png",
+      "sha256": "0d3929b28986a200be64ba22dbe7cfce4a019ca14c8e34f69078eef637136cf3",
+      "pixels": [
+        146,
+        158
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 49,
+      "archiveName": "Waving-49.png",
+      "file": "docs/design/figma-import/png/wave/frame_049.png",
+      "sha256": "58b53e24b7aeefcb2d1b6a886a2a3bf0a48a05535d54b38186ab82f47566a266",
+      "pixels": [
+        146,
+        157
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 50,
+      "archiveName": "Waving-50.png",
+      "file": "docs/design/figma-import/png/wave/frame_050.png",
+      "sha256": "1322af27292b8354a2112a818f73722b229a681991a4fc945d05f726434ec61e",
+      "pixels": [
+        146,
+        156
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 51,
+      "archiveName": "Waving-51.png",
+      "file": "docs/design/figma-import/png/wave/frame_051.png",
+      "sha256": "f4d24d4f4edd5d14cb5f493af56b13278cb7f378623b4c0fc8ba3eeceb3e0151",
+      "pixels": [
+        147,
+        155
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 52,
+      "archiveName": "Waving-52.png",
+      "file": "docs/design/figma-import/png/wave/frame_052.png",
+      "sha256": "2b6a73a14491dfc0fbf94267f47eac4d11d5697a6bedd919bfd28101645586b5",
+      "pixels": [
+        150,
+        154
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 53,
+      "archiveName": "Waving-53.png",
+      "file": "docs/design/figma-import/png/wave/frame_053.png",
+      "sha256": "9b20fa91c19b16d29f05848352091b73dd5d7e09addf9a0e874cfa2d72580074",
+      "pixels": [
+        154,
+        151
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 54,
+      "archiveName": "Waving-54.png",
+      "file": "docs/design/figma-import/png/wave/frame_054.png",
+      "sha256": "fd49d1572d401c888a09b08b2c1a9f0588884c5007722e7f546ba66cdb56cee1",
+      "pixels": [
+        159,
+        149
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 55,
+      "archiveName": "Waving-55.png",
+      "file": "docs/design/figma-import/png/wave/frame_055.png",
+      "sha256": "7fcc87babd783bf25a85a896b59d9c75b0bbd5c5df538e466801b3e2b8ccb672",
+      "pixels": [
+        165,
+        146
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "wave",
+      "index": 56,
+      "archiveName": "Waving-56.png",
+      "file": "docs/design/figma-import/png/wave/frame_056.png",
+      "sha256": "ce2166f797daa528da5874ad42accc391b8295d091568f161ba6bb82b6cd1e8a",
+      "pixels": [
+        165,
+        146
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 0,
+      "archiveName": "Sleeping.png",
+      "file": "docs/design/figma-import/png/sleep/frame_000.png",
+      "sha256": "e93613c577aba294bcbb31ece0b876fa04c7d48b6f2f84f55de829a44abeca76",
+      "pixels": [
+        174,
+        78
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 1,
+      "archiveName": "Sleeping-1.png",
+      "file": "docs/design/figma-import/png/sleep/frame_001.png",
+      "sha256": "1cd8e7b32f04a656ee5de9c254cf07dfc3a8f835ecb109f105bf9b14e1220f51",
+      "pixels": [
+        174,
+        78
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 2,
+      "archiveName": "Sleeping-2.png",
+      "file": "docs/design/figma-import/png/sleep/frame_002.png",
+      "sha256": "9ede58fd6ae53b0995ed4490288aea77d790f0e94a080713533367f51251b828",
+      "pixels": [
+        174,
+        78
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 3,
+      "archiveName": "Sleeping-3.png",
+      "file": "docs/design/figma-import/png/sleep/frame_003.png",
+      "sha256": "69fa6b9f4b75185b727382d8fe7dc97ab5b133cf335a47f89e14559905786259",
+      "pixels": [
+        174,
+        78
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 4,
+      "archiveName": "Sleeping-4.png",
+      "file": "docs/design/figma-import/png/sleep/frame_004.png",
+      "sha256": "d2276e299a27dc9f6aebc6d038e951850a8c7ac30ccdf88f2ac636ed48a83779",
+      "pixels": [
+        174,
+        78
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 5,
+      "archiveName": "Sleeping-5.png",
+      "file": "docs/design/figma-import/png/sleep/frame_005.png",
+      "sha256": "cd0a4e9bbea4623a09f43a32ef9ee1dbdfb1cca67c74b2b82223eaf9cc3591a3",
+      "pixels": [
+        174,
+        78
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 6,
+      "archiveName": "Sleeping-6.png",
+      "file": "docs/design/figma-import/png/sleep/frame_006.png",
+      "sha256": "78c71bb24079b9b27745261881946141923e84fd7ff5a318ba483b702697bc4a",
+      "pixels": [
+        174,
+        78
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 7,
+      "archiveName": "Sleeping-7.png",
+      "file": "docs/design/figma-import/png/sleep/frame_007.png",
+      "sha256": "4fb8e2c4579ed9b89d9d474ce0f2c3df515253cabbd4ae1b1ecee397dd734b25",
+      "pixels": [
+        173,
+        78
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 8,
+      "archiveName": "Sleeping-8.png",
+      "file": "docs/design/figma-import/png/sleep/frame_008.png",
+      "sha256": "7cc9015fd73dd367779be520a57c53ca58ac098d809687812259c10ca912f163",
+      "pixels": [
+        173,
+        79
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 9,
+      "archiveName": "Sleeping-9.png",
+      "file": "docs/design/figma-import/png/sleep/frame_009.png",
+      "sha256": "2956ed0b2899617fba7cc6094c1e5d110a0ab99e9796305e05342b496dbc6fe7",
+      "pixels": [
+        174,
+        80
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 10,
+      "archiveName": "Sleeping-10.png",
+      "file": "docs/design/figma-import/png/sleep/frame_010.png",
+      "sha256": "16c9b844dbdf22cea15fcb0bf7446b1ee960b118bf7025e836a09e2559fc5699",
+      "pixels": [
+        174,
+        82
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 11,
+      "archiveName": "Sleeping-11.png",
+      "file": "docs/design/figma-import/png/sleep/frame_011.png",
+      "sha256": "825ab9db159a5f46e2b0f5748a50527efbacae0301789c4302c0edbb659215ee",
+      "pixels": [
+        173,
+        83
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 12,
+      "archiveName": "Sleeping-12.png",
+      "file": "docs/design/figma-import/png/sleep/frame_012.png",
+      "sha256": "5249e37a9de5178ef192d1fd90f6baabad34ffb1668914bd960ea7232b48f165",
+      "pixels": [
+        173,
+        84
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 13,
+      "archiveName": "Sleeping-13.png",
+      "file": "docs/design/figma-import/png/sleep/frame_013.png",
+      "sha256": "7e66934533b0bfeb329810e0ddecf4d47c4b4dc08e827df70e839f90da78e776",
+      "pixels": [
+        174,
+        85
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 14,
+      "archiveName": "Sleeping-14.png",
+      "file": "docs/design/figma-import/png/sleep/frame_014.png",
+      "sha256": "af0e67e827961a567250788abd0d419df40bebb288aae1f32c1aaec6f86081dc",
+      "pixels": [
+        174,
+        86
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 15,
+      "archiveName": "Sleeping-15.png",
+      "file": "docs/design/figma-import/png/sleep/frame_015.png",
+      "sha256": "2f74bda00370365e82ebc206051a95f0a25b22046ce4eecb83b58d289d9d6e95",
+      "pixels": [
+        174,
+        87
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 16,
+      "archiveName": "Sleeping-16.png",
+      "file": "docs/design/figma-import/png/sleep/frame_016.png",
+      "sha256": "b142712a47814fd8801efa80cbd3d3f9d5618a833d7e5586811118c495030d1b",
+      "pixels": [
+        174,
+        89
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 17,
+      "archiveName": "Sleeping-17.png",
+      "file": "docs/design/figma-import/png/sleep/frame_017.png",
+      "sha256": "e775896d23fa2928974b49f356fffc9ad7b205165461df390b1adb67e3a17304",
+      "pixels": [
+        174,
+        90
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 18,
+      "archiveName": "Sleeping-18.png",
+      "file": "docs/design/figma-import/png/sleep/frame_018.png",
+      "sha256": "6f4b6d2f7e040b191533f88717f450e2006d050c67997aa6f19525070d8df05c",
+      "pixels": [
+        174,
+        91
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 19,
+      "archiveName": "Sleeping-19.png",
+      "file": "docs/design/figma-import/png/sleep/frame_019.png",
+      "sha256": "4bf49634d3e72c92769633906ecdb89b764d90d3b952c639c2b68f05ae1bf696",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 20,
+      "archiveName": "Sleeping-20.png",
+      "file": "docs/design/figma-import/png/sleep/frame_020.png",
+      "sha256": "f7ae45663167050938d924b6cb9be569bcd4340e80abbaca55758963bbb32dbe",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 21,
+      "archiveName": "Sleeping-21.png",
+      "file": "docs/design/figma-import/png/sleep/frame_021.png",
+      "sha256": "40351a849a7a40ca29ec11970f5102efda1337053949ba218a9cc9b15f5cd078",
+      "pixels": [
+        173,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 22,
+      "archiveName": "Sleeping-22.png",
+      "file": "docs/design/figma-import/png/sleep/frame_022.png",
+      "sha256": "64789d2e639ece6a0414fa655f5896dcf5bd78378bdffffd0983fdc8ee2fc2ea",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 23,
+      "archiveName": "Sleeping-23.png",
+      "file": "docs/design/figma-import/png/sleep/frame_023.png",
+      "sha256": "2a8242b50d567a40a20a6f5ff5cd3c160518b592dd5ec551cc4de47c12fb29be",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 24,
+      "archiveName": "Sleeping-24.png",
+      "file": "docs/design/figma-import/png/sleep/frame_024.png",
+      "sha256": "27dc1ab06f17f2dfcd7390efd37c72476687d727ecbc4c1bc1417790dc5e1afd",
+      "pixels": [
+        174,
+        202
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 25,
+      "archiveName": "Sleeping-25.png",
+      "file": "docs/design/figma-import/png/sleep/frame_025.png",
+      "sha256": "f045d8602ee107ae32f99c0e36f97669778d8878999a28c3a1270cffc8c56aac",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 26,
+      "archiveName": "Sleeping-26.png",
+      "file": "docs/design/figma-import/png/sleep/frame_026.png",
+      "sha256": "9862e9d789704ce02593ef72452a72205dceba8eb37f5cdd79e76a5d2003d317",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 27,
+      "archiveName": "Sleeping-27.png",
+      "file": "docs/design/figma-import/png/sleep/frame_027.png",
+      "sha256": "088fc6b9d2068d3d90ecda2b9147327f031f686ebbb442ec39dea2408d7d2d37",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 28,
+      "archiveName": "Sleeping-28.png",
+      "file": "docs/design/figma-import/png/sleep/frame_028.png",
+      "sha256": "6caafcf3eb0d07fe8defce38eff9b40bc59326aacbd40e75d049ca1dea6c993a",
+      "pixels": [
+        174,
+        101
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 29,
+      "archiveName": "Sleeping-29.png",
+      "file": "docs/design/figma-import/png/sleep/frame_029.png",
+      "sha256": "ef02b55b7df319a9a3277dda82cec5b58cf7257ea4cfb693f2b9664cea75e08a",
+      "pixels": [
+        174,
+        102
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 30,
+      "archiveName": "Sleeping-30.png",
+      "file": "docs/design/figma-import/png/sleep/frame_030.png",
+      "sha256": "b2ddb780c9c89166357322b065702d3ebb7ebcb2ab3af405afd1939e91dc5569",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 31,
+      "archiveName": "Sleeping-31.png",
+      "file": "docs/design/figma-import/png/sleep/frame_031.png",
+      "sha256": "18ee1644b25707d7794d1b707fe77136c568a1b86c950668d86a24c70b3f3cd7",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 32,
+      "archiveName": "Sleeping-32.png",
+      "file": "docs/design/figma-import/png/sleep/frame_032.png",
+      "sha256": "e933a7dfc01c2313bcfcee370f2d0017ffde8233579c90a958ba7d7feb310c37",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 33,
+      "archiveName": "Sleeping-33.png",
+      "file": "docs/design/figma-import/png/sleep/frame_033.png",
+      "sha256": "0d55d63433e384c14906f0cbaab6877f19354627b76f5b8fb1d1f97c2d2cefae",
+      "pixels": [
+        174,
+        106
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 34,
+      "archiveName": "Sleeping-34.png",
+      "file": "docs/design/figma-import/png/sleep/frame_034.png",
+      "sha256": "92f7b16ed2415bff97b374a299483550b01889944c24aa9173580e173f0a6ca7",
+      "pixels": [
+        174,
+        107
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 35,
+      "archiveName": "Sleeping-35.png",
+      "file": "docs/design/figma-import/png/sleep/frame_035.png",
+      "sha256": "55785ff884d5eeb363de8985cf67c14e5856b4b051c906c42149891150ac5b9a",
+      "pixels": [
+        174,
+        108
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 36,
+      "archiveName": "Sleeping-36.png",
+      "file": "docs/design/figma-import/png/sleep/frame_036.png",
+      "sha256": "f6cc10187bac5d844621f40c3ce54d2cf8f07056bce1b08917c814efc734090b",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 37,
+      "archiveName": "Sleeping-37.png",
+      "file": "docs/design/figma-import/png/sleep/frame_037.png",
+      "sha256": "bd4de62dcdc22a2c3f98afdec80f1e01d3227f83c685565d9bb33ca7b5cb4e84",
+      "pixels": [
+        174,
+        109
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 38,
+      "archiveName": "Sleeping-38.png",
+      "file": "docs/design/figma-import/png/sleep/frame_038.png",
+      "sha256": "7109893d0b86d9874a8d965b25d132be405f706062d27e6dde8f1f267f4ff637",
+      "pixels": [
+        174,
+        110
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 39,
+      "archiveName": "Sleeping-39.png",
+      "file": "docs/design/figma-import/png/sleep/frame_039.png",
+      "sha256": "ebea142c2f5e98b225a5d47ebcf9ae1bb81a0cb2431eabb5694d282c5aafcd5a",
+      "pixels": [
+        174,
+        111
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 40,
+      "archiveName": "Sleeping-40.png",
+      "file": "docs/design/figma-import/png/sleep/frame_040.png",
+      "sha256": "5701d8309e4579ca26a1e29748fffbcd307232e3698c1873c47c385506f4c0df",
+      "pixels": [
+        174,
+        112
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 41,
+      "archiveName": "Sleeping-41.png",
+      "file": "docs/design/figma-import/png/sleep/frame_041.png",
+      "sha256": "f65d3e42624b25463110574a8892f51334717d54741ec2579cea2f9539eeb6be",
+      "pixels": [
+        174,
+        113
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 42,
+      "archiveName": "Sleeping-42.png",
+      "file": "docs/design/figma-import/png/sleep/frame_042.png",
+      "sha256": "febcc9dfe12817c95ef0a49c307ed8492028535d1e0ad08819010d5d92a25d14",
+      "pixels": [
+        174,
+        114
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 43,
+      "archiveName": "Sleeping-43.png",
+      "file": "docs/design/figma-import/png/sleep/frame_043.png",
+      "sha256": "875e822807e41d2bc68ce274c5c74b5acea2322bac10f5eb3eba6b9cfc484ede",
+      "pixels": [
+        174,
+        114
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 44,
+      "archiveName": "Sleeping-44.png",
+      "file": "docs/design/figma-import/png/sleep/frame_044.png",
+      "sha256": "21dff2b1a714add4e272108718406a35a2bbcf7ba3b1be47717a3b17043aafaf",
+      "pixels": [
+        174,
+        116
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 45,
+      "archiveName": "Sleeping-45.png",
+      "file": "docs/design/figma-import/png/sleep/frame_045.png",
+      "sha256": "b7e630e7b71943f9c4b310c0b5f9cc71d21b6c8f3b6e6b8f45f57f6e10a7d0d0",
+      "pixels": [
+        174,
+        117
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 46,
+      "archiveName": "Sleeping-46.png",
+      "file": "docs/design/figma-import/png/sleep/frame_046.png",
+      "sha256": "7a99eb5f88aea8e1051eccc23b640927fe162c635c0e64926ded7c8db10793a1",
+      "pixels": [
+        174,
+        118
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 47,
+      "archiveName": "Sleeping-47.png",
+      "file": "docs/design/figma-import/png/sleep/frame_047.png",
+      "sha256": "47649f218c4842c372e11eaf6a4d73bfae3ac91f65bc6aa5ca2395f8b9704ff1",
+      "pixels": [
+        174,
+        118
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 48,
+      "archiveName": "Sleeping-48.png",
+      "file": "docs/design/figma-import/png/sleep/frame_048.png",
+      "sha256": "ecc8bde300ad9fdbe8cf34faf8914f2695b5a8535aa996abe3c560e0d9771adf",
+      "pixels": [
+        174,
+        119
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 49,
+      "archiveName": "Sleeping-49.png",
+      "file": "docs/design/figma-import/png/sleep/frame_049.png",
+      "sha256": "ca4030ca0fb11a9346dcb6bbc722817b58593fbc92b67c0ffc05793e98a614c7",
+      "pixels": [
+        174,
+        120
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 50,
+      "archiveName": "Sleeping-50.png",
+      "file": "docs/design/figma-import/png/sleep/frame_050.png",
+      "sha256": "255039786bec114df917e220cbf9a26093c627010b433afa0a67843ce64b2299",
+      "pixels": [
+        174,
+        121
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 51,
+      "archiveName": "Sleeping-51.png",
+      "file": "docs/design/figma-import/png/sleep/frame_051.png",
+      "sha256": "ae76eedd32af39e51a9072ed2c062f8fa049c8d4f094f785ecacefe15f4b665c",
+      "pixels": [
+        174,
+        203
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 52,
+      "archiveName": "Sleeping-52.png",
+      "file": "docs/design/figma-import/png/sleep/frame_052.png",
+      "sha256": "ace0edd9af484e2a409b898de69fb3d552fa75338a1d721445ed3353025c8784",
+      "pixels": [
+        174,
+        123
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 53,
+      "archiveName": "Sleeping-53.png",
+      "file": "docs/design/figma-import/png/sleep/frame_053.png",
+      "sha256": "e076ec006722e2da9239bfe1d73d9da84a3fda85b658c4554c2acc69a15be7af",
+      "pixels": [
+        174,
+        124
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 54,
+      "archiveName": "Sleeping-54.png",
+      "file": "docs/design/figma-import/png/sleep/frame_054.png",
+      "sha256": "77de77ab1d6c4a2c93959dc0eb67c7f893d09d0482bd86d8c2826028e27c8099",
+      "pixels": [
+        174,
+        124
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 55,
+      "archiveName": "Sleeping-55.png",
+      "file": "docs/design/figma-import/png/sleep/frame_055.png",
+      "sha256": "fd4c5958ecbef14b2649408ef40fb1cdb257a9b1eb9788adb21271879ddaea18",
+      "pixels": [
+        174,
+        102
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "sleep",
+      "index": 56,
+      "archiveName": "Sleeping-56.png",
+      "file": "docs/design/figma-import/png/sleep/frame_056.png",
+      "sha256": "624fa6d5327195cd26a7e77b6052ecd528599cc88a79b4d443e359b75eef6b4f",
+      "pixels": [
+        174,
+        102
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 0,
+      "archiveName": "Running.png",
+      "file": "docs/design/figma-import/png/run/frame_000.png",
+      "sha256": "db451304363a1bd5e627bf4cee190a1ecaba297525ed2e144030f2559bb6fd8c",
+      "pixels": [
+        72,
+        116
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 1,
+      "archiveName": "Running-1.png",
+      "file": "docs/design/figma-import/png/run/frame_001.png",
+      "sha256": "0fb4332c58b59cf324700a6748b2a7427aa0300535b7ec7fbb5cf522e3b2d769",
+      "pixels": [
+        72,
+        116
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 2,
+      "archiveName": "Running-2.png",
+      "file": "docs/design/figma-import/png/run/frame_002.png",
+      "sha256": "fe44816caa8b6764809fbb3977e6b643832338a0479345abbb3ec8e5d6fb9371",
+      "pixels": [
+        71,
+        117
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 3,
+      "archiveName": "Running-3.png",
+      "file": "docs/design/figma-import/png/run/frame_003.png",
+      "sha256": "67d9d658b43cc5d2b7d8f8d16fdb21ee7f5d3639089b37adc5bd3149636c1439",
+      "pixels": [
+        71,
+        118
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 4,
+      "archiveName": "Running-4.png",
+      "file": "docs/design/figma-import/png/run/frame_004.png",
+      "sha256": "1a7515d80e1030de267bfcbb69ba37b26a3e955af2471bb9da86ae7edfacbabe",
+      "pixels": [
+        71,
+        120
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 5,
+      "archiveName": "Running-5.png",
+      "file": "docs/design/figma-import/png/run/frame_005.png",
+      "sha256": "c3585cc4d1568b7b99db7fd1eeb0fda111fb2120d9c8a6aae1db0863781a08e8",
+      "pixels": [
+        70,
+        120
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 6,
+      "archiveName": "Running-6.png",
+      "file": "docs/design/figma-import/png/run/frame_006.png",
+      "sha256": "261cc131bc47ecf57ea19e62e22745432c1b6aac815b50188ea2e3cbad1f2606",
+      "pixels": [
+        68,
+        119
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 7,
+      "archiveName": "Running-7.png",
+      "file": "docs/design/figma-import/png/run/frame_007.png",
+      "sha256": "e5884ded6410e8b9a1f8fe69860ba494718ee8c019dffefc2c283369de9f7a65",
+      "pixels": [
+        67,
+        117
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 8,
+      "archiveName": "Running-8.png",
+      "file": "docs/design/figma-import/png/run/frame_008.png",
+      "sha256": "8492d29c83ff2f8d8c653fde5d3f5872f3c9261fc2e77036601a503894f2cd8e",
+      "pixels": [
+        66,
+        114
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 9,
+      "archiveName": "Running-9.png",
+      "file": "docs/design/figma-import/png/run/frame_009.png",
+      "sha256": "372d0092a0f0cae7140a4cdd45cb0982fe357352c51aa149a6947b585272b8ae",
+      "pixels": [
+        64,
+        110
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 10,
+      "archiveName": "Running-10.png",
+      "file": "docs/design/figma-import/png/run/frame_010.png",
+      "sha256": "a94acd26da9014329fd50ee6cc677bf512039db1a18a2eaa22cbb7ba9a446d7c",
+      "pixels": [
+        65,
+        107
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 11,
+      "archiveName": "Running-11.png",
+      "file": "docs/design/figma-import/png/run/frame_011.png",
+      "sha256": "a1957da817a4d53f7e677269189e85fbd46f93854da3939b09749f83b82348f0",
+      "pixels": [
+        66,
+        107
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 12,
+      "archiveName": "Running-12.png",
+      "file": "docs/design/figma-import/png/run/frame_012.png",
+      "sha256": "fe9f527d592fa34ccc0413c076a7759908e6687b2b812d5b50cfff076b29bbfd",
+      "pixels": [
+        68,
+        107
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 13,
+      "archiveName": "Running-13.png",
+      "file": "docs/design/figma-import/png/run/frame_013.png",
+      "sha256": "7278604606962c855cb2770e5807648f030e3951926a347b4fa66ce97a3b9e9a",
+      "pixels": [
+        69,
+        109
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 14,
+      "archiveName": "Running-14.png",
+      "file": "docs/design/figma-import/png/run/frame_014.png",
+      "sha256": "454ee81eec593646cdce88dced20a9993e80868fb1060f5f91a7bfe026155fd3",
+      "pixels": [
+        70,
+        112
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 15,
+      "archiveName": "Running-15.png",
+      "file": "docs/design/figma-import/png/run/frame_015.png",
+      "sha256": "fc53d428f762a949bee2ca2e21d9452d62791203cbe42a747025699cbc7dd3a4",
+      "pixels": [
+        70,
+        114
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 16,
+      "archiveName": "Running-16.png",
+      "file": "docs/design/figma-import/png/run/frame_016.png",
+      "sha256": "c47bf51120d1ecedfbbf2a9ba4a35a6fc5c004305587fdd6980d4cf4b27f8a57",
+      "pixels": [
+        71,
+        115
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 17,
+      "archiveName": "Running-17.png",
+      "file": "docs/design/figma-import/png/run/frame_017.png",
+      "sha256": "5488ca0edc716f338c8438e2f015210f8bcb9ae63639388a49ab3f74abe01f5f",
+      "pixels": [
+        72,
+        117
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 18,
+      "archiveName": "Running-18.png",
+      "file": "docs/design/figma-import/png/run/frame_018.png",
+      "sha256": "3b4f0ef0fd08d3fb66cc5e04bf392dfb78a7bba180710ba270bd6bdcba29b000",
+      "pixels": [
+        71,
+        119
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 19,
+      "archiveName": "Running-19.png",
+      "file": "docs/design/figma-import/png/run/frame_019.png",
+      "sha256": "7c5b4fad285792321010f1d0a9073f770725a3f658049fb8a8375b01bd918110",
+      "pixels": [
+        71,
+        119
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 20,
+      "archiveName": "Running-20.png",
+      "file": "docs/design/figma-import/png/run/frame_020.png",
+      "sha256": "65dac6a785c33b67295668eb8105b30ad1f59203f74914f165cf4340920106b1",
+      "pixels": [
+        70,
+        119
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 21,
+      "archiveName": "Running-21.png",
+      "file": "docs/design/figma-import/png/run/frame_021.png",
+      "sha256": "9360b0d8a3c16d2d8866917428874d5530319bf2e9b0824cade4108b04b032cf",
+      "pixels": [
+        69,
+        117
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 22,
+      "archiveName": "Running-22.png",
+      "file": "docs/design/figma-import/png/run/frame_022.png",
+      "sha256": "e79fbb5453c3cf044008c79227c47134e040c0a880483da4fcaa33ee0421ad2e",
+      "pixels": [
+        67,
+        113
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 23,
+      "archiveName": "Running-23.png",
+      "file": "docs/design/figma-import/png/run/frame_023.png",
+      "sha256": "e2dca453a1e25a14c86e8cbe9a48e03111ae27bb6054c40369d73b333e9fadf6",
+      "pixels": [
+        65,
+        110
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 24,
+      "archiveName": "Running-24.png",
+      "file": "docs/design/figma-import/png/run/frame_024.png",
+      "sha256": "61ab1cfab1ebf55f88d4c2a8a70cca1c96c9c28b54c5e33be6a2cca9bae43b41",
+      "pixels": [
+        83,
+        107
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 25,
+      "archiveName": "Running-25.png",
+      "file": "docs/design/figma-import/png/run/frame_025.png",
+      "sha256": "faf33336f1016cd9cc8a698ab18def9f34a8d1ae0b9ae23c707b5e7f4c2a8e9a",
+      "pixels": [
+        67,
+        106
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 26,
+      "archiveName": "Running-26.png",
+      "file": "docs/design/figma-import/png/run/frame_026.png",
+      "sha256": "446c2e9f7fe0e8c7893a308220e4bd2679f7dca18434c480635497294be18b71",
+      "pixels": [
+        69,
+        107
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 27,
+      "archiveName": "Running-27.png",
+      "file": "docs/design/figma-import/png/run/frame_027.png",
+      "sha256": "a86da23460c31588fa32b1a41a21886009b50eb480ac3a4414de6bfa7ec048ea",
+      "pixels": [
+        70,
+        110
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 28,
+      "archiveName": "Running-28.png",
+      "file": "docs/design/figma-import/png/run/frame_028.png",
+      "sha256": "666f3a8666c04bdd2d776cb3562c94ec387d7594cac113f8294465a9b5d56a91",
+      "pixels": [
+        70,
+        113
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 29,
+      "archiveName": "Running-29.png",
+      "file": "docs/design/figma-import/png/run/frame_029.png",
+      "sha256": "297871d91310951bf7fc299407428ec27e51695383c9f7a759da2f21c1ad5f1b",
+      "pixels": [
+        70,
+        115
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 30,
+      "archiveName": "Running-30.png",
+      "file": "docs/design/figma-import/png/run/frame_030.png",
+      "sha256": "51f08415c48a4db68e12b41cf84dd362802e9bb7c58c85b0048cf855663412a5",
+      "pixels": [
+        69,
+        117
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 31,
+      "archiveName": "Running-31.png",
+      "file": "docs/design/figma-import/png/run/frame_031.png",
+      "sha256": "ff61d44081c474391785c54aee3c2ba2cb527ce951105b0b45ad97e5aec8d99a",
+      "pixels": [
+        68,
+        119
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 32,
+      "archiveName": "Running-32.png",
+      "file": "docs/design/figma-import/png/run/frame_032.png",
+      "sha256": "88a0b954f9b4315314db2bbdce4ad4432fc7903d09104615a44bae3cc081aa25",
+      "pixels": [
+        66,
+        119
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 33,
+      "archiveName": "Running-33.png",
+      "file": "docs/design/figma-import/png/run/frame_033.png",
+      "sha256": "fb4472ed504ba7667ab86d4558a2944e7bcbccf76e9c3dda59ce8ff1eaae8151",
+      "pixels": [
+        65,
+        116
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 34,
+      "archiveName": "Running-34.png",
+      "file": "docs/design/figma-import/png/run/frame_034.png",
+      "sha256": "dbde47cdc2d1958fd83b391e591515e232d78e7a8dfc1ba9d49a910798762fd6",
+      "pixels": [
+        65,
+        112
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 35,
+      "archiveName": "Running-35.png",
+      "file": "docs/design/figma-import/png/run/frame_035.png",
+      "sha256": "f4f048b0cc195e8e537161e928288c8ccde38d698a16774dcf2ec3f7b95fbea1",
+      "pixels": [
+        65,
+        108
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 36,
+      "archiveName": "Running-36.png",
+      "file": "docs/design/figma-import/png/run/frame_036.png",
+      "sha256": "91c13b7f42ef0034a8502b31c60cc5a2710a6b62cb266d9d179b1abc3dc78970",
+      "pixels": [
+        67,
+        106
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 37,
+      "archiveName": "Running-37.png",
+      "file": "docs/design/figma-import/png/run/frame_037.png",
+      "sha256": "6dae3fe53e459689c1b439e8279ca6d8ade8451af0a53cbc7ae0673869cbadf0",
+      "pixels": [
+        69,
+        106
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 38,
+      "archiveName": "Running-38.png",
+      "file": "docs/design/figma-import/png/run/frame_038.png",
+      "sha256": "22bd7d369d734ee9aa146bc9ed5e000c502e75445ac747bcc114f0357bfb1eb4",
+      "pixels": [
+        70,
+        109
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 39,
+      "archiveName": "Running-39.png",
+      "file": "docs/design/figma-import/png/run/frame_039.png",
+      "sha256": "769212c9495c2e04d24335e435ea207bc3bf222fc6ab3eec3bc3e4b7a3849143",
+      "pixels": [
+        71,
+        112
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 40,
+      "archiveName": "Running-40.png",
+      "file": "docs/design/figma-import/png/run/frame_040.png",
+      "sha256": "102ab78469c0f71f4f0b5e19076545fb71498d71e6545efb3b2191ec10322e85",
+      "pixels": [
+        71,
+        114
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 41,
+      "archiveName": "Running-41.png",
+      "file": "docs/design/figma-import/png/run/frame_041.png",
+      "sha256": "1f0c616179a3acc9984662fe8c9bfed0e6dcf1deba3c202596574a75155b4097",
+      "pixels": [
+        71,
+        116
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 42,
+      "archiveName": "Running-42.png",
+      "file": "docs/design/figma-import/png/run/frame_042.png",
+      "sha256": "7c45d11b956e1b26efc9153f201e5544fb31b041f5518de0be731db41e04c191",
+      "pixels": [
+        70,
+        119
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 43,
+      "archiveName": "Running-43.png",
+      "file": "docs/design/figma-import/png/run/frame_043.png",
+      "sha256": "1cddf79236528b4541caccdf98fcd719ca393b745cdf3e429a41843bf81881fb",
+      "pixels": [
+        68,
+        120
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 44,
+      "archiveName": "Running-44.png",
+      "file": "docs/design/figma-import/png/run/frame_044.png",
+      "sha256": "decf3055527c08c264417600fc927fc998eb02c1c602e152f31ad5436296294d",
+      "pixels": [
+        66,
+        118
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 45,
+      "archiveName": "Running-45.png",
+      "file": "docs/design/figma-import/png/run/frame_045.png",
+      "sha256": "6fddcd5aa19e952bd138340cf60579c67b97d412909d7fd25923205d934c2ec8",
+      "pixels": [
+        64,
+        115
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 46,
+      "archiveName": "Running-46.png",
+      "file": "docs/design/figma-import/png/run/frame_046.png",
+      "sha256": "f2e21a43d8c6ba184d7ce6aefe137cc64ac34cf6b3f540bb33c2de6f397c66fa",
+      "pixels": [
+        64,
+        110
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 47,
+      "archiveName": "Running-47.png",
+      "file": "docs/design/figma-import/png/run/frame_047.png",
+      "sha256": "a6e1393061d63220d16f728a07f22828b3c5ed6ceb78632741129a16fbf4dc15",
+      "pixels": [
+        66,
+        106
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 48,
+      "archiveName": "Running-48.png",
+      "file": "docs/design/figma-import/png/run/frame_048.png",
+      "sha256": "003dc2b093c0235b96344677e61a840c076e658a555eb895b76c80b45dd789e7",
+      "pixels": [
+        68,
+        106
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 49,
+      "archiveName": "Running-49.png",
+      "file": "docs/design/figma-import/png/run/frame_049.png",
+      "sha256": "c5cd7aae95355683c98a2299ff70b6f38a501cdacbb9786222e9eb7681a0b16f",
+      "pixels": [
+        69,
+        108
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 50,
+      "archiveName": "Running-50.png",
+      "file": "docs/design/figma-import/png/run/frame_050.png",
+      "sha256": "588c307ff262db0c28617447dccb7ec713bbdadc1025df4ff56cdb0e843bcdd0",
+      "pixels": [
+        70,
+        110
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 51,
+      "archiveName": "Running-51.png",
+      "file": "docs/design/figma-import/png/run/frame_051.png",
+      "sha256": "000cc606e36c78bfe566528742497ca4eb2c8d5f65ec2491ff925fa84d2966d7",
+      "pixels": [
+        71,
+        113
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 52,
+      "archiveName": "Running-52.png",
+      "file": "docs/design/figma-import/png/run/frame_052.png",
+      "sha256": "db10aa2476b2984e05f0b4a883426e7f5ece4e0d4e09c7385dc1aabddaf3faa2",
+      "pixels": [
+        72,
+        114
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 53,
+      "archiveName": "Running-53.png",
+      "file": "docs/design/figma-import/png/run/frame_053.png",
+      "sha256": "39856c83eda1443f1d2539ddb663ba6d6374028f007a60337074f9b7426a5c67",
+      "pixels": [
+        72,
+        117
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 54,
+      "archiveName": "Running-54.png",
+      "file": "docs/design/figma-import/png/run/frame_054.png",
+      "sha256": "5e6f5be53acf569748ede2dabddaf6b9403c0f08c116057a33727d58e6fda66f",
+      "pixels": [
+        71,
+        118
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 55,
+      "archiveName": "Running-55.png",
+      "file": "docs/design/figma-import/png/run/frame_055.png",
+      "sha256": "d42945a61e3b9a4280d6f904684cc3fd8f0e55549d4e4206230f4795191eb873",
+      "pixels": [
+        70,
+        119
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "key": "run",
+      "index": 56,
+      "archiveName": "Running-56.png",
+      "file": "docs/design/figma-import/png/run/frame_056.png",
+      "sha256": "d42945a61e3b9a4280d6f904684cc3fd8f0e55549d4e4206230f4795191eb873",
+      "pixels": [
+        70,
+        119
+      ],
+      "mode": "RGBA"
+    }
+  ]
+}

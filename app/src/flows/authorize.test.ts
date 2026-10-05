@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ActionRequest } from "../api/types";
-import { signedInMockApi } from "../testing/fixtures";
+import { MOCK_ESCROW, registerMockNumber, selectedRecipient, signedInMockApi } from "../testing/fixtures";
 import { authorizeAndSubmit } from "./authorize";
 import { SigningGuardError } from "../signing/guard";
 
@@ -9,7 +9,7 @@ type Ctx = Awaited<ReturnType<typeof signedInMockApi>>;
 async function run(ctx: Ctx, request: ActionRequest, resolvedPayee?: `0x${string}`) {
   const prepared = await ctx.api.prepareAction(request);
   const unlock = vi.fn((fn) => fn(ctx.signer));
-  const out = await authorizeAndSubmit({ api: ctx.api, request, prepared, account: ctx.address, chainId: 143, resolvedPayee, unlock });
+  const out = await authorizeAndSubmit({ api: ctx.api, request, prepared, account: ctx.address, chainId: 143, resolvedPayee, unlock, recipient: request.type === "send" || request.type === "gift_send" ? await selectedRecipient(ctx.api, request.params.phone) : undefined, readDirectory: ctx.api.readDirectory, escrow: MOCK_ESCROW });
   return { ...out, prepared, unlock };
 }
 
@@ -112,13 +112,9 @@ let senderToken: string | null = null;
 /** Registers a second person against the same demo server as `ctx`. */
 async function signedInMockApiSharing(ctx: Ctx, phone: string) {
   const { privateKeyToAccount } = await import("viem/accounts");
-  const { registerMessage } = await import("../signing/messages");
   senderToken = ctx.getToken();
   const signer = privateKeyToAccount("0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a");
-  const { phoneToken } = await ctx.api.otpVerify(phone, "000000");
-  const issuedAt = Math.floor(Date.now() / 1000);
-  const signature = await signer.signMessage({ message: registerMessage(phone, signer.address, issuedAt) });
-  const reg = await ctx.api.register({ phoneToken, address: signer.address, displayName: "Invitee", issuedAt, signature });
+  const reg = await registerMockNumber(ctx.api, signer, phone, "Invitee");
   ctx.setToken(reg.sessionToken);
   return { ...ctx, signer, address: signer.address };
 }

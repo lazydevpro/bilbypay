@@ -7,6 +7,15 @@ import { type Address, getAddress, type Hex, isHex } from "viem";
 export const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const REPO_ROOT = resolve(SERVER_ROOT, "..");
 
+export type RampConfig = {
+  mode: "disabled" | "sandbox";
+  hostApiKey?: string;
+  hostLogoUrl?: string;
+  webhookBaseUrl?: string;
+  returnOrigins: string[];
+  sandboxAsset: string;
+};
+
 export type Config = {
   port: number;
   chainId: number;
@@ -33,6 +42,7 @@ export type Config = {
   appStoreUrl?: string;
   playStoreUrl?: string;
   databasePath: string;
+  directoryStartBlock: bigint;
   rebindCooldownDays: number;
   escrowExpiryDays: number;
   actionTtlSeconds: number;
@@ -41,6 +51,7 @@ export type Config = {
   aavePool?: Address;
   trustProxy: boolean;
   keeper: { enabled: boolean; intervalMs: number; debounceMs: number; blockRange: number };
+  ramp: RampConfig;
 };
 
 type Env = Record<string, string | undefined>;
@@ -70,7 +81,7 @@ function loadDeployment(env: Env, chainId: number): Deployment {
     ? resolve(SERVER_ROOT, env.DEPLOYMENT_FILE)
     : env.AUSD_ADDRESS
       ? undefined
-      : resolve(REPO_ROOT, "contracts/deployments", `${chainId}.json`);
+      : resolve(REPO_ROOT, "contracts/deployments", `${chainId}-v2.json`);
   const raw: Record<string, string | number> = file
     ? JSON.parse(readFileSync(file, "utf8"))
     : {
@@ -84,6 +95,37 @@ function loadDeployment(env: Env, chainId: number): Deployment {
   if (Number(raw.chainId) !== chainId) throw new Error(`Deployment is for chain ${raw.chainId}, CHAIN_ID is ${chainId}`);
   const addr = (k: string) => getAddress(String(raw[k]));
   return { chainId, ausd: addr("ausd"), stata: addr("stata"), directory: addr("directory"), escrow: addr("escrow"), router: addr("router") };
+}
+
+/** No production Ramp endpoint or mode can be enabled by environment configuration. */
+export function loadRampConfig(env: Env): RampConfig {
+  const mode = env.RAMP_MODE || "disabled";
+  if (mode !== "disabled" && mode !== "sandbox") throw new Error("RAMP_MODE must be disabled or sandbox; live funding is not implemented");
+  const externalHttps = (value: string | undefined, name: string, originOnly = false) => {
+    if (!value) return undefined;
+    let url: URL;
+    try { url = new URL(value); } catch { throw new Error(`${name} must be an external HTTPS URL`); }
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash ||
+      /^(localhost|127\.|0\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|\[.*\])/.test(url.hostname) ||
+      url.hostname.endsWith(".localhost") || url.hostname.endsWith(".local") || !url.hostname.includes(".") ||
+      (originOnly && url.pathname !== "/")) throw new Error(`${name} must be an external HTTPS ${originOnly ? "origin" : "URL"}`);
+    return originOnly ? url.origin : url.href;
+  };
+  const returnOrigins = (env.RAMP_RETURN_ORIGINS || "").split(",").map((x) => x.trim()).filter(Boolean);
+  for (const origin of returnOrigins) {
+    if (origin === "bilbypay://") continue;
+    let url: URL;
+    try { url = new URL(origin); } catch { throw new Error("RAMP_RETURN_ORIGINS must contain exact HTTP(S) origins or bilbypay://"); }
+    const localHttp = url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if ((!localHttp && url.protocol !== "https:") || url.origin !== origin || url.username || url.password || url.hostname.includes("*")) {
+      throw new Error("RAMP_RETURN_ORIGINS requires exact HTTPS origins, HTTP loopback origins, or bilbypay://");
+    }
+  }
+  const sandboxAsset = env.RAMP_SANDBOX_ASSET || "BASE_USDC";
+  if (!/^[A-Z0-9]+_[A-Z0-9]+$/.test(sandboxAsset)) throw new Error("RAMP_SANDBOX_ASSET must be an exact provider asset identifier");
+  return { mode, hostApiKey: env.RAMP_HOST_API_KEY || undefined, sandboxAsset, returnOrigins,
+    hostLogoUrl: externalHttps(env.RAMP_HOST_LOGO_URL, "RAMP_HOST_LOGO_URL"),
+    webhookBaseUrl: externalHttps(env.RAMP_WEBHOOK_BASE_URL, "RAMP_WEBHOOK_BASE_URL", true) };
 }
 
 export function loadConfig(rawEnv: Env = process.env): Config {
@@ -137,6 +179,7 @@ export function loadConfig(rawEnv: Env = process.env): Config {
     appStoreUrl: env.APP_STORE_URL || undefined,
     playStoreUrl: env.PLAY_STORE_URL || undefined,
     databasePath: env.DATABASE_PATH === ":memory:" ? ":memory:" : resolve(SERVER_ROOT, env.DATABASE_PATH ?? "data/bilbypay.db"),
+    directoryStartBlock: BigInt(env.DIRECTORY_START_BLOCK ?? "0"),
     rebindCooldownDays: Number(env.REBIND_COOLDOWN_DAYS ?? "7"),
     escrowExpiryDays: Number(env.ESCROW_EXPIRY_DAYS ?? "14"),
     actionTtlSeconds: Number(env.ACTION_TTL_SECONDS ?? "600"),
@@ -151,5 +194,6 @@ export function loadConfig(rawEnv: Env = process.env): Config {
       // Monad RPCs serve limited log history and cap getLogs ranges; keep windows small.
       blockRange: Number(env.KEEPER_BLOCK_RANGE ?? "100"),
     },
+    ramp: loadRampConfig(env),
   };
 }

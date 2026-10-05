@@ -1,0 +1,168 @@
+{
+  "at": "2026-10-01T09:11:35.663Z",
+  "api": "http://localhost:8787",
+  "chainId": 10143,
+  "deployment": {
+    "chainId": 10143,
+    "startBlock": 67216804,
+    "ausd": "0x281E5E2fFE4F6EEb887A0fe82E9859a7656ad300",
+    "stata": "0xe589463D6EC1E05681dc4a4dA209EF9bEECc2Ed7",
+    "directory": "0x6CE6a93600D389247971Dd2B0F65ff07FEbE6219",
+    "escrow": "0x65Cf95BA67831B6A75a58eeB91bd99289A25EaAa",
+    "router": "0xec93D63127b20b2116d38e176448B515880AaBD9",
+    "usdc": "0x51C923016b405518A356d95eCBEfDA27CabCD538",
+    "owner": "0x6E743B233A103F804255C31aEECbAE723D93dD4E",
+    "verifier": "0x3fCf89d81368181fedB718fA1b88786b85590aE1",
+    "treasury": "0xC9f2F2533A8698377CF4aA3bf0Bd515B03a57a51",
+    "keeper": "0x6E743B233A103F804255C31aEECbAE723D93dD4E",
+    "transactions": {
+      "ausd": "0x078ec493d1e13705785071cb6bdbbdd3ccfc81769133aee903f9ef1781080345",
+      "stata": "0x0beac0e04b0351a4dc8da4f30e0e24ce41fdfdd1abea60137c462e33c7c171ec",
+      "directory": "0x39dac53db2f6ef38827513557d35ee6904bf4aba297887cea4594e429eb3d964",
+      "escrow": "0x7b41c69ba23a66be16376307bb80ea9247388b9e1011fa15b5b41982527b05b6",
+      "router": "0x9f18d54be681f57c1ee9f4d8cd961e5d179f7d4d1367acb7f27ebeda8f85772a",
+      "usdc": "0xcd5670de860c863172d414b5fd15f3e8ce10d19371c16fe179aab2dd3b53814c",
+      "enableKeeper": "0x4b07b43dea59c7a5bcae181587e56e590e4cbc040e74faa88f7a9d92512a4c03",
+      "fundTreasury": "0xcbe2c140ba02a75d11389971415b70987f7271fe1cac1e279ac54dee9b7f3360"
+    }
+  },
+  "rows": [
+    {
+      "step": "1. Onboard Alice and Bob (number check → passkey signature → on-chain binding)",
+      "ok": true,
+      "detail": "Alice +1 555 462 4089, Bob +1 555 807 6504 (14017 ms)"
+    },
+    {
+      "step": "2. Sign in again with the same key (stateless re-login)",
+      "ok": true,
+      "detail": " (1532 ms)"
+    },
+    {
+      "step": "3. Add money (top-up, mock provider) → balance credited",
+      "ok": true,
+      "detail": "balance $24.98 via base:usdc (18712 ms)"
+    },
+    {
+      "step": "4. Top up Alice with more test dollars (testnet mint)",
+      "ok": true,
+      "detail": "balance $524.98 (2807 ms)"
+    },
+    {
+      "step": "5. Send $20 to Bob (registered) — one confirmation, gasless",
+      "ok": true,
+      "detail": "completed in 6570 ms, Bob $20.00 (10259 ms)"
+    },
+    {
+      "step": "6. Send $15 to Carol (not signed up) → waits for her, claim link",
+      "ok": true,
+      "detail": "link http://localhost:8787/c/3aVf7rg2DQpg (6876 ms)"
+    },
+    {
+      "step": "7. Carol opens the link on her phone, signs up, money lands",
+      "ok": true,
+      "detail": "Carol $15.00 (9221 ms)"
+    },
+    {
+      "step": "8. Alice sees Carol's send as opened",
+      "ok": true,
+      "detail": "3 activity items; Carol's send: completed (7 ms)"
+    },
+    {
+      "step": "9. Take back an unopened send",
+      "ok": true,
+      "detail": " (11945 ms)"
+    },
+    {
+      "step": "10. Send $3 to a number that never signs up (refund checked after expiry)",
+      "ok": true,
+      "detail": "expires in ~1 h; run --check-refund afterwards (6926 ms)"
+    },
+    {
+      "step": "11. Burrow: add $100",
+      "ok": true,
+      "detail": "Burrow $100.00, rate 4.2% (3288 ms)"
+    },
+    {
+      "step": "12. Burrow auto-save: keep $50, rest tucked away automatically (keeper)",
+      "ok": true,
+      "detail": "balance $50.00, Burrow $436.98 (7593 ms)"
+    },
+    {
+      "step": "13. Money arriving above the threshold is swept too",
+      "ok": true,
+      "detail": "balance back to $50.00 (20067 ms)"
+    },
+    {
+      "step": "14. Pay $80 with $50 balance → \"Take $30 from Burrow?\" → ONE transaction",
+      "ok": true,
+      "detail": "balance $50.00 → $0.00, Burrow $446.98 → $416.98, 1 tx 0xb7de88532df1ea812494f30abe1258e73580399868a2820f319028ea6f78602b (12369 ms)"
+    },
+    {
+      "step": "15. Burrow: turn auto-save off, then move $10 to balance",
+      "ok": true,
+      "detail": "balance $10.00 stays (auto-save off) (16429 ms)"
+    },
+    {
+      "step": "16. Gift card: buy for myself, reveal code in-app",
+      "ok": true,
+      "detail": "Starbucks $10.00 revealed in 2449 ms (3908 ms)"
+    },
+    {
+      "step": "17. Gift card to Dave (not signed up) → he opens it, picks a brand, card appears",
+      "ok": true,
+      "detail": "Dave's card ready (21348 ms)"
+    },
+    {
+      "step": "18. Only the owner can reveal a gift card",
+      "ok": true,
+      "detail": "Alice refused: NOT_FOUND (20 ms)"
+    },
+    {
+      "step": "19. Errors reach the app as plain language",
+      "ok": true,
+      "detail": "INVALID_REQUEST: \"You have $0.00 in Burrow. Try that amount or less.\" (707 ms)"
+    },
+    {
+      "step": "20. No user ever held or spent MON",
+      "ok": true,
+      "detail": "4 users: 0 MON, 0 transactions sent (1319 ms)"
+    },
+    {
+      "step": "21. Recovery freezes the number for seven days and rejects a previously signed payment",
+      "ok": true,
+      "detail": "Pending until 2026-10-08T09:10:51.000Z; app and relay both refused the stale destination (14103 ms)"
+    },
+    {
+      "step": "22. Existing controller cancels recovery and the number resolves again",
+      "ok": true,
+      "detail": "Binding revision 3 (5448 ms)"
+    },
+    {
+      "step": "23. Revocation preserves the balance, refunds an older gift, and renewal restores receiving",
+      "ok": true,
+      "detail": "Old gift refunded before expiry; original account and renewed number remain usable (33064 ms)"
+    }
+  ],
+  "txs": [
+    "0xd0e27ed26e9af950a94c1104dc058479f61d2b8114365d41cf522ebd819e59e6",
+    "0xbb8bd6e496d3b66cf3119213243c1e16a222f0dec9811bf297125075e456127a",
+    "0xc1d56528c8fc31b21c259dbac93690212827e8183625acf1df820474f2c2a819",
+    "0x180ce3354b8293124127ec6b443c7fa4781600700e6ff17e4e85c2e49e296347",
+    "0x064823daabb987be61ce0c1e138c9d44d88ec611191d313a8c5f4ee09adafbfa",
+    "0xd94cf74c23a44947c68f0253c3706b9287244a5a78155d0ca0f365a13516f681",
+    "0x04dbabdaaecc7de8f52ed0d484ebcc0b15285a9b86ce2cecaad7a6b91a8dea1d",
+    "0x46410f4f91bf27c48ebe7297eb99e06dff11db46e85af20faca5dfce30ac6b62",
+    "0x07e6b690f1903aa35ef8d4d8dec04c44f31063f4bd41b1b90ee7dc4766aba71c",
+    "0xcf858caac7afbaaf83dd2fe6d51fea3239939e6f39a38428f4bbac52c4d859fd",
+    "0xb7de88532df1ea812494f30abe1258e73580399868a2820f319028ea6f78602b",
+    "0xf9cf0aac6018c2955bae3ab6589bc3aa8ce9403a39b8e48934eedca9ed9f29c4",
+    "0x837bb8a9209e69a45bb9be77cf0d5128c9e9e6e5965ee9728f6cd9ca06317143",
+    "0x9e980d996c83b04a8ed9f2d004c33db14b56ab721eddaec9c5632f380ca7e9fb",
+    "0x883e783831db8d2e64fb46dd0f7ff45f94aa45a815fada729f1e5f4c07cd89f1",
+    "0xf0d511c609993a67e9cf74d416cb743d82ed9c95f379db1e7a3c6d8a2cb4442b",
+    "0xd236ae1c9ff0d7322794a306f3a7685eecb5104c95e50667a5296b20b0fc202e"
+  ],
+  "deferred": [
+    "Seven-day recovery finalization and lease expiry require elapsed testnet time; covered locally with controlled time."
+  ]
+}

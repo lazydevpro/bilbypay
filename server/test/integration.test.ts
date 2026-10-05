@@ -136,7 +136,7 @@ describe("identity", () => {
 
   it("resolves contacts", async () => {
     const res = await alice.call("POST", "/v1/resolve", { phones: ["(555) 555-0102", "+1 555 555 0103", "abc"] });
-    expect(res.body.results).toEqual([
+    expect(res.body.results).toMatchObject([
       { phone: "(555) 555-0102", e164: "+15555550102", status: "registered", displayName: "Bob", address: bob.address },
       { phone: "+1 555 555 0103", e164: "+15555550103", status: "invite" },
       { phone: "abc", e164: null, status: "invalid" },
@@ -150,7 +150,7 @@ describe("sending", () => {
     expect((await alice.balance()).balance).toBe(s(usd(100)));
     const { prepared, result } = await alice.act("send", { phone: "+15555550102", amount: s(usd(10)), note: "lunch" });
     expect(prepared.summary.title).toBe("Send $10.00 to Bob");
-    expect(prepared.expect).toEqual({ payer: alice.address, amount: s(usd(10)), payee: bob.address });
+    expect(prepared.expect).toMatchObject({ payer: alice.address, amount: s(usd(10)), payee: bob.address, directory: { revision: "1", ownershipEpoch: "0" } });
     expect(prepared.toSign.map((t) => t.key)).toEqual(["payment"]);
     expect(prepared.toSign[0]!.typedData.primaryType).toBe("TransferWithAuthorization");
     expect(result.status).toBe("completed");
@@ -467,7 +467,7 @@ describe("gift cards", () => {
     expect(provider.purchaseCalls).toBe(calls);
     const code = result.claimLink!.split("/c/")[1]!;
     const view = (await alice.call("GET", `/v1/claims/${code}`, undefined, false)).body;
-    expect(view).toMatchObject({ kind: "gift", amount: s(usd(25)), gift: { brandId: "starbucks-us", brandName: "Starbucks", message: "Happy birthday!", design: "confetti" } });
+    expect(view).toMatchObject({ kind: "gift", amount: s(usd(25)), gift: { brandId: "starbucks-us", brandName: "Starbucks", brandArtworkUrl: "https://cdn.bitrefill.com/primg/w600h400/starbucks-usa.png", message: "Happy birthday!", design: "confetti" } });
     const html = await (await app.request(`/c/${code}`)).text();
     expect(html).toContain("Alice sent you a $25 Starbucks gift card");
 
@@ -505,12 +505,18 @@ describe("rebind safety", () => {
     const hank1 = await user("+1 555 555 0108", "Hank").onboard();
     const hank2 = await user("+1 555 555 0108", "Hank").onboard();
     expect(hank2.address).not.toBe(hank1.address);
+    const pending = await hank2.call("GET", "/v1/accounts/phone");
+    expect(pending.body.status).toBe("pending");
+    await testClient(anvil.rpcUrl).increaseTime({ seconds: 7 * 86_400 + 1 });
+    await testClient(anvil.rpcUrl).mine({ blocks: 1 });
+    await hank2.verifyPhone();
+    expect((await hank2.register()).body.status).toBe("registered");
     const res = await alice.call("POST", "/v1/resolve", { phones: ["+15555550108"] });
     expect(res.body.results[0]).toMatchObject({ status: "registered", address: hank2.address, recentlyChanged: true });
     expect((await services.chain.resolve(services.accounts.phoneKeyOf("+15555550108"))).account).toBe(hank2.address);
     const p = await alice.prepare("send", { phone: "+15555550108", amount: s(usd(1)) });
     expect(p.body.summary.warnings[0]!.code).toBe("RECIPIENT_RECENTLY_CHANGED");
-    expect((await hank1.call("GET", "/v1/me")).body.error.code).toBe("PHONE_REQUIRED");
+    expect((await hank1.call("GET", "/v1/me")).body).toMatchObject({ address: hank1.address, phoneStatus: "reassigned" });
   });
 });
 

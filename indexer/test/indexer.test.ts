@@ -38,6 +38,8 @@ const bound = (b: At, phoneKey: string, account: Address, previous: Address = ZE
   ({ contract: "BilbyDirectory", event: "Bound", ...b, params: { phoneKey, account, previous } }) as const;
 const unbound = (b: At, phoneKey: string, account: Address) =>
   ({ contract: "BilbyDirectory", event: "Unbound", ...b, params: { phoneKey, account } }) as const;
+const bindingUpdated = (b: At, phoneKey: string, account: Address, revision: bigint, phoneEpoch = 0n, revoked = false) =>
+  ({ contract: "BilbyDirectory", event: "BindingUpdated", ...b, params: { phoneKey, account, revision, phoneEpoch, boundAt: BigInt(T0), validUntil: BigInt(T0 + 31_536_000), revoked } }) as const;
 const transfer = (b: At, token: Address, from: Address, to: Address, value: bigint) =>
   ({ contract: "BilbyAccount", event: "Transfer", srcAddress: token, ...b, params: { from, to, value } }) as const;
 const deposited = (b: At, depositId: string, sender: Address, phoneKey: string, amount: bigint, expiry: number, giftId = ZERO32) =>
@@ -49,6 +51,7 @@ const deposited = (b: At, depositId: string, sender: Address, phoneKey: string, 
       depositId,
       sender,
       phoneKey,
+      phoneEpoch: 0n,
       amount,
       expiry: BigInt(T0 + expiry),
       kind: giftId === ZERO32 ? 0n : 1n,
@@ -68,6 +71,51 @@ const D3 = "0x" + "d3".repeat(32);
 const GIFT = "0x" + "9f".repeat(32);
 
 describe("phone bindings", () => {
+  it("does not label verification renewal as a reassignment", async () => {
+    const indexer = createTestIndexer();
+    await indexer.process({ chains: { [CHAIN]: { simulate: [
+      bound(at(100), PHONE_A, ALICE),
+      bindingUpdated(at(100), PHONE_A, ALICE, 1n),
+      bound(at(101, 60), PHONE_A, ALICE, ALICE),
+      bindingUpdated(at(101, 60), PHONE_A, ALICE, 2n),
+    ] } } });
+    expect(await indexer.Phone.getOrThrow(PHONE_A)).toMatchObject({ revision: 2n, rebindCount: 0, lastReboundAt: undefined });
+    expect((await indexer.Account.getOrThrow(ALICE)).reboundAt).toBeUndefined();
+    expect((await indexer.GlobalStats.getOrThrow("global")).rebinds).toBe(0);
+  });
+
+  it("projects recovery blocking, cancellation, finalization, revocation and escrow epochs", async () => {
+    const indexer = createTestIndexer();
+    await indexer.process({ chains: { [CHAIN]: { simulate: [
+      bound(at(100), PHONE_A, ALICE),
+      bindingUpdated(at(100), PHONE_A, ALICE, 1n),
+      bindingUpdated(at(101, 60), PHONE_A, ALICE, 2n),
+      { contract: "BilbyDirectory", event: "RecoveryRequested", ...at(101, 60), params: { phoneKey: PHONE_A, currentAccount: ALICE, proposedAccount: BOB, expectedRevision: 2n, executableAt: BigInt(T0 + 604_860), expiresAt: BigInt(T0 + 1_209_660) } },
+    ] } } });
+    expect(await indexer.Phone.getOrThrow(PHONE_A)).toMatchObject({ revision: 2n, phoneEpoch: 0n, account_id: ALICE, pendingAccount: BOB, pendingRevision: 2n });
+
+    await indexer.process({ chains: { [CHAIN]: { simulate: [
+      bindingUpdated(at(102, 120), PHONE_A, ALICE, 3n),
+      { contract: "BilbyDirectory", event: "RecoveryCancelled", ...at(102, 120), params: { phoneKey: PHONE_A, revision: 3n } },
+      bindingUpdated(at(103, 180), PHONE_A, ALICE, 4n),
+      { contract: "BilbyDirectory", event: "RecoveryRequested", ...at(103, 180), params: { phoneKey: PHONE_A, currentAccount: ALICE, proposedAccount: BOB, expectedRevision: 4n, executableAt: BigInt(T0 + 604_980), expiresAt: BigInt(T0 + 1_209_780) } },
+      bound(at(104, 605_000), PHONE_A, BOB, ALICE),
+      bindingUpdated(at(104, 605_000), PHONE_A, BOB, 5n, 1n),
+      { contract: "BilbyDirectory", event: "RecoveryFinalized", ...at(104, 605_000), params: { phoneKey: PHONE_A, previous: ALICE, account: BOB, revision: 5n } },
+      { ...deposited(at(105, 605_060), D1, ALICE, PHONE_A, usd(5), 700_000), params: { ...deposited(at(105), D1, ALICE, PHONE_A, usd(5), 700_000).params, phoneEpoch: 1n } },
+      unbound(at(106, 605_120), PHONE_A, BOB),
+      bindingUpdated(at(106, 605_120), PHONE_A, BOB, 6n, 2n, true),
+    ] } } });
+    expect(await indexer.Phone.getOrThrow(PHONE_A)).toMatchObject({ revision: 6n, phoneEpoch: 2n, revoked: true, pendingAccount: undefined, pendingRevision: undefined });
+    expect((await indexer.Account.getOrThrow(ALICE)).isBound).toBe(false);
+    expect((await indexer.Account.getOrThrow(BOB)).isBound).toBe(false);
+    expect((await indexer.EscrowDeposit.getOrThrow(D1)).phoneEpoch).toBe(1n);
+    const changes = await indexer.DirectoryChange.getAll();
+    expect(changes.filter((c) => c.action === "RECOVERY_REQUESTED")).toHaveLength(2);
+    expect(changes.some((c) => c.action === "RECOVERY_CANCELLED")).toBe(true);
+    expect(changes.some((c) => c.action === "RECOVERY_FINALIZED" && c.account === BOB)).toBe(true);
+  });
+
   it("tracks binds, number changes and a number moving to another account", async () => {
     const indexer = createTestIndexer();
     await indexer.process({

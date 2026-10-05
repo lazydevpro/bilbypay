@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { api } from "../api";
-import { countryFor, formatAsYouType, type PhonePurpose, toE164 } from "../phone/phone";
+import { initialPhoneInput, formatAsYouType, type PhonePurpose, toE164 } from "../phone/phone";
 import { useSession } from "../state/session";
 import { Button } from "../ui/Button";
 import { CountryButton, CountryPicker } from "../ui/CountryPicker";
@@ -15,7 +15,8 @@ import { colors, radius, space } from "../ui/theme";
 const TITLES: Record<PhonePurpose, { title: string; body: string }> = {
   onboard: { title: "What's your number?", body: "Friends send you money using it. We'll text you a code to check it's yours." },
   claim: { title: "Check it's your number", body: "We'll text you a code so we know this is meant for you." },
-  change: { title: "Your new number", body: "We'll text a code to your new number. Friends will see a note that your number changed." },
+  change: { title: "Your new number", body: "We'll text a code to your new number, then show you the details before linking it." },
+  renew: { title: "Keep your number current", body: "Verify that you still use this number so friends can keep paying you." },
 };
 
 function defaultRegion(): string {
@@ -27,12 +28,13 @@ function defaultRegion(): string {
 }
 
 export default function PhoneScreen() {
-  const params = useLocalSearchParams<{ purpose?: PhonePurpose; code?: string }>();
+  const params = useLocalSearchParams<{ purpose?: PhonePurpose; code?: string; phone?: string }>();
   const purpose: PhonePurpose = params.purpose ?? "onboard";
   const { setVerification } = useSession();
-  const [country, setCountry] = useState(() => countryFor(defaultRegion()));
+  const [initial] = useState(() => initialPhoneInput(params.phone, defaultRegion()));
+  const [country, setCountry] = useState(initial.country);
   const [picking, setPicking] = useState(false);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initial.input);
   const [error, setError] = useState<unknown>(null);
 
   const e164 = toE164(input, country.code);
@@ -70,7 +72,7 @@ export default function PhoneScreen() {
           onSubmitEditing={next}
         />
       </View>
-      {input.length > 6 && !e164 ? <Muted variant="small">That doesn't look like a full number yet.</Muted> : null}
+      {input.length > 6 && !e164 ? <Muted variant="small">That doesn&apos;t look like a full number yet.</Muted> : null}
       <ErrorNote error={error} />
       <CountryPicker
         visible={picking}

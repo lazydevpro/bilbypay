@@ -8,14 +8,14 @@ const SESSION_TTL = "30d";
 /** Signed messages must be this fresh (seconds either way, to allow for clock skew). */
 export const MESSAGE_MAX_AGE_SECONDS = 300;
 
-export type PhoneClaims = { phoneKey: Hex; e164: string };
+export type PhoneClaims = { phoneKey: Hex; e164: string; verifiedAt?: number };
 
 export class Tokens {
   constructor(private readonly secret: Uint8Array) {}
 
   /** Proves a number was verified by OTP. It never moves money on its own. */
   async phoneToken(c: PhoneClaims): Promise<string> {
-    return new SignJWT({ pk: c.phoneKey, e164: c.e164 })
+    return new SignJWT({ pk: c.phoneKey, e164: c.e164, ...(c.verifiedAt === undefined ? {} : { verifiedAt: c.verifiedAt }) })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuer(ISSUER)
       .setAudience("phone")
@@ -28,7 +28,8 @@ export class Tokens {
     try {
       const { payload } = await jwtVerify(token, this.secret, { issuer: ISSUER, audience: "phone", algorithms: ["HS256"] });
       if (typeof payload.pk !== "string" || !isHex(payload.pk) || typeof payload.e164 !== "string") throw new Error("bad claims");
-      return { phoneKey: payload.pk, e164: payload.e164 };
+      if (payload.verifiedAt !== undefined && (!Number.isSafeInteger(payload.verifiedAt) || Number(payload.verifiedAt) < 0)) throw new Error("bad verification time");
+      return { phoneKey: payload.pk, e164: payload.e164, ...(payload.verifiedAt === undefined ? {} : { verifiedAt: Number(payload.verifiedAt) }) };
     } catch {
       throw errors.phoneCheckExpired();
     }

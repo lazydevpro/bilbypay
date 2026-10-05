@@ -27,7 +27,7 @@ const unb64 = (s: string) => JSON.parse(Buffer.from(s, "base64").toString("utf8"
 const json = (status: number, body: unknown, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
 
-export type Product = { laso_server_id: string; name: string; currency: string; country: string | null; min: number; max: number; category?: string; denominations?: string[] | null };
+export type Product = { laso_server_id: string; name: string; currency: string; country: string | null; min: number; max: number; category?: string; denominations?: string[] | null; product_image_url?: string | null };
 
 export type FakeLasoOptions = {
   products?: Product[];

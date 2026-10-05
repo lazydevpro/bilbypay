@@ -20,6 +20,7 @@ export type DepositStatus = (typeof DepositStatus)[number];
 /** Mirrors BilbyEscrow.Terms. */
 export type EscrowTerms = {
   phoneKey: Hex;
+  phoneEpoch: bigint;
   expiry: number;
   kind: DepositKind;
   giftId: Hex; // zero for TRANSFER
@@ -27,14 +28,14 @@ export type EscrowTerms = {
 };
 
 export const ZERO_BYTES32 = `0x${"0".repeat(64)}` as Hex;
-const TERMS_TAG = keccak256(toHex("BilbyEscrow.Terms.v1"));
+const TERMS_TAG = keccak256(toHex("BilbyEscrow.Terms.v2"));
 
 /** The EIP-3009 nonce the sender signs for an escrow deposit (BilbyEscrow.termsNonce). */
 export function escrowTermsNonce(t: EscrowTerms): Hex {
   return keccak256(
     encodeAbiParameters(
-      [{ type: "bytes32" }, { type: "bytes32" }, { type: "uint40" }, { type: "uint8" }, { type: "bytes32" }, { type: "bytes32" }],
-      [TERMS_TAG, t.phoneKey, t.expiry, t.kind, t.giftId, t.salt],
+      [{ type: "bytes32" }, { type: "bytes32" }, { type: "uint64" }, { type: "uint40" }, { type: "uint8" }, { type: "bytes32" }, { type: "bytes32" }],
+      [TERMS_TAG, t.phoneKey, t.phoneEpoch, t.expiry, t.kind, t.giftId, t.salt],
     ),
   );
 }
@@ -46,19 +47,51 @@ export function escrowDepositId(sender: Address, nonce: Hex): Hex {
 
 const domain = (name: string, chainId: number, verifyingContract: Address) => ({ name, version: "1", chainId, verifyingContract });
 
-export function bindTypedData(d: Deployment, m: { phoneKey: Hex; account: Address; issuedAt: bigint; deadline: bigint }) {
+export type DirectoryBindRequest = { phoneKey: Hex; account: Address; issuedAt: bigint; deadline: bigint; expectedRevision: bigint; validUntil: bigint };
+export type DirectoryControlRequest = { phoneKey: Hex; expectedRevision: bigint; deadline: bigint };
+
+const DIRECTORY_BIND_FIELDS = [
+  { name: "phoneKey", type: "bytes32" },
+  { name: "account", type: "address" },
+  { name: "issuedAt", type: "uint256" },
+  { name: "deadline", type: "uint256" },
+  { name: "expectedRevision", type: "uint256" },
+  { name: "validUntil", type: "uint256" },
+] as const;
+const DIRECTORY_CONTROL_FIELDS = [
+  { name: "phoneKey", type: "bytes32" },
+  { name: "expectedRevision", type: "uint256" },
+  { name: "deadline", type: "uint256" },
+] as const;
+
+function directoryTypedData<const T extends "Bind" | "RequestRecovery" | "FinalizeRecovery">(d: Deployment, primaryType: T, message: DirectoryBindRequest) {
   return {
-    domain: domain("BilbyDirectory", d.chainId, d.directory),
-    types: {
-      Bind: [
-        { name: "phoneKey", type: "bytes32" },
-        { name: "account", type: "address" },
-        { name: "issuedAt", type: "uint256" },
-        { name: "deadline", type: "uint256" },
-      ],
-    },
-    primaryType: "Bind",
-    message: m,
+    domain: { ...domain("BilbyDirectory", d.chainId, d.directory), version: "2" },
+    types: { [primaryType]: DIRECTORY_BIND_FIELDS } as { [K in T]: typeof DIRECTORY_BIND_FIELDS },
+    primaryType,
+    message,
+  } as const;
+}
+
+export const bindTypedData = (d: Deployment, m: DirectoryBindRequest) => directoryTypedData(d, "Bind", m);
+export const requestRecoveryTypedData = (d: Deployment, m: DirectoryBindRequest) => directoryTypedData(d, "RequestRecovery", m);
+export const finalizeRecoveryTypedData = (d: Deployment, m: DirectoryBindRequest) => directoryTypedData(d, "FinalizeRecovery", m);
+
+export function revokePhoneTypedData(d: Deployment, message: DirectoryControlRequest) {
+  return {
+    domain: { ...domain("BilbyDirectory", d.chainId, d.directory), version: "2" },
+    types: { Revoke: DIRECTORY_CONTROL_FIELDS },
+    primaryType: "Revoke",
+    message,
+  } as const satisfies TypedDataDefinition;
+}
+
+export function cancelRecoveryTypedData(d: Deployment, message: DirectoryControlRequest) {
+  return {
+    domain: { ...domain("BilbyDirectory", d.chainId, d.directory), version: "2" },
+    types: { CancelRecovery: DIRECTORY_CONTROL_FIELDS },
+    primaryType: "CancelRecovery",
+    message,
   } as const satisfies TypedDataDefinition;
 }
 

@@ -39,6 +39,13 @@ enum BindingAction {
   UNBOUND
 }
 
+enum DirectoryChangeAction {
+  UPDATED
+  RECOVERY_REQUESTED
+  RECOVERY_CANCELLED
+  RECOVERY_FINALIZED
+}
+
 enum BurrowSource {
   AUTO_SAVE # keeper sweep above the user's threshold
   ADD # "Add to Burrow"
@@ -93,10 +100,41 @@ type Phone {
   bindCount: Int!
   rebindCount: Int! # times the number moved from one account to another
   lastReboundAt: Int
+  revision: BigInt! # mutation ordering; use strings over GraphQL, never JS Number
+  phoneEpoch: BigInt! # escrow deposits only claimable within their authorized number lifecycle
+  validUntil: Int! # expiry is time-based and emits no event; consumers must check it
+  revoked: Boolean!
+  pendingAccount: String
+  pendingExecutableAt: Int
+  pendingExpiresAt: Int
+  pendingRevision: BigInt
+  lastUpdatedBlock: Int!
+  lastUpdatedLog: Int!
+  changes: [DirectoryChange!]! @derivedFrom(field: "phone")
   depositsReceived: [EscrowDeposit!]! @derivedFrom(field: "phone")
   history: [PhoneBinding!]! @derivedFrom(field: "phone")
   escrowReceivedCount: Int! # deposits made to this number
   escrowReceivedVolume: BigInt!
+}
+
+# V2 lifecycle events; these rows roll back with Envio on a reorg. Not a finality proof.
+type DirectoryChange @index(fields: ["blockNumber", "logIndex"]) {
+  id: ID! # txHash-logIndex
+  phone: Phone!
+  action: DirectoryChangeAction!
+  account: String
+  proposedAccount: String
+  revision: BigInt!
+  phoneEpoch: BigInt
+  validUntil: Int
+  revoked: Boolean
+  executableAt: Int
+  expiresAt: Int
+  timestamp: Int!
+  blockNumber: Int!
+  logIndex: Int!
+  txHash: String!
+  directoryAddress: String!
 }
 
 # Append-only history of Bound / Unbound.
@@ -117,6 +155,7 @@ type EscrowDeposit @index(fields: ["status", "expiry"]) {
   id: ID! # depositId
   sender: Account!
   phone: Phone!
+  phoneEpoch: BigInt!
   amount: BigInt!
   kind: DepositKind!
   giftId: String # bytes32, GIFT only

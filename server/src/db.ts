@@ -156,6 +156,68 @@ const MIGRATIONS: string[] = [
     quote_id TEXT NOT NULL REFERENCES topups(quote_id)
   );
   `,
+  // 3: optional provider artwork. Existing orders keep their logo and need no backfill.
+  `ALTER TABLE gift_orders ADD COLUMN artwork_url TEXT;`,
+  // 4: directory v2 snapshots and durable, short-lived account consent requests.
+  `
+  ALTER TABLE phone_bindings ADD COLUMN revision TEXT NOT NULL DEFAULT '0';
+  ALTER TABLE phone_bindings ADD COLUMN phone_epoch TEXT NOT NULL DEFAULT '0';
+  ALTER TABLE phone_bindings ADD COLUMN valid_until INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE phone_bindings ADD COLUMN changed_at INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE phone_bindings ADD COLUMN revoked INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE phone_bindings ADD COLUMN pending_account TEXT;
+  ALTER TABLE phone_bindings ADD COLUMN pending_available_at INTEGER;
+  ALTER TABLE phone_bindings ADD COLUMN pending_expires_at INTEGER;
+  ALTER TABLE phone_bindings ADD COLUMN observed_block TEXT;
+  ALTER TABLE claims ADD COLUMN phone_epoch TEXT NOT NULL DEFAULT '0';
+  CREATE TABLE directory_requests (
+    id TEXT PRIMARY KEY,
+    account TEXT NOT NULL,
+    phone_key TEXT NOT NULL,
+    phone_e164 TEXT,
+    operation TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    expires_at INTEGER NOT NULL,
+    tx_hash TEXT,
+    result TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX directory_requests_account ON directory_requests(account, created_at);
+  `,
+  // 5: isolated Ramp sandbox records. These never participate in balances, top-ups, or treasury credits.
+  `
+  CREATE TABLE ramp_sessions (
+    id TEXT PRIMARY KEY,
+    owner_address TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    environment TEXT NOT NULL CHECK(environment = 'sandbox'),
+    status TEXT NOT NULL CHECK(status IN ('pending','processing','completed','failed','cancelled','expired')),
+    amount TEXT NOT NULL,
+    currency TEXT NOT NULL CHECK(currency = 'USD'),
+    recipient_address TEXT NOT NULL UNIQUE,
+    asset TEXT NOT NULL,
+    asset_details TEXT NOT NULL,
+    return_url TEXT NOT NULL,
+    checkout_url TEXT NOT NULL,
+    provider_purchase_id TEXT UNIQUE,
+    provider_view_token_enc TEXT,
+    provider_status TEXT,
+    provider_rank INTEGER NOT NULL DEFAULT -1,
+    provider_updated_at INTEGER,
+    fee TEXT,
+    last_checked_at INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    expires_at INTEGER NOT NULL,
+    UNIQUE(owner_address,idempotency_key)
+  );
+  CREATE INDEX ramp_sessions_owner ON ramp_sessions(owner_address,created_at);
+  CREATE TABLE ramp_events (
+    fingerprint TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES ramp_sessions(id),
+    received_at TEXT NOT NULL
+  );
+  `,
 ];
 
 export function openDb(path: string): Db {

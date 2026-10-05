@@ -1,0 +1,594 @@
+{
+  "name": "gift",
+  "source": "/Users/lazydevpro/VSCodeProjects/hackathon/bilbypay/docs/design/bilby-motion-v2/sources/gift.png",
+  "source_sha256": "a8cdc734793535df5660e400109c28271ed4c0a5eb27da3e1f40913f3660a039",
+  "source_size": [
+    1254,
+    1254
+  ],
+  "source_column_cuts": [
+    0,
+    315,
+    630,
+    944,
+    1254
+  ],
+  "source_row_cuts": [
+    0,
+    322,
+    636,
+    950,
+    1254
+  ],
+  "source_frames_retained": 16,
+  "discarded": [],
+  "landmarks": [
+    {
+      "source_frame": 1,
+      "source_crop": [
+        0,
+        0,
+        315,
+        322
+      ],
+      "visible_bbox": [
+        15,
+        18,
+        301,
+        313
+      ],
+      "removed_matte_pixels": 1413,
+      "anchor": [
+        218.0,
+        303.0
+      ],
+      "bell": [
+        195.0,
+        182.0
+      ],
+      "fur_baseline": 290.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 2,
+      "source_crop": [
+        315,
+        0,
+        630,
+        322
+      ],
+      "visible_bbox": [
+        13,
+        18,
+        299,
+        313
+      ],
+      "removed_matte_pixels": 1669,
+      "anchor": [
+        216.0,
+        303.0
+      ],
+      "bell": [
+        194.0,
+        183.0
+      ],
+      "fur_baseline": 290.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 3,
+      "source_crop": [
+        630,
+        0,
+        944,
+        322
+      ],
+      "visible_bbox": [
+        12,
+        18,
+        298,
+        313
+      ],
+      "removed_matte_pixels": 1530,
+      "anchor": [
+        215.0,
+        303.0
+      ],
+      "bell": [
+        191.0,
+        182.0
+      ],
+      "fur_baseline": 290.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 4,
+      "source_crop": [
+        944,
+        0,
+        1254,
+        322
+      ],
+      "visible_bbox": [
+        11,
+        19,
+        298,
+        313
+      ],
+      "removed_matte_pixels": 1663,
+      "anchor": [
+        215.0,
+        303.0
+      ],
+      "bell": [
+        191.0,
+        181.0
+      ],
+      "fur_baseline": 290.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 5,
+      "source_crop": [
+        0,
+        322,
+        315,
+        636
+      ],
+      "visible_bbox": [
+        15,
+        10,
+        303,
+        305
+      ],
+      "removed_matte_pixels": 1881,
+      "anchor": [
+        216.0,
+        295.0
+      ],
+      "bell": [
+        196.0,
+        199.5
+      ],
+      "fur_baseline": 281.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 6,
+      "source_crop": [
+        315,
+        322,
+        630,
+        636
+      ],
+      "visible_bbox": [
+        14,
+        10,
+        304,
+        305
+      ],
+      "removed_matte_pixels": 1656,
+      "anchor": [
+        216.0,
+        295.0
+      ],
+      "bell": [
+        189.0,
+        201.0
+      ],
+      "fur_baseline": 281.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 7,
+      "source_crop": [
+        630,
+        322,
+        944,
+        636
+      ],
+      "visible_bbox": [
+        12,
+        10,
+        302,
+        305
+      ],
+      "removed_matte_pixels": 1875,
+      "anchor": [
+        213.0,
+        295.0
+      ],
+      "bell": [
+        188.0,
+        201.0
+      ],
+      "fur_baseline": 281.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 8,
+      "source_crop": [
+        944,
+        322,
+        1254,
+        636
+      ],
+      "visible_bbox": [
+        11,
+        10,
+        302,
+        306
+      ],
+      "removed_matte_pixels": 1389,
+      "anchor": [
+        213.0,
+        295.0
+      ],
+      "bell": [
+        185.0,
+        199.0
+      ],
+      "fur_baseline": 281.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 9,
+      "source_crop": [
+        0,
+        636,
+        315,
+        950
+      ],
+      "visible_bbox": [
+        15,
+        9,
+        301,
+        304
+      ],
+      "removed_matte_pixels": 1274,
+      "anchor": [
+        218.0,
+        294.0
+      ],
+      "bell": [
+        198.0,
+        177.0
+      ],
+      "fur_baseline": 281.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 10,
+      "source_crop": [
+        315,
+        636,
+        630,
+        950
+      ],
+      "visible_bbox": [
+        13,
+        9,
+        299,
+        304
+      ],
+      "removed_matte_pixels": 1491,
+      "anchor": [
+        216.0,
+        294.0
+      ],
+      "bell": [
+        196.0,
+        200.5
+      ],
+      "fur_baseline": 281.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 11,
+      "source_crop": [
+        630,
+        636,
+        944,
+        950
+      ],
+      "visible_bbox": [
+        12,
+        9,
+        298,
+        304
+      ],
+      "removed_matte_pixels": 1336,
+      "anchor": [
+        214.0,
+        294.0
+      ],
+      "bell": [
+        193.0,
+        174.0
+      ],
+      "fur_baseline": 281.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 12,
+      "source_crop": [
+        944,
+        636,
+        1254,
+        950
+      ],
+      "visible_bbox": [
+        12,
+        9,
+        297,
+        304
+      ],
+      "removed_matte_pixels": 1612,
+      "anchor": [
+        214.0,
+        294.0
+      ],
+      "bell": [
+        194.0,
+        200.0
+      ],
+      "fur_baseline": 281.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 13,
+      "source_crop": [
+        0,
+        950,
+        315,
+        1254
+      ],
+      "visible_bbox": [
+        15,
+        9,
+        301,
+        303
+      ],
+      "removed_matte_pixels": 2010,
+      "anchor": [
+        218.0,
+        294.0
+      ],
+      "bell": [
+        193.0,
+        169.0
+      ],
+      "fur_baseline": 280.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 14,
+      "source_crop": [
+        315,
+        950,
+        630,
+        1254
+      ],
+      "visible_bbox": [
+        13,
+        9,
+        299,
+        303
+      ],
+      "removed_matte_pixels": 1826,
+      "anchor": [
+        217.0,
+        294.0
+      ],
+      "bell": [
+        193.0,
+        170.0
+      ],
+      "fur_baseline": 280.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 15,
+      "source_crop": [
+        630,
+        950,
+        944,
+        1254
+      ],
+      "visible_bbox": [
+        12,
+        9,
+        298,
+        304
+      ],
+      "removed_matte_pixels": 1813,
+      "anchor": [
+        216.0,
+        293.3199999999997
+      ],
+      "bell": [
+        189.0,
+        169.0
+      ],
+      "fur_baseline": 280.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    },
+    {
+      "source_frame": 16,
+      "source_crop": [
+        944,
+        950,
+        1254,
+        1254
+      ],
+      "visible_bbox": [
+        11,
+        9,
+        297,
+        303
+      ],
+      "removed_matte_pixels": 1873,
+      "anchor": [
+        215.0,
+        293.0
+      ],
+      "bell": [
+        189.5,
+        169.0
+      ],
+      "fur_baseline": 280.0,
+      "strategy": "gift box center x / lower edge y",
+      "output_anchor": [
+        215.32432432432432,
+        291.8162162162163
+      ],
+      "uniform_scale": 0.9621621621621622
+    }
+  ],
+  "loop_mode": "cycle",
+  "source_sequence": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "adjacent_keyframe_distances": [
+    0.019203572910120554,
+    0.02334275552997204,
+    0.020677915382558927,
+    0.07525419093980487,
+    0.055882033038317076,
+    0.04787965197599773,
+    0.023728839322867283,
+    0.06595619375020223,
+    0.0196055843443141,
+    0.02274434809222731,
+    0.023182041425002145,
+    0.028468462865587674,
+    0.022461885017330905,
+    0.0328686747527956,
+    0.023958861863538617,
+    0.027242410981048484
+  ],
+  "seam_to_median_ratio": 1.1480717876830664,
+  "cellSize": 320,
+  "columns": 8,
+  "rows": 6,
+  "frames": 48,
+  "fps": 24,
+  "frameAspect": 1,
+  "duration_seconds": 2.0,
+  "interpolation": "OpenCV DIS medium, finest scale 0; bidirectional consistency weighted premultiplied RGBA warp",
+  "opencv_version": "5.0.0",
+  "output": "app/assets/bilby-sprites/v2/gift.png",
+  "poster": "app/assets/bilby-sprites/v2/gift-poster.png",
+  "padding": 0.055,
+  "occlusion_protection": "nearer warped surface at inconsistent correspondence",
+  "review_indices": [
+    0,
+    1,
+    2,
+    16,
+    24,
+    46,
+    47
+  ],
+  "review": "docs/design/bilby-motion-v2/candidates/gift/review-light-dark.png",
+  "quality_status": "reviewed: all frames at 160px; selected moving edges and loop returns at 320px on cream/navy; moving-alpha regression passed",
+  "quality_checks": {
+    "unique_frames": 48,
+    "integer_cells": true,
+    "minimum_margin_alpha16": 17,
+    "poster_matches_first_cell": true,
+    "source_sha256_unchanged": true,
+    "moving_alpha_regression": "passed",
+    "review_scope": "asset preparation; app and device playback verified separately"
+  }
+}

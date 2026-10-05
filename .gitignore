@@ -9,6 +9,7 @@ node_modules/
 !.env.*.example
 *.pem
 *.key
+/server/data/
 
 # foundry
 contracts/out/
@@ -42,3 +43,18 @@ build/
 assets/mascot/blender/renders/
 assets/mascot/blender/bilby_export.blend
 *.blend1
+
+# large local design/review artifacts (regenerable via scripts/, kept off git)
+/reports/bilby-motion-v2/
+/reports/figma-import/
+/docs/design/bilby-motion-v2/
+/docs/design/bilby-poses-2026-09-30/
+# superseded / unreferenced mascot assets
+/app/assets/bilby-sprites/*.png
+/app/assets/bilby-sprites/v2/run*
+/app/assets/bilby-sprites/v2/wave*
+/app/assets/bilby-poses/running.png
+/app/assets/bilby-poses/waving.png
+/app/assets/bilby-poses/gifting.png
+/app/assets/bilby-poses/organizing.png
+/app/assets/bilby-poses/sleeping.png

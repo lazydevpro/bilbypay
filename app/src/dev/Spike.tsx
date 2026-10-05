@@ -55,7 +55,7 @@ export default function Spike() {
         <View style={styles.card}>
           <Text style={styles.label}>Account</Text>
           <Text selectable style={styles.mono}>{account.address}</Text>
-          <Text style={styles.muted}>Reinstall the app (or use another phone signed into the same Apple/Google account), tap "Sign in", and this must match.</Text>
+          <Text style={styles.muted}>Reinstall the app (or use another phone signed into the same Apple/Google account), tap “Sign in”, and this must match.</Text>
           <Button label="Share account" disabled={busy} onPress={() => Share.share({ message: account.address })} />
 
           <Text style={[styles.label, { marginTop: 16 }]}>Sign a test payment</Text>

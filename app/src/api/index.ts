@@ -1,7 +1,9 @@
-import { API_URL, CHAIN_ID, IS_MOCK } from "../config";
+import { API_URL, CHAIN_ID, IS_MOCK, RPC_URL } from "../config";
 import { createHttpApi } from "./http";
 import { createMockApi } from "./mock";
 import type { BilbyApi } from "./types";
+import { createPinnedDirectoryReader, type DirectoryReader } from "../directory/verification";
+import { trustedDirectoryAddress } from "../signing/directory";
 
 export * from "./errors";
 export type * from "./types";
@@ -31,6 +33,8 @@ const shared = {
 };
 
 /** The app's single API instance: the real server, or the in-app demo when EXPO_PUBLIC_API_URL=mock. */
-export const api: BilbyApi = IS_MOCK
-  ? createMockApi({ ...shared, chainId: CHAIN_ID })
+const mock = IS_MOCK ? createMockApi({ ...shared, chainId: CHAIN_ID }) : null;
+export const api: BilbyApi = mock
+  ? mock
   : createHttpApi({ ...shared, baseUrl: API_URL });
+export const readDirectory: DirectoryReader = mock ? mock.readDirectory : phoneKey => createPinnedDirectoryReader({ chainId: CHAIN_ID, directory: trustedDirectoryAddress(), rpcUrl: RPC_URL })(phoneKey);

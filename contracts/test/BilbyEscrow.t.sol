@@ -50,6 +50,7 @@ contract BilbyEscrowTest is Base {
 
     function test_claimTransferPaysRecipient() public {
         bytes32 id = _deposit(aliceKey, 20e6, _transferTerms());
+        _bindPhone(PHONE_BOB, bobKey, 0);
         uint256 deadline = block.timestamp + 300;
         bytes memory att = _claimAttestation(id, PHONE_BOB, bob, deadline);
         vm.prank(relayer);
@@ -60,6 +61,7 @@ contract BilbyEscrowTest is Base {
 
     function test_claimGiftPaysTreasury() public {
         bytes32 id = _deposit(aliceKey, 25e6, _terms(PHONE_BOB, BilbyEscrow.Kind.GIFT, GIFT_ID, SALT));
+        _bindPhone(PHONE_BOB, bobKey, 0);
         uint256 deadline = block.timestamp + 300;
         escrow.claim(id, bob, deadline, _claimAttestation(id, PHONE_BOB, bob, deadline));
         assertEq(ausd.balanceOf(treasury), 25e6);
@@ -68,6 +70,7 @@ contract BilbyEscrowTest is Base {
 
     function test_claimRejectsWrongRecipientOrPhone() public {
         bytes32 id = _deposit(aliceKey, 20e6, _transferTerms());
+        _bindPhone(PHONE_BOB, bobKey, 0);
         uint256 deadline = block.timestamp + 300;
         bytes memory forBob = _claimAttestation(id, PHONE_BOB, bob, deadline);
         vm.expectRevert(BilbyEscrow.InvalidSignature.selector);
@@ -79,6 +82,7 @@ contract BilbyEscrowTest is Base {
 
     function test_cannotClaimTwice() public {
         bytes32 id = _deposit(aliceKey, 20e6, _transferTerms());
+        _bindPhone(PHONE_BOB, bobKey, 0);
         uint256 deadline = block.timestamp + 300;
         bytes memory att = _claimAttestation(id, PHONE_BOB, bob, deadline);
         escrow.claim(id, bob, deadline, att);
@@ -122,10 +126,134 @@ contract BilbyEscrowTest is Base {
 
     function testFuzz_depositClaimConservesFunds(uint96 amount, bytes32 salt) public {
         amount = uint96(bound(amount, 1, 1_000e6));
-        bytes32 id = _deposit(aliceKey, amount, _terms(PHONE_BOB, BilbyEscrow.Kind.TRANSFER, bytes32(0), salt));
+        bytes32 id =
+            _deposit(aliceKey, amount, _terms(PHONE_BOB, BilbyEscrow.Kind.TRANSFER, bytes32(0), salt));
+        _bindPhone(PHONE_BOB, bobKey, 0);
         uint256 deadline = block.timestamp + 300;
         escrow.claim(id, bob, deadline, _claimAttestation(id, PHONE_BOB, bob, deadline));
         assertEq(ausd.balanceOf(bob) + ausd.balanceOf(alice), 1_000e6);
         assertEq(ausd.balanceOf(address(escrow)), 0);
+    }
+
+    function _expectClaimFails(bytes4 reason, bytes32 id, address recipient) internal {
+        uint256 deadline = block.timestamp + 300;
+        bytes memory attestation = _claimAttestation(id, PHONE_BOB, recipient, deadline);
+        vm.expectRevert(reason);
+        escrow.claim(id, recipient, deadline, attestation);
+    }
+
+    function _expectDepositFails(bytes4 reason, BilbyEscrow.Terms memory terms) internal {
+        Auth memory a = _receiveAuth(aliceKey, address(escrow), 20e6, escrow.termsNonce(terms));
+        vm.expectRevert(reason);
+        escrow.depositWithAuthorization(alice, 20e6, a.validAfter, a.validBefore, terms, a.v, a.r, a.s);
+    }
+
+    function test_verifierCannotRedirectClaimAwayFromEnrolledRecipient() public {
+        bytes32 id = _deposit(aliceKey, 20e6, _transferTerms());
+        _expectClaimFails(BilbyEscrow.RecipientUnavailable.selector, id, bob);
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        _expectClaimFails(BilbyEscrow.RecipientUnavailable.selector, id, alice);
+        assertEq(escrow.getDeposit(id).phoneEpoch, 0);
+    }
+
+    function test_reassignmentRejectsBothOldAndNewClaimantAndRefundsBeforeExpiry() public {
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        bytes32 id = _deposit(aliceKey, 20e6, _transferTerms());
+        _bindPhone(PHONE_BOB, aliceKey, bobKey);
+        _expectClaimFails(BilbyEscrow.PhoneEpochMismatch.selector, id, bob);
+        _expectClaimFails(BilbyEscrow.PhoneEpochMismatch.selector, id, alice);
+        vm.prank(bob);
+        escrow.refund(id);
+        assertEq(ausd.balanceOf(alice), 1_000e6);
+        assertEq(ausd.balanceOf(bob), 0);
+        assertEq(uint8(escrow.getDeposit(id).status), uint8(BilbyEscrow.Status.Refunded));
+    }
+
+    function test_recoveryPendingFreezesClaimsUntilCancelled() public {
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        bytes32 id = _deposit(aliceKey, 20e6, _transferTerms());
+        _requestRecovery(PHONE_BOB, aliceKey);
+        _expectClaimFails(BilbyEscrow.RecipientUnavailable.selector, id, bob);
+        _expectClaimFails(BilbyEscrow.RecipientUnavailable.selector, id, alice);
+        _expectDepositFails(BilbyEscrow.RecipientUnavailable.selector, _transferTerms());
+        _cancelRecovery(PHONE_BOB, bobKey);
+        uint256 deadline = block.timestamp + 300;
+        escrow.claim(id, bob, deadline, _claimAttestation(id, PHONE_BOB, bob, deadline));
+        assertEq(ausd.balanceOf(bob), 20e6);
+    }
+
+    function test_recoveryCannotUnlockPriorPaymentsOrAccountBalance() public {
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        ausd.mint(bob, 75e6);
+        BilbyEscrow.Terms memory terms = _transferTerms();
+        terms.expiry = uint40(block.timestamp + 30 days);
+        bytes32 id = _deposit(aliceKey, 20e6, terms);
+        _requestRecovery(PHONE_BOB, aliceKey);
+        vm.warp(directory.getPendingChange(PHONE_BOB).executableAt);
+        _finalizeRecovery(PHONE_BOB, aliceKey);
+        _expectClaimFails(BilbyEscrow.PhoneEpochMismatch.selector, id, alice);
+        assertEq(ausd.balanceOf(bob), 75e6);
+        assertEq(ausd.balanceOf(alice), 980e6);
+        escrow.refund(id);
+        assertEq(ausd.balanceOf(alice), 1_000e6);
+        assertEq(ausd.balanceOf(bob), 75e6);
+    }
+
+    function test_revocationPermanentlyInvalidatesOlderClaimsEvenAfterReenrollment() public {
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        bytes32 id = _deposit(aliceKey, 20e6, _transferTerms());
+        _revokePhone(PHONE_BOB, bobKey);
+        _expectClaimFails(BilbyEscrow.PhoneEpochMismatch.selector, id, bob);
+        _expectDepositFails(BilbyEscrow.RecipientUnavailable.selector, _transferTerms());
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        _expectClaimFails(BilbyEscrow.PhoneEpochMismatch.selector, id, bob);
+        escrow.refund(id);
+        assertEq(ausd.balanceOf(alice), 1_000e6);
+    }
+
+    function test_newEpochCanReceiveNewPaymentsButCannotReuseOldAuthorization() public {
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        BilbyEscrow.Terms memory oldTerms = _transferTerms();
+        Auth memory oldAuth = _receiveAuth(aliceKey, address(escrow), 20e6, escrow.termsNonce(oldTerms));
+        _bindPhone(PHONE_BOB, aliceKey, bobKey);
+        vm.expectRevert(BilbyEscrow.PhoneEpochMismatch.selector);
+        escrow.depositWithAuthorization(
+            alice, 20e6, oldAuth.validAfter, oldAuth.validBefore, oldTerms, oldAuth.v, oldAuth.r, oldAuth.s
+        );
+        BilbyEscrow.Terms memory newTerms = _transferTerms();
+        assertEq(newTerms.phoneEpoch, 1);
+        assertNotEq(escrow.termsNonce(oldTerms), escrow.termsNonce(newTerms));
+        vm.expectRevert("invalid signature");
+        escrow.depositWithAuthorization(
+            alice, 20e6, oldAuth.validAfter, oldAuth.validBefore, newTerms, oldAuth.v, oldAuth.r, oldAuth.s
+        );
+        bytes32 id = _deposit(aliceKey, 20e6, newTerms);
+        uint256 deadline = block.timestamp + 300;
+        escrow.claim(id, alice, deadline, _claimAttestation(id, PHONE_BOB, alice, deadline));
+        assertEq(ausd.balanceOf(alice), 1_000e6);
+    }
+
+    function test_expiredDepositCannotBeClaimedEvenBeforeRefund() public {
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        BilbyEscrow.Terms memory terms = _transferTerms();
+        bytes32 id = _deposit(aliceKey, 20e6, terms);
+        vm.warp(terms.expiry);
+        _expectClaimFails(BilbyEscrow.ClaimExpired.selector, id, bob);
+        escrow.refund(id);
+        assertEq(ausd.balanceOf(alice), 1_000e6);
+    }
+
+    function test_expiredPhoneLeaseFreezesClaimsAndDepositsButRenewalKeepsOwnership() public {
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        BilbyEscrow.Terms memory terms = _transferTerms();
+        terms.expiry = uint40(block.timestamp + 60 days);
+        bytes32 id = _deposit(aliceKey, 20e6, terms);
+        vm.warp(directory.getBinding(PHONE_BOB).validUntil);
+        _expectClaimFails(BilbyEscrow.RecipientUnavailable.selector, id, bob);
+        _expectDepositFails(BilbyEscrow.RecipientUnavailable.selector, _transferTerms());
+        _bindPhone(PHONE_BOB, bobKey, 0);
+        uint256 deadline = block.timestamp + 300;
+        escrow.claim(id, bob, deadline, _claimAttestation(id, PHONE_BOB, bob, deadline));
+        assertEq(ausd.balanceOf(bob), 20e6);
     }
 }

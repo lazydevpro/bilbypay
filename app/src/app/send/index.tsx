@@ -9,6 +9,7 @@ import { formatE164, toE164 } from "../../phone/phone";
 import { Avatar } from "../../ui/Avatar";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
+import { Mascot } from "../../ui/Mascot";
 import { ErrorNote, Notice } from "../../ui/Notice";
 import { Row } from "../../ui/Row";
 import { Muted, Text } from "../../ui/Text";
@@ -66,6 +67,10 @@ export default function PickRecipient() {
         setError({ userMessage: "That number doesn't look right. Check it and try again." });
         return;
       }
+      if (r.status === "unavailable") {
+        setError({ userMessage: "This number can't receive payments right now. Ask your friend to check their number in BilbyPay." });
+        return;
+      }
       const recipient: Recipient = {
         name: r.displayName ?? name ?? formatE164(r.e164),
         phone,
@@ -73,6 +78,7 @@ export default function PickRecipient() {
         status: r.status,
         address: r.address,
         recentlyChanged: r.recentlyChanged,
+        directory: r.directory,
       };
       if (mode === "gift" && gift) {
         const draft = putDraft({
@@ -93,7 +99,11 @@ export default function PickRecipient() {
 
   const header = (
     <View style={{ gap: space.md, marginBottom: space.md }}>
-      {gift ? <Muted>Who's the {gift.brandName} gift card for?</Muted> : null}
+      <View style={styles.intro}>
+        <View style={{ flex: 1, gap: space.xs }}><Text variant="title">{gift ? "Who gets the surprise?" : "Find your person."}</Text><Muted variant="small">A name from your contacts, or their number.</Muted></View>
+        <Mascot size={100} mood={picking ? "thinking" : "searching"} />
+      </View>
+      {gift ? <Muted>Who&apos;s the {gift.brandName} gift card for?</Muted> : null}
       <TextInput
         accessibilityLabel="Name or phone number"
         value={query}
@@ -153,5 +163,6 @@ export default function PickRecipient() {
 }
 
 const styles = StyleSheet.create({
+  intro: { flexDirection: "row", alignItems: "center", gap: space.sm },
   search: { minHeight: 52, backgroundColor: colors.surface, borderRadius: radius.md, paddingHorizontal: space.lg, fontSize: 17, color: colors.ink },
 });

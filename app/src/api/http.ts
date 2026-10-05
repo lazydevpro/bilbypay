@@ -79,7 +79,11 @@ export function createHttpApi(opts: HttpApiOptions): BilbyApi {
   return {
     otpStart: (phone, region) => call("POST", "/v1/otp/start", { phone, region }),
     otpVerify: (phone, code) => call("POST", "/v1/otp/verify", { phone, code }),
+    prepareRegistration: (req) => call("POST", "/v1/accounts/registration/prepare", req),
     register: (req) => call("POST", "/v1/accounts/register", req),
+    phoneStatus: () => call("GET", "/v1/accounts/phone", undefined, true),
+    preparePhoneAction: (operation) => call("POST", "/v1/accounts/phone/prepare", { operation }, true),
+    submitPhoneAction: (req) => call("POST", "/v1/accounts/phone/submit", req, true),
     session: (req) => call("POST", "/v1/session", req),
     me: () => call("GET", "/v1/me", undefined, true),
     balance: () => call("GET", "/v1/balance", undefined, true),
@@ -96,5 +100,8 @@ export function createHttpApi(opts: HttpApiOptions): BilbyApi {
     topupOrigins: () => call("GET", "/v1/topup/origins", undefined, true),
     topupQuote: (originAsset, amount) => call("POST", "/v1/topup/quote", { originAsset, amount }, true),
     topupStatus: (quoteId) => call("GET", `/v1/topup/${enc(quoteId)}`, undefined, true),
+    fundingOptions: () => call("GET", "/v1/funding/options", undefined, true),
+    createFundingSession: (request) => call("POST", "/v1/funding/sessions", request, true),
+    fundingSession: (id) => call("GET", `/v1/funding/sessions/${enc(id)}`, undefined, true),
   };
 }

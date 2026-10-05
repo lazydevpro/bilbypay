@@ -8,6 +8,7 @@ export type Profile = {
   displayName: string;
   phone: string;
   phoneMasked: string;
+  phoneStatus?: "active" | "expired" | "revoked" | "pending" | "reassigned" | "unlinked";
   autoSave: { enabled: boolean; threshold: string };
   createdAt: string;
 };
@@ -36,7 +37,7 @@ export type PreparedAction = {
     warnings: Array<{ code: string; message: string }>;
   };
   toSign: Array<{ key: string; typedData: TypedDataJson }>;
-  expect: { payer: Hex; amount: string; payee?: Hex };
+  expect: { payer: Hex; amount: string; payee?: Hex; directory?: import("./accounts").DirectoryProof; terms?: { phoneKey: Hex; phoneEpoch: string; expiry: number; kind: number; giftId: Hex; salt: Hex } };
 };
 
 export type ActionResult = {

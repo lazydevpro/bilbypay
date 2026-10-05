@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-01",
+  "environment": "local Monad testnet app; Ramp sandbox integration disabled pending partner setup",
+  "automated_tests": {
+    "server_passed": 171,
+    "ramp_tests_included": 48,
+    "app_passed": 191,
+    "server_typecheck": "passed",
+    "app_typecheck": "passed",
+    "app_lint": "0 errors; 5 existing warnings"
+  },
+  "checks": {
+    "testnet_chain_10143": true,
+    "authenticated_options_unavailable_not_configured": true,
+    "unauthenticated_options_401": true,
+    "checkout_without_setup_503": true,
+    "unknown_session_404": true,
+    "balance_unchanged_245_test_dollars": true,
+    "mobile_390x844_and_desktop_1280x720_ui": true,
+    "amount_preset_25": true,
+    "missing_key_checkout_disabled": true
+  },
+  "not_verified": [
+    "Ramp-hosted checkout with issued partner API key",
+    "Public webhook delivery from Ramp",
+    "US ACH purchase route for Bilby",
+    "Direct Monad sandbox settlement (not in observed provider catalog)"
+  ]
+}

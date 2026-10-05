@@ -1,12 +1,22 @@
-import { router, Stack, useSegments } from "expo-router";
+import { router, Stack, useGlobalSearchParams, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { useFonts } from "expo-font";
+import { Nunito_400Regular } from "@expo-google-fonts/nunito/400Regular";
+import { Nunito_600SemiBold } from "@expo-google-fonts/nunito/600SemiBold";
+import { Nunito_700Bold } from "@expo-google-fonts/nunito/700Bold";
+import { Nunito_800ExtraBold } from "@expo-google-fonts/nunito/800ExtraBold";
+import { Nunito_900Black } from "@expo-google-fonts/nunito/900Black";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SessionProvider, useSession } from "../state/session";
 import { colors } from "../ui/theme";
+import { FontReadyContext } from "../ui/Text";
+import { fundingReturnId, sessionDestination } from "../auth/route";
 
 export default function RootLayout() {
+  const [fontsReady] = useFonts({ Nunito_400Regular, Nunito_600SemiBold, Nunito_700Bold, Nunito_800ExtraBold, Nunito_900Black });
   return (
+    <FontReadyContext.Provider value={fontsReady}>
     <SafeAreaProvider>
       <SessionProvider>
         <StatusBar style="dark" />
@@ -43,12 +53,15 @@ export default function RootLayout() {
           <Stack.Screen name="burrow/move" options={{ title: "" }} />
           <Stack.Screen name="burrow/autosave" options={{ title: "Auto-save" }} />
           <Stack.Screen name="activity/[id]" options={{ title: "Receipt" }} />
+          <Stack.Screen name="settings/phone" options={{ title: "Your number" }} />
           <Stack.Screen name="settings/about" options={{ title: "About BilbyPay" }} />
           <Stack.Screen name="topup" options={{ title: "" }} />
+          <Stack.Screen name="funding" options={{ title: "Add money" }} />
           <Stack.Screen name="dev/spike" options={{ title: "Developer" }} />
         </Stack>
       </SessionProvider>
     </SafeAreaProvider>
+    </FontReadyContext.Provider>
   );
 }
 
@@ -56,12 +69,16 @@ export default function RootLayout() {
 const PUBLIC = new Set(["", "index", "welcome", "phone", "code", "create", "unlock", "claim", "c", "dev"]);
 
 function SessionGuard() {
-  const { status } = useSession();
+  const { status, pendingClaim } = useSession();
+  const params = useGlobalSearchParams();
   const segments = useSegments() as string[];
   const first = segments[0] ?? "";
+  const numberManagement = first === "settings" && segments[1] === "phone";
+  const fundingId = first === "funding" ? fundingReturnId(params.id) : undefined;
   useEffect(() => {
-    if (status === "loading" || status === "ready" || PUBLIC.has(first)) return;
-    router.replace("/");
-  }, [status, first]);
+    if (first === "(tabs)" || (status === "pendingPhone" && numberManagement) || PUBLIC.has(first)) return;
+    const destination = sessionDestination(status, pendingClaim, fundingId);
+    if (destination) router.replace(destination);
+  }, [status, first, numberManagement, pendingClaim, fundingId]);
   return null;
 }

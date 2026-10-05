@@ -20,9 +20,9 @@ export type ButtonProps = {
 };
 
 const palette: Record<Variant, { bg: string; fg: string; border?: string }> = {
-  primary: { bg: colors.brown, fg: colors.white },
-  secondary: { bg: colors.sand, fg: colors.brown },
-  ghost: { bg: "transparent", fg: colors.brown },
+  primary: { bg: colors.primary, fg: colors.white, border: colors.primaryDeep },
+  secondary: { bg: colors.surface, fg: colors.ink, border: colors.line },
+  ghost: { bg: "transparent", fg: colors.ink },
   danger: { bg: colors.redSoft, fg: colors.red },
 };
 
@@ -47,7 +47,7 @@ export function Button({ label, onPress, variant = "primary", disabled, busyLabe
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={busy && busyLabel ? busyLabel : label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!inactive, busy }}
       onPress={handle}
@@ -55,13 +55,14 @@ export function Button({ label, onPress, variant = "primary", disabled, busyLabe
       style={({ pressed }) => [
         styles.base,
         compact && styles.compact,
-        { backgroundColor: p.bg, opacity: disabled ? 0.45 : pressed ? 0.85 : 1 },
+        { backgroundColor: p.bg, opacity: inactive ? 0.55 : 1, borderColor: p.border ?? "transparent", borderWidth: variant === "secondary" ? 1 : 0,
+          borderBottomWidth: p.border ? (pressed ? 1 : 4) : 0, transform: [{ translateY: pressed && !inactive ? 3 : 0 }] },
         style,
       ]}
     >
       <View style={styles.row}>
         {busy ? <ActivityIndicator color={p.fg} /> : icon}
-        <Text variant="bodyStrong" color={p.fg} numberOfLines={1}>
+        <Text variant="bodyStrong" color={p.fg} style={styles.label}>
           {busy && busyLabel ? busyLabel : label}
         </Text>
       </View>
@@ -70,7 +71,8 @@ export function Button({ label, onPress, variant = "primary", disabled, busyLabe
 }
 
 const styles = StyleSheet.create({
-  base: { minHeight: TAP, borderRadius: radius.pill, paddingHorizontal: space.xl, justifyContent: "center", alignItems: "center" },
+  base: { minHeight: TAP + 4, borderRadius: radius.md, paddingHorizontal: space.lg, paddingVertical: space.md, justifyContent: "center", alignItems: "center" },
   compact: { minHeight: 44, paddingHorizontal: space.lg },
   row: { flexDirection: "row", alignItems: "center", gap: space.sm },
+  label: { textAlign: "center", flexShrink: 1 },
 });

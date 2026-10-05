@@ -1,3 +1,5 @@
+> Historical v1 deployment report. The active testnet deployment is now [v2](testnet-v2.md), with a separate database and app pins.
+
 # BilbyPay on Monad testnet
 
 Everything (contracts, server, keeper, gift cards, top-ups) runs on Monad testnet (chain **10143**) with test money

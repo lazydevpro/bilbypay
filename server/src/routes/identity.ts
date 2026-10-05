@@ -43,16 +43,40 @@ export function identityRoutes(app: Hono<AppEnv>, s: Services) {
     if (!session || session.expires_at < Date.now()) throw errors.otpExpired();
     if (!(await s.otp.check(parsed.e164, code.trim()))) throw errors.otpInvalid();
     s.db.prepare("DELETE FROM otp_sessions WHERE phone_e164 = ?").run(parsed.e164);
-    const phoneToken = await s.tokens.phoneToken({ phoneKey: s.accounts.phoneKeyOf(parsed.e164), e164: parsed.e164 });
+    const phoneToken = await s.tokens.phoneToken({ phoneKey: s.accounts.phoneKeyOf(parsed.e164), e164: parsed.e164, verifiedAt: await s.chain.now() });
     return c.json({ phoneToken, phone: parsed.e164, phoneMasked: maskPhone(parsed.e164) });
   });
 
   app.post("/v1/accounts/register", async (c) => {
     const input = await body(
       c,
-      z.object({ phoneToken: z.string(), address: z.string(), displayName: z.string().max(80), issuedAt: z.number().int(), signature: hex }),
+      z.object({ phoneToken: z.string(), address: z.string(), displayName: z.string().max(80), issuedAt: z.number().int(), signature: hex,
+        registrationId: z.string().max(100), consentSignature: hex, controllerSignature: hex.optional() }),
     );
-    return c.json(await s.accounts.register({ ...input, signature: input.signature as `0x${string}` }));
+    return c.json(await s.accounts.register({ ...input, signature: input.signature as `0x${string}`, consentSignature: input.consentSignature as `0x${string}`, controllerSignature: input.controllerSignature as `0x${string}` | undefined }));
+  });
+
+  app.post("/v1/accounts/registration/prepare", async (c) => {
+    const input = await body(c, z.object({ phoneToken: z.string(), address: z.string(), controllerConsent: z.boolean().optional() }));
+    const ip = clientIp(c, s.config.trustProxy);
+    if (!rateLimit(s.db, `registration_prepare:${ip}`, 30, HOUR)) throw errors.rateLimited();
+    return c.json(await s.accounts.directory.prepareRegistration(input));
+  });
+
+  app.get("/v1/accounts/phone", requireSession(s), async (c) => c.json(await s.accounts.phoneStatus(c.get("user"))));
+  app.post("/v1/accounts/phone/prepare", requireSession(s), async (c) => {
+    const { operation } = await body(c, z.object({ operation: z.enum(["revoke", "cancelRecovery"]) }));
+    const account = c.get("user");
+    const status = await s.accounts.phoneStatus(account);
+    if (!status.phoneKey) throw errors.phoneRequired();
+    if (!rateLimit(s.db, `phone_management:${account}`, 30, HOUR)) throw errors.rateLimited();
+    return c.json(await s.accounts.directory.prepareManagement(account, status.phoneKey, operation));
+  });
+  app.post("/v1/accounts/phone/submit", requireSession(s), async (c) => {
+    const { id, signature } = await body(c, z.object({ id: z.string().max(100), signature: hex }));
+    const account = c.get("user");
+    await s.accounts.directory.submitManagement(account, id, signature as `0x${string}`);
+    return c.json({ ok: true, ...(await s.accounts.phoneStatus(account)) });
   });
 
   app.post("/v1/session", async (c) => {
@@ -60,8 +84,8 @@ export function identityRoutes(app: Hono<AppEnv>, s: Services) {
     return c.json(await s.accounts.signIn({ ...input, signature: input.signature as `0x${string}` }));
   });
 
-  app.get("/v1/me", requireSession(s), (c) => {
-    const profile = s.accounts.profile(c.get("user"));
+  app.get("/v1/me", requireSession(s), async (c) => {
+    const profile = await s.accounts.profileWithStatus(c.get("user"));
     if (!profile) throw errors.phoneRequired();
     return c.json(profile);
   });

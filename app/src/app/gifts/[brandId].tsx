@@ -1,15 +1,16 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { api } from "../../api";
 import type { Brand, Quote } from "../../api/types";
 import { CHOICE_ID, putDraft, putGift } from "../../flows/drafts";
 import { displayTyped, isPositive, typedToBase, usd, usdShort } from "../../money/amount";
 import { useLoad } from "../../state/useLoad";
-import { BrandLogo } from "../../ui/Avatar";
 import { Button } from "../../ui/Button";
-import { DESIGNS, GiftFace } from "../../ui/GiftDesign";
+import { DESIGNS, GiftArt, GiftFace } from "../../ui/GiftDesign";
 import { Keypad } from "../../ui/Keypad";
+import { Icon } from "../../ui/Icon";
+import { Mascot } from "../../ui/Mascot";
 import { ErrorNote, Notice } from "../../ui/Notice";
 import { Screen } from "../../ui/Screen";
 import { Muted, Text } from "../../ui/Text";
@@ -28,7 +29,7 @@ function suggestions(brand: Brand | null): string[] {
 export default function BrandScreen() {
   const { brandId = "" } = useLocalSearchParams<{ brandId: string }>();
   const choice = brandId === CHOICE_ID;
-  const { data: catalog, error: catalogError, reload } = useLoad(() => (choice ? Promise.resolve(null) : api.catalog()), [brandId]);
+  const { data: catalog, error: catalogError, loading, reload } = useLoad(() => (choice ? Promise.resolve(null) : api.catalog()), [brandId]);
   const brand = useMemo(() => catalog?.brands.find((b) => b.id === brandId) ?? null, [catalog, brandId]);
 
   const [amount, setAmount] = useState<string>("0");
@@ -37,6 +38,7 @@ export default function BrandScreen() {
   const [message, setMessage] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoteError, setQuoteError] = useState<unknown>(null);
+  const [preview, setPreview] = useState(false);
 
   const value = custom !== null ? typedToBase(custom) : amount;
   const min = brand ? BigInt(brand.minAmount) : CHOICE_RANGE.min;
@@ -45,8 +47,11 @@ export default function BrandScreen() {
   const name = choice ? "Their choice" : brand?.name ?? "";
 
   useEffect(() => {
+    // Never display the previous amount's provider price while its replacement quote is debouncing.
+    /* eslint-disable react-hooks/set-state-in-effect */
     setQuote(null);
     setQuoteError(null);
+    /* eslint-enable react-hooks/set-state-in-effect */
     if (choice || !brand || !inRange) return;
     let alive = true;
     const t = setTimeout(() => {
@@ -64,7 +69,10 @@ export default function BrandScreen() {
   if (!choice && !brand) {
     return (
       <Screen>
+        <Mascot size={180} mood={catalogError || !loading ? "reassuring" : "thinking"} interactive={false} />
+        {loading ? <ActivityIndicator color={colors.primary} /> : null}
         <ErrorNote error={catalogError} onRetry={reload} />
+        {!loading && !catalogError ? <Notice message="We couldn't find this gift card. Choose another brand." action={{ label: "Browse gift cards", onPress: () => router.replace("/gifts") }} /> : null}
       </Screen>
     );
   }
@@ -84,15 +92,15 @@ export default function BrandScreen() {
     <Screen
       footer={
         <>
-          <Button label="Send to a contact" disabled={!inRange || unavailable} onPress={sendToContact} />
-          {!choice ? <Button variant="secondary" label="Buy for me" disabled={!inRange || unavailable} onPress={buyForMe} /> : null}
+          <Button label={preview ? "Choose who to send it to" : "Preview gift"} disabled={!inRange || unavailable} onPress={preview ? sendToContact : () => setPreview(true)} />
+          {preview ? <Button variant="ghost" label="Keep editing" onPress={() => setPreview(false)} /> : !choice ? <Button variant="ghost" label="Buy for myself" disabled={!inRange || unavailable} onPress={buyForMe} /> : null}
         </>
       }
     >
+      <Text variant="display">{preview ? "A little joy, ready to go" : "Make their day"}</Text>
       <View style={styles.header}>
-        <BrandLogo name={choice ? "🎁" : name} uri={brand?.logoUrl} size={56} />
         <View style={{ flex: 1 }}>
-          <Text variant="title">{choice ? "Let them choose" : name}</Text>
+          <Text variant="heading">{choice ? "Let them choose" : name}</Text>
           <Muted variant="small">
             {usdShort(String(min))}–{usdShort(String(max))}
             {choice ? " · they pick the brand when they open it" : ""}
@@ -101,6 +109,10 @@ export default function BrandScreen() {
       </View>
 
       {unavailable ? <Notice tone="warning" message={`${name} cards are temporarily unavailable. Pick another brand?`} /> : null}
+
+      <GiftFace design={design} brandName={choice ? undefined : name} artworkUrl={brand?.artworkUrl} logoUrl={brand?.logoUrl} amount={value} message={preview ? message.trim() || undefined : undefined} />
+
+      {!preview ? <>
 
       <Text variant="heading">Amount</Text>
       <View style={styles.chips}>
@@ -130,31 +142,43 @@ export default function BrandScreen() {
           Choose between {usd(String(min))} and {usd(String(max))}.
         </Text>
       ) : null}
+      </> : null}
       {quote && inRange ? (
         <Muted>
           You pay {usd(quote.price)}
           {quote.price !== quote.amount ? " (includes a small service fee)" : ""}
         </Muted>
       ) : null}
+      {choice ? <Muted variant="small">You&apos;ll see the full price, including any fee, before you confirm.</Muted> : null}
       <ErrorNote error={quoteError} />
 
-      <Text variant="heading">Card design (for gifts)</Text>
-      <View style={styles.chips}>
+      {!preview ? <>
+      <Text variant="heading">Pick a little feeling</Text>
+      <View style={styles.designs}>
         {DESIGNS.map((d) => (
-          <Chip key={d.id} label={`${d.emoji} ${d.label}`} on={design === d.id} onPress={() => setDesign(d.id)} />
+          <Pressable key={d.id} accessibilityRole="button" accessibilityLabel={d.label} accessibilityState={{ selected: design === d.id }} onPress={() => setDesign(d.id)} style={[styles.design, { backgroundColor: d.bg }, design === d.id && styles.selectedDesign]}>
+            {design === d.id ? <View style={styles.designCheck}><Icon name="check" color={colors.white} size={12} /></View> : null}
+            <GiftArt design={d.id} size={86} />
+            <Text variant="caption" style={styles.designLabel}>{d.label}</Text>
+          </Pressable>
         ))}
+      </View>
+      <View style={styles.messageHeader}>
+        <Text variant="heading">Your message</Text>
+        <Muted variant="small">Optional</Muted>
       </View>
       <TextInput
         accessibilityLabel="Message"
         value={message}
         onChangeText={setMessage}
-        placeholder="Add a message (optional)"
+        placeholder="This one's on me."
         placeholderTextColor={colors.muted}
         style={styles.input}
         maxLength={120}
         multiline
       />
-      {inRange ? <GiftFace design={design} brandName={choice ? undefined : name} amount={value} message={message.trim() || undefined} /> : null}
+      <Muted variant="caption" style={styles.counter}>{message.length}/120</Muted>
+      </> : null}
     </Screen>
   );
 }
@@ -165,7 +189,7 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
       accessibilityRole="button"
       accessibilityState={{ selected: on }}
       onPress={onPress}
-      style={[styles.chip, on && { backgroundColor: colors.brown, borderColor: colors.brown }]}
+      style={({ pressed }) => [styles.chip, on && { backgroundColor: colors.primary, borderColor: colors.primaryDeep }, pressed && { opacity: 0.8 }]}
     >
       <Text variant="bodyStrong" color={on ? colors.white : colors.brown}>
         {label}
@@ -177,6 +201,13 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
 const styles = StyleSheet.create({
   header: { flexDirection: "row", gap: space.md, alignItems: "center" },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
-  chip: { minHeight: 44, paddingHorizontal: space.lg, borderRadius: radius.pill, borderWidth: 1.5, borderColor: colors.sandDeep, justifyContent: "center", backgroundColor: colors.surface },
-  input: { minHeight: 56, backgroundColor: colors.surface, borderRadius: radius.md, padding: space.lg, fontSize: 16, color: colors.ink },
+  chip: { minHeight: 52, minWidth: 68, flexGrow: 1, paddingHorizontal: space.lg, borderRadius: radius.lg, borderBottomWidth: 3, borderColor: colors.line, alignItems: "center", justifyContent: "center", backgroundColor: colors.sand },
+  designs: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
+  design: { flexGrow: 1, flexBasis: "44%", padding: space.sm, borderRadius: radius.lg, alignItems: "center", borderWidth: 2, borderColor: "transparent" },
+  selectedDesign: { borderColor: colors.primary },
+  designCheck: { position: "absolute", top: space.sm, right: space.sm, borderRadius: radius.pill, backgroundColor: colors.primary, width: 20, height: 20, alignItems: "center", justifyContent: "center" },
+  designLabel: { textAlign: "center", fontWeight: "700" },
+  messageHeader: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" },
+  input: { minHeight: 112, textAlignVertical: "top", backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg, padding: space.lg, fontSize: 16, color: colors.ink },
+  counter: { textAlign: "right", marginTop: -space.sm },
 });

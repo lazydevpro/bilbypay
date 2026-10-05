@@ -1,15 +1,15 @@
 import Constants from "expo-constants";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { BURROW_DISCLOSURE } from "../../copy/burrow";
 import { Mascot } from "../../ui/Mascot";
 import { Screen } from "../../ui/Screen";
 import { Muted, Text } from "../../ui/Text";
-import { space } from "../../ui/theme";
+import { colors, space } from "../../ui/theme";
 
 const SECTIONS = [
   {
     title: "How BilbyPay works",
-    body: "Send dollars to any phone number. If they're on BilbyPay it arrives in about a second. If not, they get a link, and the money waits for them. If they don't open it in time, it comes back to you.",
+    body: "Send dollars to a phone number. People with BilbyPay receive it in their balance. Others get a link, and the money waits for them. If they don't open it in time, it comes back to you.",
   },
   {
     title: "Your number finds you, Face ID protects you",
@@ -24,7 +24,13 @@ const SECTIONS = [
 export default function About() {
   return (
     <Screen>
-      <Mascot size={110} />
+      <View style={styles.signature}>
+        <Mascot size={56} mood="idle" active={false} accessibilityLabel="Bilby, the BilbyPay mascot" />
+        <View style={styles.signatureWords}>
+          <Text variant="heading">bilbypay</Text>
+          <Muted variant="small">A little joy. Every payment.</Muted>
+        </View>
+      </View>
       {SECTIONS.map((s) => (
         <View key={s.title} style={{ gap: space.xs }}>
           <Text variant="heading">{s.title}</Text>
@@ -44,3 +50,8 @@ export default function About() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  signature: { flexDirection: "row", alignItems: "center", gap: space.md, borderBottomWidth: 1, borderColor: colors.line, paddingBottom: space.lg },
+  signatureWords: { flex: 1, gap: space.xs },
+});

@@ -1,4 +1,4 @@
-import type { ActionRequest, ActionResult, ActivityItem, Hex } from "../api/types";
+import type { ActionRequest, ActionResult, ActivityItem, DirectorySnapshot, Hex } from "../api/types";
 
 /** A person picked in Send (after /v1/resolve). `address` is used only for the check before authorizing. */
 export type Recipient = {
@@ -8,6 +8,7 @@ export type Recipient = {
   status: "registered" | "invite";
   address?: Hex;
   recentlyChanged?: boolean;
+  directory?: DirectorySnapshot;
 };
 
 /** Route id for "Let them choose" (recipient picks the brand when opening). */
@@ -74,7 +75,12 @@ export function rememberActivity(items: ActivityItem[]): void {
 }
 export const activityById = (id: string | undefined) => (id ? activity.get(id) : undefined);
 
-export const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
+/** Unknown people are represented by a phone number; never truncate their identity to a country code. */
+export const firstName = (name: string) => {
+  const clean = name.trim();
+  const isPhoneNumber = /^\+?[\d(][\d\s().\-*•]*(?:\s*(?:ext\.?|x)\s*\d+)?$/i.test(clean);
+  return isPhoneNumber ? clean : clean.split(/\s+/)[0] ?? clean;
+};
 
 /** Share sheet text for a waiting payment or gift. */
 export function shareMessage(args: { kind: "money" | "gift"; amount: string; link: string }): string {

@@ -9,8 +9,12 @@ import {
   serializeTypedData,
   setAutoSaveTypedData,
   type TokenInfo,
+  escrowTermsNonce,
 } from "@bilbypay/core";
-import { keccak256, toHex, verifyMessage, verifyTypedData } from "viem";
+import { keccak256, toHex, verifyMessage, verifyTypedData, zeroAddress } from "viem";
+import { directoryTypedData } from "../signing/directory";
+import type { BindingRead, DirectoryReader } from "../directory/verification";
+import { firstName } from "../flows/drafts";
 import { registerMessage, sessionMessage } from "../signing/messages";
 import { ApiError } from "./errors";
 import type {
@@ -27,6 +31,10 @@ import type {
   PreparedAction,
   Profile,
   ResolveResult,
+  DirectoryConsent,
+  DirectoryOperation,
+  DirectorySnapshot,
+  PhoneStatus,
 } from "./types";
 
 /**
@@ -59,19 +67,21 @@ const FAKE_DEPLOYMENT = (chainId: number): Deployment => ({
 });
 const TREASURY: Hex = "0x00000000000000000000000000000000000b11b4";
 
-const SEEDED_PEOPLE: Array<{ phone: string; name: string; address: Hex; recentlyChanged?: boolean }> = [
+const SEEDED_PEOPLE: { phone: string; name: string; address: Hex; recentlyChanged?: boolean }[] = [
   { phone: "+15555550101", name: "Maya Chen", address: "0x1111111111111111111111111111111111111111" },
   { phone: "+15555550102", name: "Arjun Rao", address: "0x2222222222222222222222222222222222222222" },
   { phone: "+15555550103", name: "Sam Okafor", address: "0x3333333333333333333333333333333333333333", recentlyChanged: true },
 ];
 
+// Demo-only merchant designs, unchanged from official sources. Production uses provider artworkUrl.
+// Sources and display rules: docs/research/gift-card-brand-guidelines.md.
 export const MOCK_BRANDS: Brand[] = [
-  { id: "starbucks-us", name: "Starbucks", logoUrl: "", category: "Food & drink", country: "US", minAmount: String(5n * USD), maxAmount: String(100n * USD), feePercent: 2.5, available: true },
-  { id: "uber-us", name: "Uber", logoUrl: "", category: "Travel", country: "US", minAmount: String(15n * USD), maxAmount: String(200n * USD), denominations: [String(15n * USD), String(25n * USD), String(50n * USD), String(100n * USD)], feePercent: 3, available: true },
-  { id: "doordash-us", name: "DoorDash", logoUrl: "", category: "Food & drink", country: "US", minAmount: String(10n * USD), maxAmount: String(200n * USD), feePercent: 3, available: true },
-  { id: "target-us", name: "Target", logoUrl: "", category: "Shopping", country: "US", minAmount: String(10n * USD), maxAmount: String(500n * USD), feePercent: 2, available: true },
-  { id: "spotify-us", name: "Spotify", logoUrl: "", category: "Entertainment", country: "US", minAmount: String(10n * USD), maxAmount: String(60n * USD), denominations: [String(10n * USD), String(30n * USD), String(60n * USD)], feePercent: 4, available: true },
-  { id: "airbnb-us", name: "Airbnb", logoUrl: "", category: "Travel", country: "US", minAmount: String(25n * USD), maxAmount: String(500n * USD), feePercent: 3, available: false },
+  { id: "starbucks-us", name: "Starbucks", logoUrl: "", artworkUrl: "https://globalassets.starbucks.com/digitalassets/cards/fy25/CafeFY25.png", category: "Food & drink", country: "US", minAmount: String(5n * USD), maxAmount: String(100n * USD), feePercent: 2.5, available: true },
+  { id: "uber-us", name: "Uber", logoUrl: "", artworkUrl: "https://tb-static.uber.com/prod/gifting/gift-card-artworks/hero_1.png", category: "Travel", country: "US", minAmount: String(15n * USD), maxAmount: String(200n * USD), denominations: [String(15n * USD), String(25n * USD), String(50n * USD), String(100n * USD)], feePercent: 3, available: true },
+  { id: "doordash-us", name: "DoorDash", logoUrl: "", artworkUrl: "https://doordash-static.s3.amazonaws.com/media/photosV2/5289616c-80ae-4213-9139-fb8934df93d9-retina-large-variant-1.png", category: "Food & drink", country: "US", minAmount: String(10n * USD), maxAmount: String(200n * USD), feePercent: 3, available: true },
+  { id: "target-us", name: "Target", logoUrl: "", artworkUrl: "https://tgt-files.target.com/images/4324_B2B_Bullseye_Icons.jpg", category: "Shopping", country: "US", minAmount: String(10n * USD), maxAmount: String(500n * USD), feePercent: 2, available: true },
+  { id: "amazon-us", name: "Amazon.com", logoUrl: "", artworkUrl: "https://cdn.bitrefill.com/primg/w600h400/amazon_com-usa.png", category: "Shopping", country: "US", minAmount: String(5n * USD), maxAmount: String(500n * USD), feePercent: 2, available: true },
+  { id: "airbnb-us", name: "Airbnb", logoUrl: "", artworkUrl: "https://cdn.bitrefill.com/primg/w600h400/airbnb-usa.png", category: "Travel", country: "US", minAmount: String(25n * USD), maxAmount: String(500n * USD), feePercent: 3, available: false },
 ];
 
 // glossary-allow (demo list of places money can come from; shown only on the add-money screen)
@@ -87,7 +97,7 @@ type Account = {
   burrow: bigint;
   deposited: bigint;
   activity: ActivityItem[];
-  cards: Array<GiftCard & { secret: GiftCardReveal }>;
+  cards: (GiftCard & { secret: GiftCardReveal })[];
 };
 
 type PendingAction = {
@@ -98,7 +108,11 @@ type PendingAction = {
   meta: { payee?: Hex; e164?: string; name?: string; phoneMasked?: string; shortfall: bigint };
 };
 
-type ClaimRecord = Claim & { phone: string; sender: Hex; activityId: string };
+type ClaimRecord = Claim & { phone: string; sender: Hex; activityId: string; phoneEpoch: string };
+type DirectoryRecord = {
+  address: Hex; name: string; reboundAt?: number; revision: bigint; epoch: bigint; validUntil: number; revoked: boolean;
+  pending?: { account: Hex; availableAt: number; expiresAt: number };
+};
 
 const rand = (n: number) => {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -125,7 +139,7 @@ function normalise(phone: string, region?: string): string | null {
   return null;
 }
 
-export function createMockApi(opts: MockApiOptions): BilbyApi {
+export function createMockApi(opts: MockApiOptions): BilbyApi & { readDirectory: DirectoryReader } {
   const chainId = opts.chainId ?? 143;
   const delayMs = opts.delayMs ?? 300;
   const now = opts.now ?? (() => Date.now());
@@ -136,15 +150,17 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
 
   const accounts = new Map<string, Account>();
   const sessions = new Map<string, Hex>();
-  const phoneTokens = new Map<string, { phone: string; expires: number }>();
-  const directory = new Map<string, { address: Hex; name: string; reboundAt?: number }>();
+  const phoneTokens = new Map<string, { phone: string; expires: number; verifiedAt: number }>();
+  const directory = new Map<string, DirectoryRecord>();
+  const consents = new Map<string, { prepared: DirectoryConsent; phone: string; owner: Hex; used: boolean }>();
+  const latestPhone = new Map<string, string>();
   const actions = new Map<string, PendingAction>();
   const claims = new Map<string, ClaimRecord>();
   let autoSaveNonce = 0n;
   const topups = new Map<string, { owner: Hex; amountOut: bigint; created: number; credited: boolean }>();
 
   for (const p of SEEDED_PEOPLE) {
-    directory.set(p.phone, { address: p.address, name: p.name, reboundAt: p.recentlyChanged ? now() : undefined });
+    directory.set(p.phone, { address: p.address, name: p.name, reboundAt: p.recentlyChanged ? now() : undefined, revision: 1n, epoch: 0n, validUntil: now() + 365 * 86400_000, revoked: false });
   }
   // A waiting gift for the demo number so the claim flow can be tried from a link: bilbypay://claim/DEMO
   claims.set("DEMO", {
@@ -159,6 +175,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
     phone: "+15555550123",
     sender: SEEDED_PEOPLE[1]!.address,
     activityId: "seed",
+    phoneEpoch: "0",
   });
 
   const wait = <T>(value: () => T): Promise<T> =>
@@ -201,6 +218,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
       opts.onPhoneRequired?.();
       throw new ApiError("PHONE_REQUIRED", "Add your phone number to continue.", 403);
     }
+    acct.profile.phoneStatus = phoneStatusOf(acct.profile.address).status;
     return acct.profile;
   };
   /** Signed in and has a number (the server answers PHONE_REQUIRED otherwise). */
@@ -214,6 +232,44 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
     const token = `mock-${rand(16)}`;
     sessions.set(token, address);
     return token;
+  };
+
+  const livePending = (entry: DirectoryRecord | undefined) => entry?.pending && entry.pending.expiresAt >= now() ? entry.pending : undefined;
+  const active = (entry: DirectoryRecord | undefined) => !!entry && !entry.revoked && entry.validUntil > now() && !livePending(entry);
+  const snapshot = (phone: string): DirectorySnapshot => {
+    const entry = directory.get(phone);
+    return { phoneKey: fakeHash(phone), revision: String(entry?.revision ?? 0n), ownershipEpoch: String(entry?.epoch ?? 0n), validUntil: entry ? new Date(entry.validUntil).toISOString() : null, pending: !!livePending(entry) };
+  };
+  const unavailable = () => new ApiError("PHONE_UNAVAILABLE", "This number can't receive payments right now. Ask your friend to check their number.", 409);
+  const phoneStatusOf = (address: Hex): PhoneStatus => {
+    const acct = account(address);
+    const pendingPhone = latestPhone.get(address.toLowerCase());
+    const phone = pendingPhone && livePending(directory.get(pendingPhone))?.account.toLowerCase() === address.toLowerCase() ? pendingPhone : acct.profile?.phone ?? pendingPhone;
+    const entry = phone ? directory.get(phone) : undefined;
+    const pending = livePending(entry);
+    const own = entry?.address.toLowerCase() === address.toLowerCase();
+    const status: PhoneStatus["status"] = pending ? "pending" : !entry ? "unlinked" : !own ? "reassigned" : entry.revoked ? "revoked" : entry.validUntil <= now() ? "expired" : "active";
+    return { status, phone: phone ?? null, phoneMasked: phone ? maskPhone(phone) : null, phoneKey: phone ? fakeHash(phone) : null, revision: String(entry?.revision ?? 0n), validUntil: entry ? new Date(entry.validUntil).toISOString() : null, pending: pending ? { account: pending.account, availableAt: new Date(pending.availableAt).toISOString() } : null };
+  };
+  const makeConsent = (phone: string, owner: Hex, operation: DirectoryOperation): DirectoryConsent => {
+    const seconds = Math.floor(now() / 1000);
+    const entry = directory.get(phone);
+    const revision = String(entry?.revision ?? 0n);
+    const validUntil = seconds + 365 * 86400;
+    const message: Record<string, unknown> = { phoneKey: fakeHash(phone), expectedRevision: BigInt(revision), deadline: BigInt(seconds + 600) };
+    if (operation !== "revoke" && operation !== "cancelRecovery") Object.assign(message, { account: owner, issuedAt: BigInt(seconds), validUntil: BigInt(validUntil) });
+    const prepared: DirectoryConsent = { id: `dir_${rand(12)}`, operation, phoneKey: fakeHash(phone), revision, typedData: directoryTypedData(chainId, deployment.directory, operation, message), validUntil: new Date(validUntil * 1000).toISOString(), ...(operation === "requestRecovery" ? { availableAt: new Date(now() + 7 * 86400_000).toISOString() } : {}) };
+    consents.set(prepared.id, { prepared, phone, owner, used: false });
+    return JSON.parse(JSON.stringify(prepared));
+  };
+  const checkConsent = async (id: string, owner: Hex, signature: Hex) => {
+    const record = consents.get(id);
+    if (!record || record.used || record.owner.toLowerCase() !== owner.toLowerCase()) throw new ApiError("INVALID_REQUEST", "These details are no longer current. Please start again.", 409);
+    const entry = directory.get(record.phone);
+    const td = hydrateTypedData(record.prepared.typedData);
+    if (String(entry?.revision ?? 0n) !== record.prepared.revision || BigInt(String(td.message.deadline)) <= BigInt(Math.floor(now() / 1000))) throw new ApiError("ACTION_EXPIRED", "These details changed. Please start again.", 409);
+    if (!await verifyTypedData({ ...td, address: owner, signature })) throw new ApiError("INVALID_REQUEST", "We couldn't confirm it's you. Please try again.", 401);
+    return record;
   };
 
   const earned = (acct: Account) => (acct.burrow > acct.deposited ? acct.burrow - acct.deposited : 0n);
@@ -256,8 +312,11 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
     };
   };
 
-  const auth = (kind: "TransferWithAuthorization" | "ReceiveWithAuthorization", from: Hex, to: Hex, value: bigint) =>
-    serializeTypedData(authorizationTypedData(kind, ausd, chainId, newAuthorization({ from, to, value, now: Math.floor(now() / 1000) })));
+  const auth = (kind: "TransferWithAuthorization" | "ReceiveWithAuthorization", from: Hex, to: Hex, value: bigint, nonce?: Hex) =>
+    serializeTypedData(authorizationTypedData(kind, ausd, chainId, { ...newAuthorization({ from, to, value, now: Math.floor(now() / 1000) }), ...(nonce ? { nonce } : {}) }));
+
+  const termsFor = (phone: string, kind: 0 | 1): NonNullable<PreparedAction["expect"]["terms"]> => ({ phoneKey: fakeHash(phone), phoneEpoch: snapshot(phone).ownershipEpoch, expiry: Math.floor(now() / 1000) + 14 * 86400, kind, giftId: kind ? fakeHash(rand(12)) : `0x${"0".repeat(64)}`, salt: fakeHash(rand(12)) });
+  const termsNonce = (terms: NonNullable<PreparedAction["expect"]["terms"]>) => escrowTermsNonce({ ...terms, phoneEpoch: BigInt(terms.phoneEpoch) });
 
   const burrowPermit = (owner: Hex, assets: bigint) =>
     serializeTypedData(
@@ -270,7 +329,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
       }),
     );
 
-  const summary = (title: string, total: bigint, fromBurrow: bigint, lines: Array<{ label: string; value: string }> = [], warnings: PreparedAction["summary"]["warnings"] = []) => ({
+  const summary = (title: string, total: bigint, fromBurrow: bigint, lines: { label: string; value: string }[] = [], warnings: PreparedAction["summary"]["warnings"] = []) => ({
     title,
     lines,
     total: total.toString(),
@@ -324,22 +383,24 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         if (!e164) throw new ApiError("PHONE_INVALID", "That number doesn't look right. Check it and try again.", 400);
         const fromBurrow = fund(acct, amount);
         const entry = directory.get(e164);
+        if (entry && !active(entry)) throw unavailable();
         const warnings = entry?.reboundAt
-          ? [{ code: "RECIPIENT_RECENTLY_CHANGED", message: `This number moved to a new BilbyPay account recently. Only continue if you've checked with ${entry.name.split(" ")[0]} another way.` }]
+          ? [{ code: "RECIPIENT_RECENTLY_CHANGED", message: `This number moved to a new BilbyPay account recently. Only continue if you've checked with ${firstName(entry.name)} another way.` }]
           : [];
         const payee = entry?.address;
         const name = entry?.name ?? formatForTitle(e164);
+        const terms = payee ? undefined : termsFor(e164, 0);
         const toSign: PreparedAction["toSign"] = [
-          { key: "payment", typedData: payee ? auth("TransferWithAuthorization", address, payee, amount) : auth("ReceiveWithAuthorization", address, deployment.escrow, amount) },
+          { key: "payment", typedData: payee ? auth("TransferWithAuthorization", address, payee, amount) : auth("ReceiveWithAuthorization", address, deployment.escrow, amount, termsNonce(terms!)) },
         ];
         if (fromBurrow > 0n) toSign.push({ key: "burrowPermit", typedData: burrowPermit(address, fromBurrow) });
         const lines = [...burrowLines(acct, fromBurrow), ...(req.params.note ? [{ label: "Note", value: req.params.note }] : [])];
         if (!payee) lines.push({ label: "How it works", value: "They get a link. If they don't open it in 14 days, it comes back to you." });
         return {
           ...base,
-          summary: summary(`Send ${fmt(amount)} to ${name.split(" ")[0]}`, amount, fromBurrow, lines, warnings),
+          summary: summary(`Send ${fmt(amount)} to ${firstName(name)}`, amount, fromBurrow, lines, warnings),
           toSign,
-          expect: expect(amount, payee),
+          expect: { ...expect(amount, payee), directory: snapshot(e164), terms },
           meta: { payee, e164, name, phoneMasked: maskPhone(e164), shortfall: fromBurrow },
         };
       }
@@ -357,14 +418,16 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
           const e164 = normalise(req.params.phone);
           if (!e164) throw new ApiError("PHONE_INVALID", "That number doesn't look right. Check it and try again.", 400);
           const entry = directory.get(e164);
+          if (entry && !active(entry)) throw unavailable();
           const name = entry?.name ?? formatForTitle(e164);
-          const toSign: PreparedAction["toSign"] = [{ key: "payment", typedData: auth("ReceiveWithAuthorization", address, deployment.escrow, price) }];
+          const terms = termsFor(e164, 1);
+          const toSign: PreparedAction["toSign"] = [{ key: "payment", typedData: auth("ReceiveWithAuthorization", address, deployment.escrow, price, termsNonce(terms)) }];
           if (fromBurrow > 0n) toSign.push({ key: "burrowPermit", typedData: burrowPermit(address, fromBurrow) });
           return {
             ...base,
-            summary: summary(`Send a ${fmt(amount)} ${brand?.name ?? ""} gift card to ${name.split(" ")[0]}`.replace("  ", " "), price, fromBurrow, lines),
+            summary: summary(`Send a ${fmt(amount)} ${brand?.name ?? ""} gift card to ${firstName(name)}`.replace("  ", " "), price, fromBurrow, lines),
             toSign,
-            expect: expect(price),
+            expect: { ...expect(price), directory: snapshot(e164), terms },
             meta: { e164, name, phoneMasked: maskPhone(e164), shortfall: fromBurrow },
           };
         }
@@ -499,7 +562,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
           note: req.type === "send" ? req.params.note : undefined,
           gift:
             req.type === "gift_send"
-              ? { brandId: req.params.brandId, brandName: brand?.name, brandLogoUrl: brand?.logoUrl, design: req.params.design, message: req.params.message }
+              ? { brandId: req.params.brandId, brandName: brand?.name, brandLogoUrl: brand?.logoUrl, brandArtworkUrl: brand?.artworkUrl, design: req.params.design, message: req.params.message }
               : undefined,
           status: "waiting",
           expiresAt,
@@ -507,6 +570,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
           phone: p.meta.e164 ?? "",
           sender: p.owner,
           activityId: it.id,
+          phoneEpoch: p.prepared.expect.directory?.ownershipEpoch ?? "0",
         });
         return { id: prepared.id, status: "waiting", receipt: it.receipt, claimLink };
       }
@@ -566,6 +630,7 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
     brandId: brand.id,
     brandName: brand.name,
     logoUrl: brand.logoUrl,
+    artworkUrl: brand.artworkUrl,
     amount: amount.toString(),
     status: "ready",
     createdAt: new Date(now()).toISOString(),
@@ -592,41 +657,85 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         if (!e164) throw new ApiError("PHONE_INVALID", "That number doesn't look right. Check it and try again.", 400);
         if (code !== "000000") throw new ApiError("OTP_INVALID", "That code didn't match. Check the text message and try again.", 400);
         const phoneToken = `pt_${rand(16)}`;
-        phoneTokens.set(phoneToken, { phone: e164, expires: now() + 15 * 60_000 });
+        phoneTokens.set(phoneToken, { phone: e164, expires: now() + 15 * 60_000, verifiedAt: now() });
         return { phoneToken, phone: e164, phoneMasked: maskPhone(e164) };
       }),
 
-    register: (req) =>
-      waitAsync(async () => {
-        const pt = phoneTokens.get(req.phoneToken);
-        if (!pt || pt.expires < now()) throw new ApiError("OTP_EXPIRED", "Your code expired. We'll send you a new one.", 400);
-        if (Math.abs(Math.floor(now() / 1000) - req.issuedAt) > 300) throw new ApiError("INTERNAL", "Your phone's clock looks off. Check the time and try again.", 400);
-        const ok = await verifyMessage({ address: req.address, message: registerMessage(pt.phone, req.address, req.issuedAt), signature: req.signature });
-        if (!ok) throw new ApiError("INTERNAL", "We couldn't confirm it's you. Please try again.", 401);
-        const acct = account(req.address);
-        const previous = directory.get(pt.phone);
-        if (acct.profile && acct.profile.phone !== pt.phone) directory.delete(acct.profile.phone);
-        directory.set(pt.phone, {
-          address: req.address,
-          name: req.displayName,
-          reboundAt: previous && previous.address.toLowerCase() !== req.address.toLowerCase() ? now() : undefined,
-        });
-        acct.profile = {
-          address: req.address,
-          displayName: req.displayName,
-          phone: pt.phone,
-          phoneMasked: maskPhone(pt.phone),
-          autoSave: acct.profile?.autoSave ?? { enabled: false, threshold: "0" },
-          createdAt: acct.profile?.createdAt ?? new Date(now()).toISOString(),
-        };
-        return { sessionToken: newSession(req.address), profile: acct.profile };
-      }),
+    prepareRegistration: (req) => wait(() => {
+      const pt = phoneTokens.get(req.phoneToken);
+      if (!pt || pt.expires <= now()) throw new ApiError("OTP_EXPIRED", "Please verify your number again.", 400);
+      for (const [phone, entry] of directory) if (phone !== pt.phone && entry.address.toLowerCase() === req.address.toLowerCase() && !entry.revoked) throw new ApiError("PHONE_ALREADY_LINKED", "Stop receiving on your old number before linking a different one.", 409);
+      const entry = directory.get(pt.phone);
+      const pending = livePending(entry);
+      if (pending) {
+        if (pending.account.toLowerCase() !== req.address.toLowerCase() || now() < pending.availableAt) throw new ApiError("PHONE_CHANGE_PENDING", "This number change is still waiting. Check Your number for the date you can finish.", 409, { availableAt: new Date(pending.availableAt).toISOString() });
+        if (pt.verifiedAt < pending.availableAt) throw new ApiError("OTP_EXPIRED", "Please verify your number again now that the waiting period has ended.", 400);
+        return makeConsent(pt.phone, req.address, "finalizeRecovery");
+      }
+      return makeConsent(pt.phone, req.address, !entry || entry.address.toLowerCase() === req.address.toLowerCase() ? "bind" : "requestRecovery");
+    }),
+
+    register: (req) => waitAsync(async () => {
+      const pt = phoneTokens.get(req.phoneToken);
+      if (!pt || pt.expires <= now()) throw new ApiError("OTP_EXPIRED", "Please verify your number again.", 400);
+      if (Math.abs(Math.floor(now() / 1000) - req.issuedAt) > 300 || !await verifyMessage({ address: req.address, message: registerMessage(pt.phone, req.address, req.issuedAt), signature: req.signature })) throw new ApiError("INVALID_REQUEST", "We couldn't confirm it's you. Please try again.", 401);
+      const record = await checkConsent(req.registrationId, req.address, req.consentSignature);
+      if (record.phone !== pt.phone || ["revoke", "cancelRecovery"].includes(record.prepared.operation)) throw new ApiError("INVALID_REQUEST", "Check your number and try again.", 400);
+      const acct = account(req.address);
+      const previous = directory.get(pt.phone);
+      const revision = (previous?.revision ?? 0n) + 1n;
+      latestPhone.set(req.address.toLowerCase(), pt.phone);
+      if (record.prepared.operation === "requestRecovery") {
+        if (!previous || previous.address.toLowerCase() === req.address.toLowerCase() || livePending(previous)) throw new ApiError("ACTION_EXPIRED", "These details changed. Please start again.", 409);
+        previous.revision = revision;
+        previous.pending = { account: req.address, availableAt: now() + 7 * 86400_000, expiresAt: now() + 14 * 86400_000 };
+        record.used = true;
+        return { status: "pending" as const, sessionToken: newSession(req.address), profile: acct.profile, availableAt: new Date(previous.pending.availableAt).toISOString() };
+      }
+      if (record.prepared.operation === "finalizeRecovery") {
+        const pending = livePending(previous);
+        if (!pending || pending.account.toLowerCase() !== req.address.toLowerCase() || pending.availableAt > now()) throw new ApiError("PHONE_CHANGE_PENDING", "This number change is still waiting.", 409);
+      }
+      directory.set(pt.phone, { address: req.address, name: req.displayName, revision, epoch: (previous?.epoch ?? 0n) + (record.prepared.operation === "finalizeRecovery" ? 1n : 0n), revoked: false, validUntil: Date.parse(record.prepared.validUntil!), reboundAt: previous && previous.address.toLowerCase() !== req.address.toLowerCase() ? now() : previous?.reboundAt });
+      acct.profile = { address: req.address, displayName: req.displayName, phone: pt.phone, phoneMasked: maskPhone(pt.phone), autoSave: acct.profile?.autoSave ?? { enabled: false, threshold: "0" }, createdAt: acct.profile?.createdAt ?? new Date(now()).toISOString(), phoneStatus: "active" };
+      record.used = true;
+      return { status: "registered" as const, sessionToken: newSession(req.address), profile: acct.profile };
+    }),
+
+    phoneStatus: () => wait(() => phoneStatusOf(authed().address)),
+    preparePhoneAction: (operation) => wait(() => {
+      const { address } = authed();
+      const phone = phoneStatusOf(address).phone;
+      const entry = phone ? directory.get(phone) : undefined;
+      const controller = entry?.address.toLowerCase() === address.toLowerCase();
+      const candidate = livePending(entry)?.account.toLowerCase() === address.toLowerCase();
+      if (!phone || !entry || (operation === "revoke" ? !controller || entry.revoked : (!controller && !candidate) || !livePending(entry))) throw new ApiError("INVALID_REQUEST", "There is no number change to confirm. Refresh and try again.", 409);
+      return makeConsent(phone, address, operation);
+    }),
+    submitPhoneAction: (req) => waitAsync(async () => {
+      const { address } = authed();
+      const record = await checkConsent(req.id, address, req.signature);
+      const entry = directory.get(record.phone)!;
+      const controller = entry.address.toLowerCase() === address.toLowerCase();
+      const candidate = livePending(entry)?.account.toLowerCase() === address.toLowerCase();
+      if (!["revoke", "cancelRecovery"].includes(record.prepared.operation) || (record.prepared.operation === "revoke" ? !controller : !controller && !candidate)) throw new ApiError("INVALID_REQUEST", "These details changed. Please start again.", 409);
+      if (record.prepared.operation === "revoke") { entry.revoked = true; entry.epoch += 1n; }
+      entry.pending = undefined;
+      entry.revision += 1n;
+      record.used = true;
+      return phoneStatusOf(address);
+    }),
+    readDirectory: (phoneKey) => wait((): BindingRead => {
+      const pair = [...directory].find(([phone]) => fakeHash(phone).toLowerCase() === phoneKey.toLowerCase());
+      const entry = pair?.[1];
+      return { account: entry?.address ?? zeroAddress, revision: String(entry?.revision ?? 0n), ownershipEpoch: String(entry?.epoch ?? 0n), validUntil: entry ? new Date(entry.validUntil).toISOString() : null, revoked: entry?.revoked ?? false, pending: !!livePending(entry), now: Math.floor(now() / 1000) };
+    }),
 
     session: (req) =>
       waitAsync(async () => {
         const ok = await verifyMessage({ address: req.address, message: sessionMessage(req.address, req.issuedAt), signature: req.signature });
         if (!ok) throw new ApiError("INTERNAL", "We couldn't confirm it's you. Please try again.", 401);
-        return { sessionToken: newSession(req.address), profile: account(req.address).profile };
+        return { sessionToken: newSession(req.address), profile: account(req.address).profile ? profileOf(account(req.address)) : null };
       }),
 
     me: () => wait(() => profileOf(authed().acct)),
@@ -651,8 +760,10 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
           const e164 = normalise(phone, region);
           if (!e164) return { phone, e164: null, status: "invalid" };
           const entry = directory.get(e164);
-          if (!entry) return { phone, e164, status: "invite" };
-          return { phone, e164, status: "registered", displayName: entry.name, address: entry.address, recentlyChanged: !!entry.reboundAt };
+          const state = snapshot(e164);
+          if (!entry) return { phone, e164, status: "invite", directory: state };
+          if (!active(entry)) return { phone, e164, status: "unavailable", directory: state };
+          return { phone, e164, status: "registered", displayName: entry.name, address: entry.address, recentlyChanged: !!entry.reboundAt, directory: state };
         });
         return { results };
       }),
@@ -675,6 +786,10 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
           const signature = signatures[key];
           const ok = signature && (await verifyTypedData({ ...hydrateTypedData(typedData), address, signature }));
           if (!ok) throw new ApiError("INTERNAL", "We couldn't confirm it's you. Please try again.", 400);
+        }
+        if (p.meta.e164 && p.prepared.expect.directory) {
+          const current = snapshot(p.meta.e164);
+          if (JSON.stringify(current) !== JSON.stringify(p.prepared.expect.directory) || (directory.has(p.meta.e164) && !active(directory.get(p.meta.e164)))) throw new ApiError("RECIPIENT_CHANGED", "The recipient details changed. Choose them again before sending.", 409);
         }
         p.result = execute(p);
         return p.result;
@@ -706,6 +821,8 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         const pt = phoneTokens.get(body.phoneToken);
         if (!pt || pt.expires < now()) throw new ApiError("OTP_EXPIRED", "Your code expired. Verify your number again.", 400);
         if (pt.phone !== c.phone) throw new ApiError("WRONG_PHONE", `This was sent to ${c.phoneMasked}. Verify that number to open it.`, 403);
+        const binding = directory.get(c.phone);
+        if (!active(binding) || binding!.address.toLowerCase() !== address.toLowerCase() || String(binding!.epoch) !== c.phoneEpoch) throw new ApiError("PHONE_UNAVAILABLE", "This payment can no longer be opened with this number. Ask the sender to check it.", 409);
         c.status = "opened";
         const amount = BigInt(c.amount);
         const sender = accounts.get(c.sender.toLowerCase());
@@ -767,6 +884,25 @@ export function createMockApi(opts: MockApiOptions): BilbyApi {
         if (!card) throw new ApiError("NOT_FOUND", "We couldn't find that gift card.", 404);
         return card.secret;
       }),
+
+    // A local demo cannot claim a provider payment happened or open an unconfigured checkout.
+    fundingOptions: () => wait(() => {
+      registered();
+      return {
+        provider: "ramp" as const, environment: "sandbox" as const, available: false,
+        unavailableReason: "not_configured" as const, country: "US" as const, currency: "USD" as const,
+        minAmount: "0", maxAmount: "0",
+        message: "Bank and card payments are being set up. You can still receive money from a friend.",
+      };
+    }),
+    createFundingSession: () => wait(() => {
+      registered();
+      throw new ApiError("FUNDING_UNAVAILABLE", "Bank and card payments are being set up. Please try again later.", 503);
+    }),
+    fundingSession: () => wait(() => {
+      registered();
+      throw new ApiError("NOT_FOUND", "We couldn't find that payment. Go back to Add money.", 404);
+    }),
 
     topupOrigins: () =>
       wait(() => {

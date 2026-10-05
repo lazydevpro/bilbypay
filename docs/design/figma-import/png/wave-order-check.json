@@ -1,0 +1,357 @@
+{
+  "method": "Compare all57 uploaded Waving PNGs to corresponding exact SVG atlas renders after shared registration; nearest within\u00b12frames. Minor pixels differ due source1x rasterization and canvas ceil rounding.",
+  "matchingNearbyFrameCount": 56,
+  "ambiguous": [
+    {
+      "index": 55,
+      "ownDistance": 0.020771151408553123,
+      "closestNearbyIndex": 56,
+      "closestDistance": 0.020769625902175903
+    }
+  ],
+  "medianOwnDistance": 0.02234487235546112,
+  "frames": [
+    {
+      "index": 0,
+      "ownDistance": 0.023052942007780075,
+      "closestNearbyIndex": 0,
+      "closestDistance": 0.023052942007780075
+    },
+    {
+      "index": 1,
+      "ownDistance": 0.022428695112466812,
+      "closestNearbyIndex": 1,
+      "closestDistance": 0.022428695112466812
+    },
+    {
+      "index": 2,
+      "ownDistance": 0.023056156933307648,
+      "closestNearbyIndex": 2,
+      "closestDistance": 0.023056156933307648
+    },
+    {
+      "index": 3,
+      "ownDistance": 0.02337980642914772,
+      "closestNearbyIndex": 3,
+      "closestDistance": 0.02337980642914772
+    },
+    {
+      "index": 4,
+      "ownDistance": 0.023827003315091133,
+      "closestNearbyIndex": 4,
+      "closestDistance": 0.023827003315091133
+    },
+    {
+      "index": 5,
+      "ownDistance": 0.02440466918051243,
+      "closestNearbyIndex": 5,
+      "closestDistance": 0.02440466918051243
+    },
+    {
+      "index": 6,
+      "ownDistance": 0.02450554445385933,
+      "closestNearbyIndex": 6,
+      "closestDistance": 0.02450554445385933
+    },
+    {
+      "index": 7,
+      "ownDistance": 0.024155324324965477,
+      "closestNearbyIndex": 7,
+      "closestDistance": 0.024155324324965477
+    },
+    {
+      "index": 8,
+      "ownDistance": 0.023913748562335968,
+      "closestNearbyIndex": 8,
+      "closestDistance": 0.023913748562335968
+    },
+    {
+      "index": 9,
+      "ownDistance": 0.024156874045729637,
+      "closestNearbyIndex": 9,
+      "closestDistance": 0.024156874045729637
+    },
+    {
+      "index": 10,
+      "ownDistance": 0.023681188002228737,
+      "closestNearbyIndex": 10,
+      "closestDistance": 0.023681188002228737
+    },
+    {
+      "index": 11,
+      "ownDistance": 0.02349270135164261,
+      "closestNearbyIndex": 11,
+      "closestDistance": 0.02349270135164261
+    },
+    {
+      "index": 12,
+      "ownDistance": 0.02297399193048477,
+      "closestNearbyIndex": 12,
+      "closestDistance": 0.02297399193048477
+    },
+    {
+      "index": 13,
+      "ownDistance": 0.023252960294485092,
+      "closestNearbyIndex": 13,
+      "closestDistance": 0.023252960294485092
+    },
+    {
+      "index": 14,
+      "ownDistance": 0.023273561149835587,
+      "closestNearbyIndex": 14,
+      "closestDistance": 0.023273561149835587
+    },
+    {
+      "index": 15,
+      "ownDistance": 0.023084552958607674,
+      "closestNearbyIndex": 15,
+      "closestDistance": 0.023084552958607674
+    },
+    {
+      "index": 16,
+      "ownDistance": 0.021899787709116936,
+      "closestNearbyIndex": 16,
+      "closestDistance": 0.021899787709116936
+    },
+    {
+      "index": 17,
+      "ownDistance": 0.02229945920407772,
+      "closestNearbyIndex": 17,
+      "closestDistance": 0.02229945920407772
+    },
+    {
+      "index": 18,
+      "ownDistance": 0.022227242588996887,
+      "closestNearbyIndex": 18,
+      "closestDistance": 0.022227242588996887
+    },
+    {
+      "index": 19,
+      "ownDistance": 0.022136561572551727,
+      "closestNearbyIndex": 19,
+      "closestDistance": 0.022136561572551727
+    },
+    {
+      "index": 20,
+      "ownDistance": 0.02150540053844452,
+      "closestNearbyIndex": 20,
+      "closestDistance": 0.02150540053844452
+    },
+    {
+      "index": 21,
+      "ownDistance": 0.021357839927077293,
+      "closestNearbyIndex": 21,
+      "closestDistance": 0.021357839927077293
+    },
+    {
+      "index": 22,
+      "ownDistance": 0.021097101271152496,
+      "closestNearbyIndex": 22,
+      "closestDistance": 0.021097101271152496
+    },
+    {
+      "index": 23,
+      "ownDistance": 0.02114523947238922,
+      "closestNearbyIndex": 23,
+      "closestDistance": 0.02114523947238922
+    },
+    {
+      "index": 24,
+      "ownDistance": 0.02109064906835556,
+      "closestNearbyIndex": 24,
+      "closestDistance": 0.02109064906835556
+    },
+    {
+      "index": 25,
+      "ownDistance": 0.02156536467373371,
+      "closestNearbyIndex": 25,
+      "closestDistance": 0.02156536467373371
+    },
+    {
+      "index": 26,
+      "ownDistance": 0.02293877862393856,
+      "closestNearbyIndex": 26,
+      "closestDistance": 0.02293877862393856
+    },
+    {
+      "index": 27,
+      "ownDistance": 0.02341228350996971,
+      "closestNearbyIndex": 27,
+      "closestDistance": 0.02341228350996971
+    },
+    {
+      "index": 28,
+      "ownDistance": 0.023356754332780838,
+      "closestNearbyIndex": 28,
+      "closestDistance": 0.023356754332780838
+    },
+    {
+      "index": 29,
+      "ownDistance": 0.0222212765365839,
+      "closestNearbyIndex": 29,
+      "closestDistance": 0.0222212765365839
+    },
+    {
+      "index": 30,
+      "ownDistance": 0.02234487235546112,
+      "closestNearbyIndex": 30,
+      "closestDistance": 0.02234487235546112
+    },
+    {
+      "index": 31,
+      "ownDistance": 0.0225971806794405,
+      "closestNearbyIndex": 31,
+      "closestDistance": 0.0225971806794405
+    },
+    {
+      "index": 32,
+      "ownDistance": 0.021941037848591805,
+      "closestNearbyIndex": 32,
+      "closestDistance": 0.021941037848591805
+    },
+    {
+      "index": 33,
+      "ownDistance": 0.021949438378214836,
+      "closestNearbyIndex": 33,
+      "closestDistance": 0.021949438378214836
+    },
+    {
+      "index": 34,
+      "ownDistance": 0.02176172286272049,
+      "closestNearbyIndex": 34,
+      "closestDistance": 0.02176172286272049
+    },
+    {
+      "index": 35,
+      "ownDistance": 0.02306659147143364,
+      "closestNearbyIndex": 35,
+      "closestDistance": 0.02306659147143364
+    },
+    {
+      "index": 36,
+      "ownDistance": 0.022598328068852425,
+      "closestNearbyIndex": 36,
+      "closestDistance": 0.022598328068852425
+    },
+    {
+      "index": 37,
+      "ownDistance": 0.022837918251752853,
+      "closestNearbyIndex": 37,
+      "closestDistance": 0.022837918251752853
+    },
+    {
+      "index": 38,
+      "ownDistance": 0.02192685753107071,
+      "closestNearbyIndex": 38,
+      "closestDistance": 0.02192685753107071
+    },
+    {
+      "index": 39,
+      "ownDistance": 0.022081425413489342,
+      "closestNearbyIndex": 39,
+      "closestDistance": 0.022081425413489342
+    },
+    {
+      "index": 40,
+      "ownDistance": 0.021368026733398438,
+      "closestNearbyIndex": 40,
+      "closestDistance": 0.021368026733398438
+    },
+    {
+      "index": 41,
+      "ownDistance": 0.02146145887672901,
+      "closestNearbyIndex": 41,
+      "closestDistance": 0.02146145887672901
+    },
+    {
+      "index": 42,
+      "ownDistance": 0.02119276486337185,
+      "closestNearbyIndex": 42,
+      "closestDistance": 0.02119276486337185
+    },
+    {
+      "index": 43,
+      "ownDistance": 0.02118908055126667,
+      "closestNearbyIndex": 43,
+      "closestDistance": 0.02118908055126667
+    },
+    {
+      "index": 44,
+      "ownDistance": 0.021113989874720573,
+      "closestNearbyIndex": 44,
+      "closestDistance": 0.021113989874720573
+    },
+    {
+      "index": 45,
+      "ownDistance": 0.020691493526101112,
+      "closestNearbyIndex": 45,
+      "closestDistance": 0.020691493526101112
+    },
+    {
+      "index": 46,
+      "ownDistance": 0.021133199334144592,
+      "closestNearbyIndex": 46,
+      "closestDistance": 0.021133199334144592
+    },
+    {
+      "index": 47,
+      "ownDistance": 0.021571176126599312,
+      "closestNearbyIndex": 47,
+      "closestDistance": 0.021571176126599312
+    },
+    {
+      "index": 48,
+      "ownDistance": 0.022658059373497963,
+      "closestNearbyIndex": 48,
+      "closestDistance": 0.022658059373497963
+    },
+    {
+      "index": 49,
+      "ownDistance": 0.023427743464708328,
+      "closestNearbyIndex": 49,
+      "closestDistance": 0.023427743464708328
+    },
+    {
+      "index": 50,
+      "ownDistance": 0.02331194281578064,
+      "closestNearbyIndex": 50,
+      "closestDistance": 0.02331194281578064
+    },
+    {
+      "index": 51,
+      "ownDistance": 0.023439357057213783,
+      "closestNearbyIndex": 51,
+      "closestDistance": 0.023439357057213783
+    },
+    {
+      "index": 52,
+      "ownDistance": 0.022704554721713066,
+      "closestNearbyIndex": 52,
+      "closestDistance": 0.022704554721713066
+    },
+    {
+      "index": 53,
+      "ownDistance": 0.02192721702158451,
+      "closestNearbyIndex": 53,
+      "closestDistance": 0.02192721702158451
+    },
+    {
+      "index": 54,
+      "ownDistance": 0.021647080779075623,
+      "closestNearbyIndex": 54,
+      "closestDistance": 0.021647080779075623
+    },
+    {
+      "index": 55,
+      "ownDistance": 0.020771151408553123,
+      "closestNearbyIndex": 56,
+      "closestDistance": 0.020769625902175903
+    },
+    {
+      "index": 56,
+      "ownDistance": 0.020770682021975517,
+      "closestNearbyIndex": 56,
+      "closestDistance": 0.020770682021975517
+    }
+  ]
+}

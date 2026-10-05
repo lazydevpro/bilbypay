@@ -1,4 +1,5 @@
 /** Build-time settings (EXPO_PUBLIC_* are inlined by Metro). */
+declare const __DEV__: boolean;
 
 const isDev = typeof __DEV__ !== "undefined" && __DEV__;
 
@@ -10,6 +11,10 @@ export const API_URL: string = process.env.EXPO_PUBLIC_API_URL || (isDev ? "mock
 export const IS_MOCK = API_URL === "mock";
 
 export const CHAIN_ID = Number(process.env.EXPO_PUBLIC_CHAIN_ID ?? "143");
+/** Deployment pins are release configuration, never supplied by the action API. */
+export const DIRECTORY_ADDRESS = process.env.EXPO_PUBLIC_DIRECTORY_ADDRESS ?? "";
+export const ESCROW_ADDRESS = process.env.EXPO_PUBLIC_ESCROW_ADDRESS ?? "";
+export const RPC_URL = process.env.EXPO_PUBLIC_RPC_URL;
 
 /** Domain for claim links and universal links. */
 export const LINK_DOMAIN: string = process.env.EXPO_PUBLIC_LINK_DOMAIN ?? "bilbypay.com";

@@ -5,9 +5,9 @@ const USD = 1_000_000n;
 const favicon = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
 const BRANDS: GiftBrand[] = [
-  { id: "starbucks-us", name: "Starbucks", logoUrl: favicon("starbucks.com"), country: "US", category: "Food & drink", minAmount: 5n * USD, maxAmount: 500n * USD, feePercent: 0 },
-  { id: "uber-us", name: "Uber", logoUrl: favicon("uber.com"), country: "US", category: "Travel", minAmount: 15n * USD, maxAmount: 500n * USD, feePercent: 2.5 },
-  { id: "target-us", name: "Target", logoUrl: favicon("target.com"), country: "US", category: "Shopping", minAmount: 10n * USD, maxAmount: 1000n * USD, feePercent: 1 },
+  { id: "starbucks-us", name: "Starbucks", logoUrl: favicon("starbucks.com"), artworkUrl: "https://cdn.bitrefill.com/primg/w600h400/starbucks-usa.png", country: "US", category: "Food & drink", minAmount: 5n * USD, maxAmount: 500n * USD, feePercent: 0 },
+  { id: "uber-us", name: "Uber", logoUrl: favicon("uber.com"), artworkUrl: "https://cdn.bitrefill.com/primg/w600h400/uber-usa.png", country: "US", category: "Travel", minAmount: 15n * USD, maxAmount: 500n * USD, feePercent: 2.5 },
+  { id: "target-us", name: "Target", logoUrl: favicon("target.com"), artworkUrl: "https://cdn.bitrefill.com/primg/w600h400/target-usa.png", country: "US", category: "Shopping", minAmount: 10n * USD, maxAmount: 1000n * USD, feePercent: 1 },
   {
     id: "doordash-us",
     name: "DoorDash",

@@ -3,16 +3,29 @@ import { describe, expect, it, vi } from "vitest";
 import type { ActionRequest } from "./types";
 import { authorizeAndSubmit } from "../flows/authorize";
 import { sessionMessage } from "../signing/messages";
-import { signedInMockApi } from "../testing/fixtures";
+import { MOCK_ESCROW, registerMockNumber, selectedRecipient, signedInMockApi } from "../testing/fixtures";
 import { createMockApi } from "./mock";
 
 type Ctx = Awaited<ReturnType<typeof signedInMockApi>>;
 const run = async (ctx: Ctx, request: ActionRequest) => {
   const prepared = await ctx.api.prepareAction(request);
-  return authorizeAndSubmit({ api: ctx.api, request, prepared, account: ctx.address, chainId: 143, unlock: (fn) => fn(ctx.signer) });
+  return authorizeAndSubmit({ api: ctx.api, request, prepared, account: ctx.address, chainId: 143, unlock: (fn) => fn(ctx.signer), recipient: request.type === "send" || request.type === "gift_send" ? await selectedRecipient(ctx.api, request.params.phone) : undefined, readDirectory: ctx.api.readDirectory, escrow: MOCK_ESCROW });
 };
 
 describe("demo API matches the server's behaviour", () => {
+  it("does not fabricate a provider checkout or credit a practice payment", async () => {
+    const ctx = await signedInMockApi();
+    const before = await ctx.api.balance();
+    const activityBefore = await ctx.api.activity();
+    await expect(ctx.api.fundingOptions()).resolves.toMatchObject({ environment: "sandbox", available: false, unavailableReason: "not_configured" });
+    await expect(ctx.api.createFundingSession({ amount: "25000000", returnUrl: "https://bilbypay.example/funding", idempotencyKey: "attempt-1" })).rejects.toMatchObject({ code: "FUNDING_UNAVAILABLE" });
+    await expect(ctx.api.fundingSession("invented-session")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect((await ctx.api.balance()).balance).toBe(before.balance);
+    expect(await ctx.api.activity()).toEqual(activityBefore);
+    ctx.setToken(null);
+    await expect(ctx.api.fundingOptions()).rejects.toMatchObject({ code: "SESSION_EXPIRED" });
+  });
+
   it("answers PHONE_REQUIRED for a signed-in account without a number", async () => {
     let token: string | null = null;
     const onPhoneRequired = vi.fn();
@@ -40,12 +53,32 @@ describe("demo API matches the server's behaviour", () => {
     const sender = await signedInMockApi();
     const { result } = await run(sender, { type: "gift_send", params: { phone: "+15555550155", brandId: null, amount: "25000000" } });
     const code = result.claimLink!.split("/c/")[1]!;
+    const other = privateKeyToAccount("0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a");
+    const registered = await registerMockNumber(sender.api, other, "+15555550155");
+    sender.setToken(registered.sessionToken);
     const { phoneToken } = await sender.api.otpVerify("+15555550155", "000000");
-    // The sender opening their own link is enough to exercise the accept path in the demo.
+    // A separately enrolled recipient opens the gift.
     const accepted = await sender.api.acceptClaim(code, { phoneToken, brandId: "airbnb-us" }).catch((e) => e);
     expect(accepted.status).toBe("completed");
     expect(accepted.giftCardId).toBeUndefined();
     expect(accepted.error.code).toBe("GIFT_UNAVAILABLE");
+  });
+
+  it("keeps merchant artwork through purchase and gift delivery", async () => {
+    const ctx = await signedInMockApi();
+    const brand = (await ctx.api.catalog()).brands.find((b) => b.id === "starbucks-us")!;
+    expect(brand.artworkUrl).toMatch(/^https:\/\//);
+    const bought = await run(ctx, { type: "gift_buy", params: { brandId: brand.id, amount: "25000000" } });
+    expect((await ctx.api.giftCards()).cards.find((c) => c.id === bought.result.giftCardId)?.artworkUrl).toBe(brand.artworkUrl);
+    const sent = await run(ctx, { type: "gift_send", params: { phone: "+15555550155", brandId: brand.id, amount: "25000000" } });
+    const code = sent.result.claimLink!.split("/c/")[1]!;
+    expect((await ctx.api.claim(code)).gift?.brandArtworkUrl).toBe(brand.artworkUrl);
+    const other = privateKeyToAccount("0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a");
+    const registered = await registerMockNumber(ctx.api, other, "+15555550155");
+    ctx.setToken(registered.sessionToken);
+    const { phoneToken } = await ctx.api.otpVerify("+15555550155", "000000");
+    const accepted = await ctx.api.acceptClaim(code, { phoneToken });
+    expect((await ctx.api.giftCards()).cards.find((c) => c.id === accepted.giftCardId)?.artworkUrl).toBe(brand.artworkUrl);
   });
 
   it("walks an add-money request from waiting to completed", async () => {

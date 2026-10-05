@@ -1,4 +1,3 @@
-// glossary-allow-file — the fixtures below are deliberately bad copy.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -33,7 +32,31 @@ describe("copy rules (spec §3a glossary)", () => {
       const f = "Oops, a hash"; // glossary-allow
     `;
     const words = scanSource("sample.tsx", sample).map((f) => f.word);
-    expect(words).toEqual(["wallets?", "sign(s|ed|ing|er|ers)?", "gas", "Base"]);
+    expect(words).toEqual(["wallets?", "sign(s|ed|ing|er|ers)?", "gas", "Base", "hash(es)?"]);
+  });
+
+  it("does not let consumer files bypass the rule with allow comments", () => {
+    const source = `// glossary-allow-file\nconst screen = <Text>Wallet address</Text>; // glossary-allow`;
+    expect(scanSource("src/app/topup.tsx", source)).toHaveLength(1);
+    expect(scanSource("src/ui/TechnicalDetails.tsx", source)).toHaveLength(1);
+  });
+
+  it("checks lowercase copy in visible properties and rendered expressions", () => {
+    const source = `const label = "wallet"; const screen = <Text accessibilityHint="address">{"gas"}</Text>;`;
+    expect(scanSource("src/app/sample.tsx", source).map((finding) => finding.word)).toEqual(["wallets?", "address(es)?", "gas"]);
+  });
+
+  it("only exempts named internal files and exact legacy provider values", () => {
+    expect(scanSource("src/signing/messages.ts", 'const message = "sign in";')).toEqual([]);
+    expect(scanSource("src/app/messages.tsx", 'const message = "sign in";')).toHaveLength(1);
+    expect(scanSource("src/api/mock.ts", 'const label = "USDC on Base";')).toEqual([]);
+    expect(scanSource("src/api/mock.ts", 'const message = "Send from your wallet";')).toHaveLength(1);
+    expect(scanSource("src/app/topup.tsx", 'const label = "USDC on Base";')).toHaveLength(1);
+  });
+
+  it("catches network labels and bare technical identifiers rendered on a screen", () => {
+    const source = `const screen = <Text>Solana <Text>{"0x1111111111111111111111111111111111111111"}</Text><Text>web3</Text></Text>;`;
+    expect(scanSource("src/app/sample.tsx", source).map((finding) => finding.word)).toEqual(["solana", "technical identifier", "web3"]);
   });
 
   it("finds no forbidden words anywhere in the app", () => {

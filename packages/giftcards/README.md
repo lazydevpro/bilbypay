@@ -91,7 +91,8 @@ container could not reach laso.finance or docs.bitrefill.com. The table shows wh
 | Laso has no gift-card lookup endpoint and no idempotency key on `/order-gift-card` | same docs (by absence) | medium |
 | Laso webhook signing (Standard Webhooks, `whsec_`) | Laso `llms-full.txt` `/register-webhook` | medium. `verifyLasoWebhook` has no live delivery test |
 | Bitrefill paths, auth tiers, invoice body, `redemption_info` fields | research notes (read from the live docs) + bitrefill/agents + bitrefill/bitrefill-mcp-server | medium |
-| Bitrefill invoice/order **status strings**, `/accounts/balance` **response shape**, package **USD price field**, whether `image` is a URL, `balance_currency` on REST | inferred (MCP output, third-party clients) | **low**. Parsed defensively; verify with test products |
+| Gift-card artwork | Laso OpenAPI `GiftCardProduct.product_image_url`; [Bitrefill product image CDN](https://docs.bitrefill.com/reference/get_products), checked 2026-09-30 | high for URL mapping. Bitrefill public Starbucks, Uber, Target and Amazon images fetched and visually checked; merchant artwork may be a logo on a plain background |
+| Bitrefill invoice/order **status strings**, `/accounts/balance` **response shape**, package **USD price field**, `balance_currency` on REST | inferred (MCP output, third-party clients) | **low**. Parsed defensively; verify with test products |
 | Bitrefill webhook signing | not documented | none. Treat webhooks as "go GET the invoice" |
 
 Before spending money:

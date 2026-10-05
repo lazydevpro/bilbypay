@@ -54,7 +54,10 @@ export class AppUser {
     const issuedAt = Math.floor(Date.now() / 1000);
     const e164 = this.e164!;
     const signature = await this.account.signMessage({ message: registerMessage({ phone: e164, address: this.address, issuedAt }) });
-    const res = await this.call("POST", "/v1/accounts/register", { phoneToken, address: this.address, displayName: this.name, issuedAt, signature }, false);
+    const consent = await this.call("POST", "/v1/accounts/registration/prepare", { phoneToken, address: this.address }, false);
+    if (consent.status !== 200) return consent;
+    const consentSignature = await this.account.signTypedData(hydrateTypedData(consent.body.typedData) as never);
+    const res = await this.call("POST", "/v1/accounts/register", { phoneToken, address: this.address, displayName: this.name, issuedAt, signature, registrationId: consent.body.id, consentSignature }, false);
     if (res.status === 200) this.session = res.body.sessionToken;
     return res;
   }

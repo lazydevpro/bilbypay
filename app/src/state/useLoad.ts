@@ -12,7 +12,8 @@ export function useLoad<T>(load: () => Promise<T>, deps: unknown[] = []) {
   const [refreshing, setRefreshing] = useState(false);
   const seq = useRef(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // This hook deliberately accepts a dependency list from its caller, like useEffect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/use-memo
   const run = useCallback(load, deps);
 
   const fetchNow = useCallback(

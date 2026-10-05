@@ -1,17 +1,20 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef } from "react";
 import { Share, StyleSheet, View } from "react-native";
-import { firstName, getOutcome, shareMessage } from "../flows/drafts";
+import Svg, { Circle, Path } from "react-native-svg";
+import { safeMessage } from "../api/errors";
+import { getOutcome, shareMessage } from "../flows/drafts";
 import { usd, usdShort } from "../money/amount";
 import { useSession } from "../state/session";
 import { Button } from "../ui/Button";
-import { Card, Line } from "../ui/Card";
+import { Line } from "../ui/Card";
 import { Mascot } from "../ui/Mascot";
+import { Icon } from "../ui/Icon";
 import { Screen } from "../ui/Screen";
 import { Muted, Text } from "../ui/Text";
-import { space } from "../ui/theme";
+import { colors, radius, space } from "../ui/theme";
 
-/** Success, straight away. For invites and gifts, the share sheet opens by itself. */
+/** Reflect the server result. A link ready to share is still waiting for its recipient. */
 export default function Done() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const outcome = getOutcome(id);
@@ -21,7 +24,7 @@ export default function Done() {
   const draft = outcome?.draft;
   const result = outcome?.result;
   const type = draft?.request.type;
-  const who = draft?.recipient ? firstName(draft.recipient.name) : undefined;
+  const who = draft?.recipient?.name ?? "Your recipient";
   const amount = draft && "amount" in draft.request.params ? draft.request.params.amount : result?.receipt?.amount;
   const isGift = type === "gift_send";
 
@@ -47,8 +50,10 @@ export default function Done() {
 
   if (!outcome || !draft || !result) {
     return (
-      <Screen footer={<Button label="Done" onPress={() => router.navigate("/(tabs)")} />}>
-        <Text variant="title">All done</Text>
+      <Screen footer={<Button label="Done" onPress={() => router.dismissTo("/(tabs)")} />}>
+        <Mascot size={180} mood="reassuring" />
+        <Text variant="title">Payment details unavailable</Text>
+        <Muted>Check Activity for the latest status.</Muted>
       </Screen>
     );
   }
@@ -57,11 +62,11 @@ export default function Done() {
   let body = "";
   switch (draft.request.type) {
     case "send":
-      title = result.status === "waiting" ? `${usd(amount)} is on its way` : `Sent ${usd(amount)} to ${who}`;
+      title = result.status === "waiting" ? "Ready when they are" : "A little joy, delivered.";
       body =
         result.status === "waiting"
-          ? `Send ${who} the link so they can open it. If they don't open it in time, it comes back to you.`
-          : `${who} has it now.`;
+          ? `Share the link with ${who} to collect ${usd(amount)}. If they don't open it in time, it comes back to you.`
+          : `${who} received ${usd(amount)}.`;
       break;
     case "gift_send":
       title = `Your gift for ${who} is ready`;
@@ -77,7 +82,7 @@ export default function Done() {
       break;
     case "burrow_add":
       title = `${usd(amount)} is in Burrow`;
-      body = "Move it back to your balance any time.";
+      body = "You can request to move it back to your balance from Burrow.";
       break;
     case "burrow_withdraw":
       title = `${usd(amount)} is in your balance`;
@@ -91,6 +96,24 @@ export default function Done() {
       break;
   }
 
+  const complete = result.status === "completed";
+  const waiting = result.status === "waiting";
+  const celebrate = complete && (type === "send" || type === "gift_send" || type === "gift_buy");
+  const note = draft.request.type === "send" ? draft.request.params.note : draft.gift?.message;
+
+  // Future server actions may also wait. Never turn a pending response into a success claim.
+  if (waiting && type !== "send" && type !== "gift_send") {
+    title = "Still in progress";
+    body = "Check Activity for the latest update.";
+  }
+  if (result.status === "failed") {
+    title = "That didn't go through";
+    body = result.error ? safeMessage(result.error.message) : "Check Activity for the latest update before trying again.";
+  } else if (!complete && !waiting) {
+    title = "Checking the result";
+    body = "Check Activity for the latest update before trying again.";
+  }
+
   return (
     <Screen
       edges={["top", "bottom"]}
@@ -98,28 +121,58 @@ export default function Done() {
         <>
           {result.claimLink ? <Button label="Share the link" onPress={share} /> : null}
           {result.giftCardId ? <Button label="View gift card" onPress={() => router.replace(`/card/${result.giftCardId}`)} /> : null}
-          <Button variant={result.claimLink || result.giftCardId ? "ghost" : "primary"} label="Done" onPress={() => router.navigate("/(tabs)")} />
+          <Button variant={result.claimLink || result.giftCardId ? "ghost" : "primary"} label="Done" onPress={() => router.dismissTo("/(tabs)")} />
         </>
       }
     >
       <View style={styles.hero}>
-        <Mascot size={180} />
+        <View style={[styles.status, complete && styles.statusComplete]}>
+          <Icon name={complete ? "check" : waiting ? "gift" : "close"} size={18} color={complete ? colors.green : colors.brown} />
+          <Text variant="bodyStrong" color={complete ? colors.green : colors.brown}>
+            {complete ? type === "send" ? "Payment complete" : "All set" : waiting ? result.claimLink ? "Ready to share" : "In progress" : "Payment update"}
+          </Text>
+        </View>
+        <View style={[styles.resultStage, !celebrate && styles.quietStage]}>
+          {celebrate ? <Svg width="100%" height="100%" viewBox="0 0 300 224" aria-hidden style={StyleSheet.absoluteFill}>
+            <Path d="m51 54 12 16m170-24-10 17M35 117l20 3m193-6 17-7" stroke={colors.gold} strokeWidth="6" strokeLinecap="round" />
+            <Path d="m66 155 7 10m158-9 8-8" stroke={colors.red} strokeWidth="4" strokeLinecap="round" />
+            <Circle cx="93" cy="25" r="4" fill={colors.primary} opacity={0.55} />
+            <Circle cx="259" cy="168" r="4" fill={colors.gold} />
+            <Path d="m192 25 3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z" fill={colors.gold} />
+          </Svg> : null}
+          <Mascot size={celebrate ? 224 : 166} mood={celebrate ? "success" : complete ? "idle" : waiting ? isGift ? "gift" : "receiving" : "reassuring"} interactive={false} />
+        </View>
         <Text variant="display" style={styles.center}>
           {title}
         </Text>
-        {body ? <Muted style={styles.center}>{body}</Muted> : null}
+        {body ? <Text variant={complete && type === "send" ? "heading" : "body"} style={styles.center}>{body}</Text> : null}
+        {note ? <View style={styles.note}><Muted style={styles.center}>“{note}”</Muted></View> : null}
       </View>
       {result.receipt ? (
-        <Card>
+        <View style={styles.receipt}>
+          <View style={styles.receiptHeader}>
+            <Text variant="caption" color={colors.muted} style={styles.receiptTitle}>{complete ? "YOUR RECEIPT" : "PAYMENT DETAILS"}</Text>
+            <Icon name={complete ? "check" : "activity"} size={18} color={complete ? colors.green : colors.muted} />
+          </View>
           <Line label="Reference" value={result.receipt.reference} />
           <Line label="When" value={new Date(result.receipt.at).toLocaleString()} />
-        </Card>
+          <View style={styles.receiptTear} />
+        </View>
       ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { flex: 1, justifyContent: "center", gap: space.lg, paddingTop: space.xl },
-  center: { textAlign: "center" },
+  hero: { flex: 1, alignItems: "center", justifyContent: "center", gap: space.lg, paddingTop: space.lg, paddingBottom: space.sm },
+  center: { textAlign: "center", maxWidth: "100%" },
+  status: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill, backgroundColor: colors.sand },
+  statusComplete: { backgroundColor: colors.greenSoft },
+  note: { paddingHorizontal: space.xl, paddingVertical: space.md, borderRadius: radius.lg, backgroundColor: colors.sand },
+  resultStage: { width: "100%", maxWidth: 300, height: 224, alignItems: "center", justifyContent: "center" },
+  quietStage: { height: 166 },
+  receipt: { padding: space.xl, paddingBottom: space.md, gap: space.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, borderTopLeftRadius: radius.md, borderTopRightRadius: radius.md },
+  receiptHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: space.sm },
+  receiptTitle: { letterSpacing: 1.2 },
+  receiptTear: { borderBottomColor: colors.sandDeep, borderBottomWidth: 2, borderStyle: "dashed", marginTop: space.sm },
 });

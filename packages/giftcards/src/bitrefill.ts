@@ -186,8 +186,10 @@ export class BitrefillProvider implements GiftCardProvider {
     return {
       id: p.id,
       name: p.name,
-      // VERIFY: REST `image` may be a bare image id rather than a URL.
-      logoUrl: str(p.image) ?? str(p.image_url) ?? "",
+      // Documented CDN uses the product ID; `image` is not a reliable asset URL.
+      // https://docs.bitrefill.com/reference/get_products
+      logoUrl: `https://cdn.bitrefill.com/primg/w250h100i1/${encodeURIComponent(p.id)}.png`,
+      artworkUrl: `https://cdn.bitrefill.com/primg/w600h400/${encodeURIComponent(p.id)}.png`,
       country: cc,
       ...(categories[0] ? { category: categories[0] } : {}),
       minAmount: amounts.min,

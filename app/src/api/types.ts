@@ -11,6 +11,7 @@ export type Profile = {
   phoneMasked: string;
   autoSave: { enabled: boolean; threshold: string };
   createdAt: string;
+  phoneStatus?: PhoneStatus["status"];
 };
 
 export type OtpStartResponse = { ok: true; expiresInSeconds: number };
@@ -22,8 +23,36 @@ export type RegisterRequest = {
   displayName: string;
   issuedAt: number;
   signature: Hex;
+  registrationId: string;
+  consentSignature: Hex;
 };
-export type RegisterResponse = { sessionToken: string; profile: Profile };
+export type RegisterResponse = { status: "registered" | "pending"; sessionToken: string; profile: Profile | null; availableAt?: string };
+export type DirectoryOperation = "bind" | "requestRecovery" | "finalizeRecovery" | "revoke" | "cancelRecovery";
+export type DirectoryConsent = {
+  id: string;
+  operation: DirectoryOperation;
+  typedData: TypedDataJson;
+  phoneKey: Hex;
+  revision: string;
+  validUntil?: string;
+  availableAt?: string;
+};
+export type PhoneStatus = {
+  status: "active" | "expired" | "revoked" | "pending" | "reassigned" | "unlinked";
+  phone: string | null;
+  phoneMasked: string | null;
+  phoneKey: Hex | null;
+  revision: string;
+  validUntil: string | null;
+  pending: { account: Hex; availableAt: string } | null;
+};
+export type DirectorySnapshot = {
+  phoneKey: Hex;
+  revision: string;
+  ownershipEpoch: string;
+  validUntil: string | null;
+  pending: boolean;
+};
 
 export type SessionRequest = { address: Hex; issuedAt: number; signature: Hex };
 export type SessionResponse = { sessionToken: string; profile: Profile | null };
@@ -37,10 +66,11 @@ export type Balance = {
 export type ResolveResult = {
   phone: string;
   e164: string | null;
-  status: "registered" | "invite" | "invalid";
+  status: "registered" | "invite" | "invalid" | "unavailable";
   displayName?: string;
   address?: Hex;
   recentlyChanged?: boolean;
+  directory?: DirectorySnapshot;
 };
 
 export type ActionParams = {
@@ -68,7 +98,10 @@ export type PreparedAction = {
     warnings: Array<{ code: string; message: string }>;
   };
   toSign: Array<{ key: string; typedData: TypedDataJson }>;
-  expect: { payer: Hex; amount: string; payee?: Hex };
+  expect: {
+    payer: Hex; amount: string; payee?: Hex; directory?: DirectorySnapshot;
+    terms?: { phoneKey: Hex; phoneEpoch: string; expiry: number; kind: 0 | 1; giftId: Hex; salt: Hex };
+  };
 };
 
 export type Receipt = {
@@ -120,7 +153,7 @@ export type Claim = {
   amount: string;
   senderName: string;
   note?: string;
-  gift?: { brandId: string | null; brandName?: string; brandLogoUrl?: string; design?: string; message?: string };
+  gift?: { brandId: string | null; brandName?: string; brandLogoUrl?: string; brandArtworkUrl?: string; design?: string; message?: string };
   status: "waiting" | "opened" | "returned";
   expiresAt: string;
   phoneMasked: string;
@@ -138,6 +171,8 @@ export type Brand = {
   id: string;
   name: string;
   logoUrl: string;
+  /** Complete provider-supplied product/card image; display without cropping. */
+  artworkUrl?: string;
   category?: string;
   country: string;
   minAmount: string;
@@ -153,6 +188,7 @@ export type GiftCard = {
   brandId: string;
   brandName: string;
   logoUrl: string;
+  artworkUrl?: string;
   amount: string;
   status: "ready" | "processing" | "failed";
   createdAt: string;
@@ -187,6 +223,39 @@ export type TopupStatus = {
   refundedAmount?: string;
 };
 
+/** Provider practice checkout. Completion never changes the Bilby balance. */
+export type FundingOptions = {
+  provider: "ramp";
+  environment: "sandbox";
+  available: boolean;
+  paymentMethods?: ("card" | "apple_pay" | "google_pay")[];
+  unavailableReason?: "not_configured" | "provider_unavailable" | "asset_unavailable";
+  message?: string;
+  country: "US";
+  currency: "USD";
+  /** Six-decimal dollar amounts, as elsewhere in the API. */
+  minAmount: string;
+  maxAmount: string;
+};
+export type FundingSession = {
+  id: string;
+  environment: "sandbox";
+  status: "pending" | "processing" | "completed" | "failed" | "cancelled" | "expired";
+  amount: string;
+  currency: "USD";
+  checkoutUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+  message: string;
+  amountReceived?: string;
+  fee?: string;
+};
+export type CreateFundingSession = {
+  amount: string;
+  returnUrl: string;
+  idempotencyKey: string;
+};
+
 /** Error codes from docs/api.md, plus NETWORK for "couldn't reach the server". */
 export type ApiErrorCode =
   | "OTP_INVALID"
@@ -217,7 +286,11 @@ export type ApiErrorCode =
 export interface BilbyApi {
   otpStart(phone: string, region?: string): Promise<OtpStartResponse>;
   otpVerify(phone: string, code: string): Promise<OtpVerifyResponse>;
+  prepareRegistration(req: { phoneToken: string; address: Hex }): Promise<DirectoryConsent>;
   register(req: RegisterRequest): Promise<RegisterResponse>;
+  phoneStatus(): Promise<PhoneStatus>;
+  preparePhoneAction(operation: "revoke" | "cancelRecovery"): Promise<DirectoryConsent>;
+  submitPhoneAction(req: { id: string; signature: Hex }): Promise<PhoneStatus>;
   session(req: SessionRequest): Promise<SessionResponse>;
   me(): Promise<Profile>;
   balance(): Promise<Balance>;
@@ -234,4 +307,7 @@ export interface BilbyApi {
   topupOrigins(): Promise<{ origins: TopupOrigin[] }>;
   topupQuote(originAsset: string, amount: string): Promise<TopupQuote>;
   topupStatus(quoteId: string): Promise<TopupStatus>;
+  fundingOptions(): Promise<FundingOptions>;
+  createFundingSession(request: CreateFundingSession): Promise<FundingSession>;
+  fundingSession(id: string): Promise<FundingSession>;
 }

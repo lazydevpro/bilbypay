@@ -143,7 +143,7 @@ export class Keeper {
 
   async refundExpired() {
     const now = await this.chain.now();
-    for (const claim of this.claims.expired(now)) {
+    for (const claim of await this.claims.refundable(now)) {
       try {
         const deposit = await this.chain.deposit(claim.deposit_id as Hex);
         if (deposit.statusName === "Pending") {

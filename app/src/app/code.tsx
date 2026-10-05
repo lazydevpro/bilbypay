@@ -21,7 +21,7 @@ export default function CodeScreen() {
     purpose?: PhonePurpose;
     code?: string;
   }>();
-  const { setVerification, status, linkNumber } = useSession();
+  const { setVerification, status } = useSession();
   const [code, setCode] = useState("");
   const [error, setError] = useState<unknown>(null);
   const [wait, setWait] = useState(RESEND_AFTER);
@@ -41,9 +41,8 @@ export default function CodeScreen() {
       setVerification(v);
       if (purpose === "claim" && claimCode && status === "ready") {
         router.dismissTo(`/claim/${claimCode}`);
-      } else if (purpose === "change") {
-        await linkNumber();
-        router.dismissTo("/(tabs)/settings");
+      } else if (purpose === "change" || purpose === "renew") {
+        router.push("/create");
       } else {
         // New person, or an account that has no number yet (needsPhone).
         router.push("/create");

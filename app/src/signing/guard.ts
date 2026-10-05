@@ -1,6 +1,7 @@
-import { hydrateTypedData } from "@bilbypay/core";
+import { escrowTermsNonce, hydrateTypedData } from "@bilbypay/core";
 import type { TypedDataDefinition } from "viem";
 import type { ActionRequest, ActionType, Hex, PreparedAction } from "../api/types";
+import type { Recipient } from "../flows/drafts";
 
 /**
  * Defence against a compromised or buggy server: before the account key touches anything the server
@@ -54,6 +55,8 @@ export type GuardInput = {
   chainId: number;
   /** For `send` to a registered contact: the address `/v1/resolve` returned for that number. */
   resolvedPayee?: Hex;
+  recipient?: Recipient;
+  escrow?: Hex;
   /** Unix seconds; defaults to now. */
   now?: number;
 };
@@ -88,6 +91,15 @@ export function checkPreparedAction(input: GuardInput): CheckedEntry[] {
 
   if (prepared.type !== request.type) fail(`type ${prepared.type} != requested ${request.type}`);
   if (!same(prepared.expect?.payer, account)) fail("expect.payer is not this account");
+  const recipient = input.recipient;
+  const resolvedPayee = recipient ? (recipient.status === "registered" ? recipient.address : undefined) : input.resolvedPayee;
+  if (recipient && (request.type === "send" || request.type === "gift_send")) {
+    const selected = recipient.directory;
+    const expected = prepared.expect.directory;
+    if (!selected || !expected || !same(selected.phoneKey, expected.phoneKey) || selected.revision !== expected.revision || selected.ownershipEpoch !== expected.ownershipEpoch || selected.validUntil !== expected.validUntil || selected.pending !== expected.pending) fail("prepared recipient changed");
+    if (recipient.status === "registered" && !recipient.address) fail("selected recipient lacks destination");
+    if (input.resolvedPayee && !same(input.resolvedPayee, resolvedPayee)) fail("caller changed selected destination");
+  }
 
   const expectAmount = big(prepared.expect.amount, "expect.amount");
   const asked = paramsAmount(request);
@@ -113,7 +125,7 @@ export function checkPreparedAction(input: GuardInput): CheckedEntry[] {
     if (big(prepared.summary.total, "summary.total") !== expectAmount) fail("summary.total differs from expect.amount");
     if (fromBurrow < 0n || fromBurrow > expectAmount) fail("fromBurrow is larger than the payment");
   }
-  if (request.type === "send" && input.resolvedPayee && prepared.expect.payee && !same(prepared.expect.payee, input.resolvedPayee)) {
+  if (request.type === "send" && resolvedPayee && !same(prepared.expect.payee, resolvedPayee)) {
     fail("expect.payee differs from the resolved contact");
   }
 
@@ -149,12 +161,21 @@ export function checkPreparedAction(input: GuardInput): CheckedEntry[] {
       if (value > expectAmount) fail(`${entry.key}.value exceeds expect.amount`);
       if (big(m.validBefore, "validBefore") > latest) fail(`${entry.key} is valid for too long`);
       if (request.type === "send") {
-        if (input.resolvedPayee) {
+        if (resolvedPayee) {
           if (primaryType !== "TransferWithAuthorization") fail("registered send must pay the contact directly");
-          if (!same(m.to, input.resolvedPayee)) fail("payment.to is not the resolved contact");
+          if (!same(m.to, resolvedPayee)) fail("payment.to is not the resolved contact");
         } else if (primaryType !== "ReceiveWithAuthorization") {
           fail("invite send must be a receive authorization");
         }
+      }
+      if (recipient && (request.type === "gift_send" || (request.type === "send" && recipient.status === "invite"))) {
+        const terms = prepared.expect.terms;
+        const selected = recipient.directory!;
+        if (!terms || !same(terms.phoneKey, selected.phoneKey) || terms.phoneEpoch !== selected.ownershipEpoch || terms.kind !== (request.type === "gift_send" ? 1 : 0)) fail("payment recipient terms changed");
+        if (!input.escrow || !same(m.to, input.escrow)) fail("payment receiver is not pinned");
+        try {
+          if (!same(m.nonce, escrowTermsNonce({ ...terms!, phoneEpoch: BigInt(terms!.phoneEpoch) }))) fail("payment terms do not match authorization");
+        } catch { fail("payment terms are malformed"); }
       }
     } else {
       if (m.deadline !== undefined && big(m.deadline, "deadline") > latest) fail(`${entry.key} is valid for too long`);

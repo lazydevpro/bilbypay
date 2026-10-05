@@ -34,11 +34,26 @@ describe("LasoProvider catalog + quote", () => {
     expect(laso.signers).toEqual([account.address]);
     expect(brands.map((b) => b.id)).toEqual(["starbucks:US", "uber:US", "netflix:US"]);
     const sb = brands[0]!;
-    expect(sb).toMatchObject({ name: "Starbucks", country: "US", minAmount: 5_000_000n, maxAmount: 500_000_000n, feePercent: 4.8, logoUrl: "https://img.test/starbucks.png" });
+    expect(sb).toMatchObject({ name: "Starbucks", country: "US", minAmount: 5_000_000n, maxAmount: 500_000_000n, feePercent: 4.8,
+      logoUrl: "https://img.test/starbucks.png", artworkUrl: "https://img.test/starbucks.png" });
     expect(brands[2]!.denominations).toEqual([25_000_000n, 50_000_000n, 100_000_000n]);
     // Bearer token reused, no second sign-in.
     await provider.catalog("CA");
     expect(laso.signers).toHaveLength(1);
+  });
+
+  it("keeps products without artwork available and preserves the provider's image URL unchanged", async () => {
+    const { provider } = setup({ products: [
+      { laso_server_id: "with-art", name: "With artwork", currency: "USD", country: "US", min: 5, max: 100,
+        product_image_url: "https://images.test/card.png?version=2&country=US" },
+      { laso_server_id: "without-art", name: "Without artwork", currency: "USD", country: "US", min: 5, max: 100,
+        product_image_url: null },
+    ] });
+    const brands = await provider.catalog("US");
+    expect(brands).toHaveLength(2);
+    expect(brands[0]!.artworkUrl).toBe("https://images.test/card.png?version=2&country=US");
+    expect(brands[1]!.artworkUrl).toBeUndefined();
+    expect(brands[1]!.logoUrl).toBe("");
   });
 
   it("quotes from the 402 challenge without paying", async () => {

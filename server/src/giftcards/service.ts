@@ -16,6 +16,7 @@ export type GiftOrderRow = {
   brand_id: string;
   brand_name: string;
   logo_url: string;
+  artwork_url: string | null;
   face_value: string;
   paid: string;
   provider: string;
@@ -89,6 +90,7 @@ export class GiftCardService {
       id: b.id,
       name: b.name,
       logoUrl: b.logoUrl,
+      artworkUrl: b.artworkUrl,
       category: b.category,
       country: b.country,
       minAmount: b.minAmount.toString(),
@@ -144,9 +146,9 @@ export class GiftCardService {
       try {
         this.db
           .prepare(
-            `INSERT INTO gift_orders (id, gift_id, owner_address, source, brand_id, brand_name, logo_url, face_value, paid,
+            `INSERT INTO gift_orders (id, gift_id, owner_address, source, brand_id, brand_name, logo_url, artwork_url, face_value, paid,
               provider, status, from_name, refund_to, activity_id, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'processing', ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'processing', ?, ?, ?, ?, ?)`,
           )
           .run(
             id,
@@ -156,6 +158,7 @@ export class GiftCardService {
             input.brand.id,
             input.brand.name,
             input.brand.logoUrl,
+            input.brand.artworkUrl ?? null,
             input.faceValue.toString(),
             input.paid.toString(),
             this.provider.name,
@@ -281,6 +284,7 @@ export class GiftCardService {
       brandId: r.brand_id,
       brandName: r.brand_name,
       logoUrl: r.logo_url,
+      artworkUrl: r.artwork_url ?? undefined,
       amount: r.face_value,
       status: r.status,
       createdAt: r.created_at,

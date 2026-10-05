@@ -40,7 +40,7 @@ abstract contract Base is Test {
         ausd = new MockAUSD();
         stata = new MockStata(ausd);
         directory = new BilbyDirectory(owner, verifier);
-        escrow = new BilbyEscrow(IERC20(address(ausd)), owner, verifier, treasury);
+        escrow = new BilbyEscrow(IERC20(address(ausd)), directory, owner, verifier, treasury);
         router = new BilbyRouter(IERC20(address(ausd)), IERC4626(address(stata)), address(escrow), owner);
         vm.prank(owner);
         router.setKeeper(keeper, true);
@@ -86,11 +86,19 @@ abstract contract Base is Test {
         (a.v, a.r, a.s) = vm.sign(key, _digest(ausd.DOMAIN_SEPARATOR(), structHash));
     }
 
-    function _transferAuth(uint256 key, address to, uint256 value, bytes32 nonce) internal view returns (Auth memory) {
+    function _transferAuth(uint256 key, address to, uint256 value, bytes32 nonce)
+        internal
+        view
+        returns (Auth memory)
+    {
         return _auth(key, ausd.TRANSFER_WITH_AUTHORIZATION_TYPEHASH(), to, value, nonce);
     }
 
-    function _receiveAuth(uint256 key, address to, uint256 value, bytes32 nonce) internal view returns (Auth memory) {
+    function _receiveAuth(uint256 key, address to, uint256 value, bytes32 nonce)
+        internal
+        view
+        returns (Auth memory)
+    {
         return _auth(key, ausd.RECEIVE_WITH_AUTHORIZATION_TYPEHASH(), to, value, nonce);
     }
 
@@ -100,7 +108,12 @@ abstract contract Base is Test {
         returns (BilbyEscrow.Terms memory)
     {
         return BilbyEscrow.Terms({
-            phoneKey: phoneKey, expiry: uint40(block.timestamp + 7 days), kind: kind, giftId: giftId, salt: salt
+            phoneKey: phoneKey,
+            phoneEpoch: directory.getBinding(phoneKey).phoneEpoch,
+            expiry: uint40(block.timestamp + 7 days),
+            kind: kind,
+            giftId: giftId,
+            salt: salt
         });
     }
 
@@ -115,30 +128,115 @@ abstract contract Base is Test {
         view
         returns (bytes memory)
     {
-        bytes32 structHash = keccak256(abi.encode(escrow.CLAIM_TYPEHASH(), depositId, phoneKey, recipient, deadline));
+        bytes32 structHash =
+            keccak256(abi.encode(escrow.CLAIM_TYPEHASH(), depositId, phoneKey, recipient, deadline));
         return _sigBytes(verifierKey, _digest(escrow.domainSeparator(), structHash));
     }
 
-    function _bindAttestation(bytes32 phoneKey, address account, uint256 issuedAt, uint256 deadline)
+    function _bindRequest(bytes32 phoneKey, address account)
+        internal
+        view
+        returns (BilbyDirectory.BindRequest memory)
+    {
+        return BilbyDirectory.BindRequest({
+            phoneKey: phoneKey,
+            account: account,
+            issuedAt: block.timestamp,
+            deadline: block.timestamp + 300,
+            expectedRevision: directory.getBinding(phoneKey).revision,
+            validUntil: block.timestamp + 30 days
+        });
+    }
+
+    function _directorySignature(uint256 key, bytes32 typehash, BilbyDirectory.BindRequest memory request)
         internal
         view
         returns (bytes memory)
     {
-        bytes32 structHash =
-            keccak256(abi.encode(directory.BIND_TYPEHASH(), phoneKey, account, issuedAt, deadline));
-        return _sigBytes(verifierKey, _digest(directory.domainSeparator(), structHash));
+        return _sigBytes(key, _digest(directory.domainSeparator(), keccak256(abi.encode(typehash, request))));
     }
 
-    function _permit(uint256 key, address token, bytes32 domainSeparator, address spender, uint256 value, uint256 nonce)
-        internal
-        view
-        returns (BilbyRouter.Permit memory p)
-    {
+    function _bindPhone(bytes32 phoneKey, uint256 accountKey, uint256 controllerKey) internal {
+        BilbyDirectory.BindRequest memory request = _bindRequest(phoneKey, vm.addr(accountKey));
+        bytes32 typehash = directory.BIND_TYPEHASH();
+        directory.bind(
+            request,
+            _directorySignature(verifierKey, typehash, request),
+            _directorySignature(accountKey, typehash, request),
+            controllerKey == 0 ? bytes("") : _directorySignature(controllerKey, typehash, request)
+        );
+    }
+
+    function _requestRecovery(bytes32 phoneKey, uint256 accountKey) internal {
+        BilbyDirectory.BindRequest memory request = _bindRequest(phoneKey, vm.addr(accountKey));
+        directory.requestRecovery(
+            request,
+            _directorySignature(verifierKey, directory.REQUEST_RECOVERY_TYPEHASH(), request),
+            _directorySignature(accountKey, directory.REQUEST_RECOVERY_TYPEHASH(), request)
+        );
+    }
+
+    function _finalizeRecovery(bytes32 phoneKey, uint256 accountKey) internal {
+        BilbyDirectory.BindRequest memory request = _bindRequest(phoneKey, vm.addr(accountKey));
+        directory.finalizeRecovery(
+            request,
+            _directorySignature(verifierKey, directory.FINALIZE_RECOVERY_TYPEHASH(), request),
+            _directorySignature(accountKey, directory.FINALIZE_RECOVERY_TYPEHASH(), request)
+        );
+    }
+
+    function _controlSignature(
+        uint256 key,
+        bytes32 typehash,
+        bytes32 phoneKey,
+        uint256 revision,
+        uint256 deadline
+    ) internal view returns (bytes memory) {
+        return _sigBytes(
+            key,
+            _digest(
+                directory.domainSeparator(), keccak256(abi.encode(typehash, phoneKey, revision, deadline))
+            )
+        );
+    }
+
+    function _revokePhone(bytes32 phoneKey, uint256 controllerKey) internal {
+        uint256 revision = directory.getBinding(phoneKey).revision;
+        uint256 deadline = block.timestamp + 300;
+        directory.revoke(
+            phoneKey,
+            revision,
+            deadline,
+            _controlSignature(controllerKey, directory.REVOKE_TYPEHASH(), phoneKey, revision, deadline)
+        );
+    }
+
+    function _cancelRecovery(bytes32 phoneKey, uint256 key) internal {
+        uint256 revision = directory.getBinding(phoneKey).revision;
+        uint256 deadline = block.timestamp + 300;
+        directory.cancelRecovery(
+            phoneKey,
+            revision,
+            deadline,
+            _controlSignature(key, directory.CANCEL_RECOVERY_TYPEHASH(), phoneKey, revision, deadline)
+        );
+    }
+
+    function _permit(
+        uint256 key,
+        address token,
+        bytes32 domainSeparator,
+        address spender,
+        uint256 value,
+        uint256 nonce
+    ) internal view returns (BilbyRouter.Permit memory p) {
         p.value = value;
         p.deadline = block.timestamp + 600;
         bytes32 structHash = keccak256(
             abi.encode(
-                keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
+                keccak256(
+                    "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+                ),
                 vm.addr(key),
                 spender,
                 value,
@@ -151,11 +249,15 @@ abstract contract Base is Test {
     }
 
     function _sharePermit(uint256 key, uint256 shares) internal view returns (BilbyRouter.Permit memory) {
-        return _permit(key, address(stata), stata.DOMAIN_SEPARATOR(), address(router), shares, stata.nonces(vm.addr(key)));
+        return _permit(
+            key, address(stata), stata.DOMAIN_SEPARATOR(), address(router), shares, stata.nonces(vm.addr(key))
+        );
     }
 
     function _ausdPermit(uint256 key, uint256 value) internal view returns (BilbyRouter.Permit memory) {
-        return _permit(key, address(ausd), ausd.DOMAIN_SEPARATOR(), address(router), value, ausd.nonces(vm.addr(key)));
+        return _permit(
+            key, address(ausd), ausd.DOMAIN_SEPARATOR(), address(router), value, ausd.nonces(vm.addr(key))
+        );
     }
 
     function _autoSaveSig(uint256 key, bool enabled, uint256 threshold, uint256 deadline)
@@ -165,7 +267,9 @@ abstract contract Base is Test {
     {
         address user = vm.addr(key);
         bytes32 structHash = keccak256(
-            abi.encode(router.SET_AUTOSAVE_TYPEHASH(), user, enabled, threshold, router.nonces(user), deadline)
+            abi.encode(
+                router.SET_AUTOSAVE_TYPEHASH(), user, enabled, threshold, router.nonces(user), deadline
+            )
         );
         return _sigBytes(key, _digest(router.domainSeparator(), structHash));
     }

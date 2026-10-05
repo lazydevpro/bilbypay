@@ -6,15 +6,15 @@ import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from "react-n
 import { api, isApiError } from "../../api";
 import { usd } from "../../money/amount";
 import { useLoad } from "../../state/useLoad";
-import { BrandLogo } from "../../ui/Avatar";
 import { Barcode } from "../../ui/Barcode";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
+import { GiftCardArtwork } from "../../ui/GiftCardArtwork";
 import { Icon } from "../../ui/Icon";
 import { ErrorNote } from "../../ui/Notice";
 import { Screen } from "../../ui/Screen";
 import { Muted, Text } from "../../ui/Text";
-import { colors, radius, space } from "../../ui/theme";
+import { colors, space } from "../../ui/theme";
 
 /** The card, rendered natively: brand, big code with one-tap copy, PIN, barcode, open in the brand's app. */
 export default function CardView() {
@@ -62,16 +62,16 @@ export default function CardView() {
   return (
     <Screen footer={reveal.url ? <Button label={`Open in ${name}`} onPress={() => Linking.openURL(reveal.url!)} /> : undefined}>
       <View style={styles.face}>
-        <BrandLogo name={name} uri={card?.logoUrl} size={64} />
-        <Text variant="title" color={colors.white}>
+        <GiftCardArtwork name={name} artworkUrl={card?.artworkUrl} logoUrl={card?.logoUrl} />
+        <Text variant="title">
           {name}
         </Text>
         {card ? (
-          <Text variant="display" color={colors.white}>
+          <Text variant="display">
             {usd(card.amount)}
           </Text>
         ) : null}
-        {card?.from ? <Text color={colors.sand}>From {card.from}</Text> : null}
+        {card?.from ? <Text color={colors.muted}>From {card.from}</Text> : null}
       </View>
 
       {reveal.code ? (
@@ -111,7 +111,7 @@ export default function CardView() {
 }
 
 const styles = StyleSheet.create({
-  face: { backgroundColor: colors.brown, borderRadius: radius.xl, padding: space.xl, gap: space.sm, alignItems: "flex-start" },
+  face: { width: "100%", maxWidth: 420, alignSelf: "center", gap: space.md, alignItems: "center", paddingBottom: space.lg },
   codeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.md, minHeight: 48 },
   code: { flex: 1, fontVariant: ["tabular-nums"], letterSpacing: 1 },
 });

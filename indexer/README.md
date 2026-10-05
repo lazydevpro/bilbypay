@@ -6,7 +6,7 @@ into:
 
 - the **activity feed** behind `GET /v1/activity` (docs/api.md `ActivityItem`),
 - **per-account stats**: pending sends, AUSD in/out, Burrow position and yield, contacts,
-- **phone-binding history**, used for the "number recently changed" warning in `/v1/resolve`,
+- **phone-binding history**, including when a number changes account,
 - **protocol analytics**: daily and all-time volume, claim rate, time-to-claim median/p90,
   gift volume, Burrow TVL, active accounts.
 
@@ -29,7 +29,7 @@ indexer/
 
 | Source | Events | Why |
 |---|---|---|
-| `BilbyDirectory` | `Bound`, `Unbound` | phone ↔ account bindings, rebinds |
+| `BilbyDirectory` | `Bound`, `Unbound`, `BindingUpdated`, `RecoveryRequested`, `RecoveryCancelled`, `RecoveryFinalized` | phone ↔ account bindings, verification expiry, revision/epoch and delayed changes |
 | `BilbyEscrow` | `Deposited`, `Claimed`, `Refunded`, `Cancelled` | sends and gifts to phone numbers |
 | `BilbyRouter` | `AutoSaveSet`, `Swept`, `Added`, `Broken` | Burrow settings and the moves the router makes |
 | `BilbyAccount` (dynamic) | ERC-20 `Transfer`, ERC-4626 `Deposit` / `Withdraw` | AUSD balance moves and stataAUSD shares of BilbyPay users |
@@ -74,9 +74,10 @@ own feed row.
 | Entity | What it holds |
 |---|---|
 | `Account` | current phone binding, first/last bind and rebind times, AUSD in/out/net, sent/received/gift counts and volumes, `pendingOutgoing`, auto-save settings, last active. Derived lists: `activity`, `bindings`, `depositsSent`, `depositsClaimed`, `burrow`, `burrowEvents`, `contacts` |
-| `Phone` | the account a phoneKey resolves to now, `boundAt`, `rebindCount`, `lastReboundAt`, deposits sent to it |
+| `Phone` | last bound account, revision, phone epoch, expiry/revocation and pending change, rebind history, deposits sent to it. Consumers must evaluate time-dependent availability. |
 | `PhoneBinding` | append-only Bound/Unbound history with `isRebind` |
-| `EscrowDeposit` | Pending → Claimed/Refunded/Cancelled, kind TRANSFER/GIFT, giftId, claimedBy, paidTo, `timeToClaim` |
+| `DirectoryChange` | ordered v2 lifecycle events with source directory, revision, block/log location and operation fields |
+| `EscrowDeposit` | Pending → Claimed/Refunded/Cancelled, authorized `phoneEpoch`, kind TRANSFER/GIFT, giftId, claimedBy, paidTo, `timeToClaim` |
 | `ActivityItem` | one feed row per account: kind, status, amount, counterparty (address / BilbyPay account / phoneKey), expiry, tx |
 | `BurrowPosition` | shares, deposited/withdrawn/net, value and earned at the last share price, sweep/add/break counters |
 | `BurrowEvent` | each stataAUSD deposit/withdraw with source and share price |
@@ -102,11 +103,17 @@ Amounts are AUSD base units (6 decimals) as `BigInt`. Timestamps are unix second
 
 `src/client.ts` (`createIndexerClient({ url, chainId })`):
 
+The table describes available GraphQL client capabilities. The current server's `/v1/resolve` performs
+direct chain reads for each contact in batches of at most eight and refreshes its SQLite mirror; it does
+not use Envio or the mirror alone to decide whether a recipient is payable. The finalized RPC worker repairs
+the mirror separately. Phone key derivation remains centralized HMAC with the server's unchanged secret.
+
 | App / API need | Client call | Source |
 |---|---|---|
 | `GET /v1/activity?cursor=` | `activity(account, { limit, cursor })` → `{ items, nextCursor }` | `ActivityItem`, keyset-paginated on (blockNumber, logIndex) |
 | `/v1/balance` `burrow.amount/earned`, `pendingOut`; profile `autoSave` | `account(account)` | `Account`, `BurrowPosition`, `GlobalStats.sharePriceWad` |
-| `/v1/resolve` `recentlyChanged` | `phone(phoneKey)` + `recentlyChanged(row, now, cooldown)` | `Phone.lastReboundAt` |
+| optional phone history / recent-change presentation | `phone(phoneKey)` + `recentlyChanged(row, now, cooldown)` | `Phone.lastReboundAt` |
+| directory discovery/history | `directoryChanges({ afterBlock, afterLog, toBlock, limit })` | `DirectoryChange`, ascending block/log cursor |
 | recent contacts | `recentContacts(account)` | `ContactEdge` |
 | stats / Burrow stats screen, pitch dashboard | `stats(days)` | `GlobalStats`, `DailyStats`, `_meta` |
 
@@ -115,6 +122,52 @@ The server still adds what only it knows: counterparty display names and masked 
 last one reaches the chain as a plain `sent` to the treasury, which the server can relabel.
 `failed` never reaches the chain. The live Burrow `amount` uses the last share price the indexer
 saw. `availableNow` and `ratePercent` still come from the stataAUSD/Aave views.
+
+## Directory v2 and server reconciliation
+
+The directory contract is the routing authority. The Envio database and the server's SQLite table are
+rebuildable projections. `BindingUpdated` carries canonical revision, phone epoch, verification expiry and
+revocation state. `RecoveryRequested` follows that event and sets the pending change; another
+`BindingUpdated` clears pending state. `Bound` / `Unbound` retain historical counters. Renewing the same
+account's number does not count as a reassignment.
+
+Elapsed time produces no event. Use `directoryStatus(phone, now)` (or direct contract resolution), checking
+revocation, `now >= validUntil` and live pending recovery (`now <= pendingExpiresAt`). `Account.isBound` and
+`GlobalStats.boundPhones` describe recorded, unreleased links; they are not live counts of payable aliases.
+A revoked binding can retain the former account in `Phone` as history. Phone epochs use GraphQL BigInt
+strings; never convert revisions/epochs to JavaScript Number.
+
+`server/src/directory-cache.ts` implements the ingestion path used by the server:
+
+1. Read the RPC's **finalized** head; no silent fallback to latest.
+2. Verify the durable checkpoint block hash. If it diverges or the finalized head regresses, clear only the
+   directory mirror and restart at the configured deployment block.
+3. Scan at most 100 inclusive blocks per window, deduplicate the phone keys emitted by directory events,
+   and read `getBinding` + `getPendingChange` at that window's end block.
+4. Check the anchor hash again, then apply snapshots and advance the cursor in one SQLite transaction.
+   A crash or database error retries the same window. Empty windows also advance the cursor.
+5. Reject a snapshot older than the mirror's `observed_block` so backfill cannot overwrite a newer direct
+   read. On a fork reset, replay repairs the projection. Retain all profiles, balances and payment history.
+
+The RPC must support finalized block tags and historical reads for the configured range. Unsupported reads
+or unknown event ABIs stop reconciliation. There is no webhook side effect inside Envio handlers. Selected
+recipients still receive direct chain checks before authorization; indexer readiness is not a finality proof.
+Changing a phone binding never substitutes a new payee into an already signed payment.
+
+The optional GraphQL `DirectoryChanges` operation provides ordered discovery events and accepts ordinary
+client headers for authenticated endpoints. An external consumer must check `directoryAddress`, confirm
+finality/block hashes independently and handle reorg rollback; a monotonic cursor alone cannot remove events
+that later disappear. Never publish privileged GraphQL credentials in the mobile app. No live Envio or Hasura
+endpoint was exercised for this change. Envio's per-chain rollback support is documented in its
+[v3.13 release overview](https://docs.envio.dev/blog/developer-update-september-2026).
+
+### Deployment compatibility
+
+This ABI requires new Directory/Escrow/Router deployments and a new server database; update app contract
+pins and both server/indexer deployment start blocks together. Do not overwrite the v1 deployment manifest
+or point v2 clients at it. Keep existing escrow funds and historical records on their original version.
+Regenerate ABIs with the commands below and reindex from the v2 deployment block. No deployment is performed
+by this source change.
 
 ## Run it
 
@@ -152,14 +205,14 @@ After a contract change: run `forge build`, then `node contracts/script/export-a
 Verified here:
 - `envio codegen` succeeds against `config.yaml` + `schema.graphql` (Envio 3.13.0), and
   `tsc --noEmit` passes on the handlers, client and tests.
-- 26 tests pass (`pnpm test`):
-  - 6 `createTestIndexer` scenarios that run the real handlers and the real `where` filters on
+- 30 tests pass (`pnpm test`):
+  - 8 `createTestIndexer` scenarios that run the real handlers and the real `where` filters on
     simulated logs: bindings and rebinds; escrow send→claim with time-to-claim; gift refund and
     cancel; direct/external transfers and other tokens; the account-filter drop (an unregistered
     address's log never reaches a handler); and Burrow auto-save→break→direct deposit, with
-    yield and TVL.
+    yield and TVL; verification renewal; and v2 recovery/cancellation/finalization/revocation with escrow epochs.
   - Unit tests for the classifier, histogram quantiles and Burrow maths.
-  - Client tests: request shape, pagination, API mapping. One test checks that every field the
+  - Client tests: request shape, pagination, API mapping, directory expiry and pending boundaries. One test checks that every field the
     GraphQL documents select exists in `schema.graphql`.
 
 Not verified (the sandbox had no network to Monad or HyperSync, and no Docker daemon):
@@ -174,7 +227,8 @@ Not verified (the sandbox had no network to Monad or HyperSync, and no Docker da
   `_withdraw`, `_burn`, then `POOL.withdraw` (AUSD from the aToken to the receiver), then
   `Withdraw`. In `_deposit`, `transferFrom(caller)`, then mint, then `Deposit`. The tests simulate
   that order, but it was not checked against the bytecode at `0x9e1A…fE76`.
-- BilbyPay contracts are not deployed yet, so addresses and start block are placeholders.
+- V2 BilbyPay contracts have not been deployed by this change. V2 addresses/start blocks must be configured
+  separately; any existing v1 deployment manifest is not compatible with these handlers.
 
 ## Known gaps
 

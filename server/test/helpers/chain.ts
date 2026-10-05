@@ -74,7 +74,7 @@ export async function deployAll(rpcUrl: string, roles: { deployer: Hex; verifier
   const ausd = await deploy("MockAUSD.sol", "MockAUSD");
   const stata = await deploy("MockStata.sol", "MockStata", [ausd]);
   const directory = await deploy("BilbyDirectory.sol", "BilbyDirectory", [account.address, roles.verifier]);
-  const escrow = await deploy("BilbyEscrow.sol", "BilbyEscrow", [ausd, account.address, roles.verifier, roles.treasury]);
+  const escrow = await deploy("BilbyEscrow.sol", "BilbyEscrow", [ausd, directory, account.address, roles.verifier, roles.treasury]);
   const router = await deploy("BilbyRouter.sol", "BilbyRouter", [ausd, stata, escrow, account.address]);
   const hash = await wallet.writeContract({ address: router, abi: bilbyRouterAbi, functionName: "setKeeper", args: [roles.keeper, true] });
   await client.waitForTransactionReceipt({ hash });

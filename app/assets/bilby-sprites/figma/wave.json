@@ -1,0 +1,1364 @@
+{
+  "source": "Figma authored vector animation frames",
+  "fileKey": "EQX5sbStSZeFf2lZCpvEJI",
+  "sequenceNodeId": "1:2",
+  "key": "wave",
+  "name": "Waving - Animation Sequence",
+  "columns": 8,
+  "rows": 8,
+  "frames": 57,
+  "fps": 24,
+  "cellSize": 320,
+  "frameAspect": 1,
+  "atlas": "wave.png",
+  "poster": "wave-poster.png",
+  "registration": {
+    "method": "source-grid-translation; identical final pose across row boundary",
+    "sourceGridColumns": 8,
+    "stepX": 255.6923828125,
+    "stepY": 274.18994140625,
+    "sharedCanvas": [
+      33.22615717169944,
+      28.154728460761945,
+      184.3202247191011,
+      184.3202247191011
+    ],
+    "uniformScale": 1.7361089944832213,
+    "paddingFraction": 0.055,
+    "frames": [
+      {
+        "index": 0,
+        "nodeId": "1:3",
+        "svg": "docs/design/figma-import/svg/wave/frame_000.svg",
+        "sha256": "3e6a38617dbe8033c5e037fa8dcaf31a020ed239c30084b1cd7e3ffe0cd5dc80",
+        "sourceBounds": {
+          "x": 56.04248046875,
+          "y": 44.128173828125,
+          "width": 143.18124389648438,
+          "height": 154.9849853515625
+        },
+        "registeredOrigin": [
+          56.04248046875,
+          44.128173828125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          143.181,
+          154.985
+        ]
+      },
+      {
+        "index": 1,
+        "nodeId": "1:42",
+        "svg": "docs/design/figma-import/svg/wave/frame_001.svg",
+        "sha256": "c386744fa17a2ddd789879bf3e911600112f6b2dc713ee221532b34d112260bc",
+        "sourceBounds": {
+          "x": 311.462890625,
+          "y": 43.706298828125,
+          "width": 143.52499389648438,
+          "height": 155.14059448242188
+        },
+        "registeredOrigin": [
+          55.7705078125,
+          43.706298828125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          143.525,
+          155.141
+        ]
+      },
+      {
+        "index": 2,
+        "nodeId": "1:78",
+        "svg": "docs/design/figma-import/svg/wave/frame_002.svg",
+        "sha256": "5e1f3e3d423e6b3894b92d7b47e16e3f144166514556800a3b2cb2b3a93e3fb8",
+        "sourceBounds": {
+          "x": 566.26123046875,
+          "y": 44.60107421875,
+          "width": 144.7958221435547,
+          "height": 154.26068115234375
+        },
+        "registeredOrigin": [
+          54.87646484375,
+          44.60107421875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          144.796,
+          154.261
+        ]
+      },
+      {
+        "index": 3,
+        "nodeId": "1:117",
+        "svg": "docs/design/figma-import/svg/wave/frame_003.svg",
+        "sha256": "15f74059b9436f621427dd66472c4d7f4c7804a58cacf0f215237dcce8ea7c55",
+        "sourceBounds": {
+          "x": 820.29150390625,
+          "y": 45.74951171875,
+          "width": 147.43370056152344,
+          "height": 153.12939453125
+        },
+        "registeredOrigin": [
+          53.21435546875,
+          45.74951171875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          147.434,
+          153.129
+        ]
+      },
+      {
+        "index": 4,
+        "nodeId": "1:156",
+        "svg": "docs/design/figma-import/svg/wave/frame_004.svg",
+        "sha256": "7127046023bd6041247e2b65177115c4fdc961a845b83ea119dfc4bd8fdcec63",
+        "sourceBounds": {
+          "x": 1074.00341796875,
+          "y": 47.04638671875,
+          "width": 150.12319946289062,
+          "height": 151.82217407226562
+        },
+        "registeredOrigin": [
+          51.23388671875,
+          47.04638671875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          150.123,
+          151.822
+        ]
+      },
+      {
+        "index": 5,
+        "nodeId": "1:193",
+        "svg": "docs/design/figma-import/svg/wave/frame_005.svg",
+        "sha256": "24370557447585a240a4e7b742f737c3df8acf2365c05d850d6f49ab67f5a8bb",
+        "sourceBounds": {
+          "x": 1328.014892578125,
+          "y": 48.313232421875,
+          "width": 152.6250762939453,
+          "height": 150.51785278320312
+        },
+        "registeredOrigin": [
+          49.552978515625,
+          48.313232421875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          152.625,
+          150.518
+        ]
+      },
+      {
+        "index": 6,
+        "nodeId": "1:231",
+        "svg": "docs/design/figma-import/svg/wave/frame_006.svg",
+        "sha256": "22ad8d0ce2379d2a0e7fab0e6e703ae12a4d9cab775e79800b2afa0c6a55049a",
+        "sourceBounds": {
+          "x": 1582.045654296875,
+          "y": 49.482177734375,
+          "width": 155.01815795898438,
+          "height": 149.54226684570312
+        },
+        "registeredOrigin": [
+          47.891357421875,
+          49.482177734375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          155.018,
+          149.542
+        ]
+      },
+      {
+        "index": 7,
+        "nodeId": "1:267",
+        "svg": "docs/design/figma-import/svg/wave/frame_007.svg",
+        "sha256": "9efcf7ac1581817c4396b1df1baa16b94ca04e07d2e472bd1155f53f3642e639",
+        "sourceBounds": {
+          "x": 1836.55810546875,
+          "y": 49.10986328125,
+          "width": 156.91323852539062,
+          "height": 149.70144653320312
+        },
+        "registeredOrigin": [
+          46.71142578125,
+          49.10986328125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          156.913,
+          149.702
+        ]
+      },
+      {
+        "index": 8,
+        "nodeId": "1:304",
+        "svg": "docs/design/figma-import/svg/wave/frame_008.svg",
+        "sha256": "f7c87aced65489ba7857a56224d0cea1c9fdf1e93716c547f6b20f0c85d139fc",
+        "sourceBounds": {
+          "x": 45.9990234375,
+          "y": 323.00537109375,
+          "width": 158.27960205078125,
+          "height": 150.0663604736328
+        },
+        "registeredOrigin": [
+          45.9990234375,
+          48.8154296875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          158.28,
+          150.066
+        ]
+      },
+      {
+        "index": 9,
+        "nodeId": "1:342",
+        "svg": "docs/design/figma-import/svg/wave/frame_009.svg",
+        "sha256": "60c8dcdff4c05020a7efd805e691fac7a182436a0049be114e96a2a62b483ea3",
+        "sourceBounds": {
+          "x": 300.947265625,
+          "y": 323.240966796875,
+          "width": 158.88815307617188,
+          "height": 149.97256469726562
+        },
+        "registeredOrigin": [
+          45.2548828125,
+          49.051025390625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          158.888,
+          149.973
+        ]
+      },
+      {
+        "index": 10,
+        "nodeId": "1:376",
+        "svg": "docs/design/figma-import/svg/wave/frame_010.svg",
+        "sha256": "abe9e358e3d2b0da00b228672873715139f2c6ac4b620923b102debb753d5ea3",
+        "sourceBounds": {
+          "x": 556.78076171875,
+          "y": 322.69384765625,
+          "width": 158.7626953125,
+          "height": 150.46112060546875
+        },
+        "registeredOrigin": [
+          45.39599609375,
+          48.50390625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          158.763,
+          150.461
+        ]
+      },
+      {
+        "index": 11,
+        "nodeId": "1:409",
+        "svg": "docs/design/figma-import/svg/wave/frame_011.svg",
+        "sha256": "024761888d86bc8182fbfe1932106fdc00c9c1149bf225d8d85b91d8cdb65c59",
+        "sourceBounds": {
+          "x": 812.779296875,
+          "y": 322.6904296875,
+          "width": 158.58779907226562,
+          "height": 150.48104858398438
+        },
+        "registeredOrigin": [
+          45.7021484375,
+          48.50048828125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          158.588,
+          150.481
+        ]
+      },
+      {
+        "index": 12,
+        "nodeId": "1:445",
+        "svg": "docs/design/figma-import/svg/wave/frame_012.svg",
+        "sha256": "e3a0c1eb7f190322ea85a38ee5d36c382f80bd57200203dd363de894102c794b",
+        "sourceBounds": {
+          "x": 1069.23486328125,
+          "y": 322.75537109375,
+          "width": 157.94491577148438,
+          "height": 150.43243408203125
+        },
+        "registeredOrigin": [
+          46.46533203125,
+          48.5654296875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          157.945,
+          150.432
+        ]
+      },
+      {
+        "index": 13,
+        "nodeId": "1:479",
+        "svg": "docs/design/figma-import/svg/wave/frame_013.svg",
+        "sha256": "546bea3d4b62a13d62818862ae470284db8c6ca31f397e56192391170ec0d36a",
+        "sourceBounds": {
+          "x": 1325.557861328125,
+          "y": 323.294677734375,
+          "width": 157.25039672851562,
+          "height": 150.0789031982422
+        },
+        "registeredOrigin": [
+          47.095947265625,
+          49.104736328125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          157.25,
+          150.079
+        ]
+      },
+      {
+        "index": 14,
+        "nodeId": "1:509",
+        "svg": "docs/design/figma-import/svg/wave/frame_014.svg",
+        "sha256": "e0078e72668322ae64286f325db2699826a15e511bfbcf2d857ed5da1c55651f",
+        "sourceBounds": {
+          "x": 1582.791748046875,
+          "y": 323.267333984375,
+          "width": 155.62203979492188,
+          "height": 149.9197998046875
+        },
+        "registeredOrigin": [
+          48.637451171875,
+          49.077392578125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          155.622,
+          149.92
+        ]
+      },
+      {
+        "index": 15,
+        "nodeId": "1:541",
+        "svg": "docs/design/figma-import/svg/wave/frame_015.svg",
+        "sha256": "198317c3b3c5c4ed98b1b05380addaad04babe30ec7c38501c2bec937564b975",
+        "sourceBounds": {
+          "x": 1839.861572265625,
+          "y": 323.83154296875,
+          "width": 153.8051300048828,
+          "height": 149.3905487060547
+        },
+        "registeredOrigin": [
+          50.014892578125,
+          49.6416015625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          153.805,
+          149.391
+        ]
+      },
+      {
+        "index": 16,
+        "nodeId": "1:572",
+        "svg": "docs/design/figma-import/svg/wave/frame_016.svg",
+        "sha256": "2342604340e40e305c1ef4f65d9fb3db93105252ebd6012eb229545552665608",
+        "sourceBounds": {
+          "x": 51.56066131591797,
+          "y": 597.050048828125,
+          "width": 151.73167419433594,
+          "height": 150.41818237304688
+        },
+        "registeredOrigin": [
+          51.56066131591797,
+          48.670166015625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          151.732,
+          150.418
+        ]
+      },
+      {
+        "index": 17,
+        "nodeId": "1:604",
+        "svg": "docs/design/figma-import/svg/wave/frame_017.svg",
+        "sha256": "dbbec0af131a5e80e5e93129af7f4017ad9dfb822249a781ca46deb063251f30",
+        "sourceBounds": {
+          "x": 307.7568359375,
+          "y": 595.234130859375,
+          "width": 150.4598846435547,
+          "height": 152.1619873046875
+        },
+        "registeredOrigin": [
+          52.064453125,
+          46.854248046875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          150.46,
+          152.162
+        ]
+      },
+      {
+        "index": 18,
+        "nodeId": "1:636",
+        "svg": "docs/design/figma-import/svg/wave/frame_018.svg",
+        "sha256": "56fe0c8b1e9f98a138612d76b7f33858cc49c652dd040f5bff2c07f9a44c857d",
+        "sourceBounds": {
+          "x": 563.4794921875,
+          "y": 593.790283203125,
+          "width": 149.53929138183594,
+          "height": 153.77223205566406
+        },
+        "registeredOrigin": [
+          52.0947265625,
+          45.410400390625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          149.539,
+          153.772
+        ]
+      },
+      {
+        "index": 19,
+        "nodeId": "1:671",
+        "svg": "docs/design/figma-import/svg/wave/frame_019.svg",
+        "sha256": "691808ac4376e585a3335bed24ae22a73512e0bddf4ca89e61e1c7b8e1df29bc",
+        "sourceBounds": {
+          "x": 819.6298828125,
+          "y": 592.6455078125,
+          "width": 147.94775390625,
+          "height": 155.1540985107422
+        },
+        "registeredOrigin": [
+          52.552734375,
+          44.265625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          147.948,
+          155.154
+        ]
+      },
+      {
+        "index": 20,
+        "nodeId": "1:704",
+        "svg": "docs/design/figma-import/svg/wave/frame_020.svg",
+        "sha256": "d7b4ff9712a2b4690d3bb31091f498ee9d057ed4db74596bca93eadb8c550f59",
+        "sourceBounds": {
+          "x": 1075.64892578125,
+          "y": 591.404052734375,
+          "width": 146.60354614257812,
+          "height": 156.43008422851562
+        },
+        "registeredOrigin": [
+          52.87939453125,
+          43.024169921875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          146.604,
+          156.43
+        ]
+      },
+      {
+        "index": 21,
+        "nodeId": "1:735",
+        "svg": "docs/design/figma-import/svg/wave/frame_021.svg",
+        "sha256": "905f9fa006922fb0f901c2a07d5b695b001e79ed010754239a551f7f84d42cfb",
+        "sourceBounds": {
+          "x": 1331.802978515625,
+          "y": 590.254150390625,
+          "width": 145.36119079589844,
+          "height": 157.32247924804688
+        },
+        "registeredOrigin": [
+          53.341064453125,
+          41.874267578125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          145.361,
+          157.323
+        ]
+      },
+      {
+        "index": 22,
+        "nodeId": "1:767",
+        "svg": "docs/design/figma-import/svg/wave/frame_022.svg",
+        "sha256": "1a11a7857a6b999fb695be76754a6e7a5e3fa705e82350708acee6e104687929",
+        "sourceBounds": {
+          "x": 1588.1240234375,
+          "y": 589.869873046875,
+          "width": 144.02117919921875,
+          "height": 157.88661193847656
+        },
+        "registeredOrigin": [
+          53.9697265625,
+          41.489990234375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          144.021,
+          157.887
+        ]
+      },
+      {
+        "index": 23,
+        "nodeId": "1:803",
+        "svg": "docs/design/figma-import/svg/wave/frame_023.svg",
+        "sha256": "1ce98a50487771e7705202aa08318a404a566aa758c53781fd52c3c9b4c26faa",
+        "sourceBounds": {
+          "x": 1844.33203125,
+          "y": 589.293212890625,
+          "width": 143.24676513671875,
+          "height": 158.22146606445312
+        },
+        "registeredOrigin": [
+          54.4853515625,
+          40.913330078125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          143.247,
+          158.222
+        ]
+      },
+      {
+        "index": 24,
+        "nodeId": "1:840",
+        "svg": "docs/design/figma-import/svg/wave/frame_024.svg",
+        "sha256": "406ec48d9ce434348d433ce2c5524e379e0d2b8599cd9ee5de99ec585e3b372b",
+        "sourceBounds": {
+          "x": 54.87353515625,
+          "y": 863.70068359375,
+          "width": 143.0491485595703,
+          "height": 157.6427001953125
+        },
+        "registeredOrigin": [
+          54.87353515625,
+          41.130859375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          143.049,
+          157.643
+        ]
+      },
+      {
+        "index": 25,
+        "nodeId": "1:872",
+        "svg": "docs/design/figma-import/svg/wave/frame_025.svg",
+        "sha256": "640f826a9d27e370f9372a6610059ad868d264d2f1cc2f440f60bcf3eaf0023e",
+        "sourceBounds": {
+          "x": 311.15869140625,
+          "y": 864.6201171875,
+          "width": 143.10548400878906,
+          "height": 156.90548706054688
+        },
+        "registeredOrigin": [
+          55.46630859375,
+          42.05029296875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          143.105,
+          156.906
+        ]
+      },
+      {
+        "index": 26,
+        "nodeId": "1:906",
+        "svg": "docs/design/figma-import/svg/wave/frame_026.svg",
+        "sha256": "c706d987c276d735099c64a21f381c2f2792f134ea9e4faf5cd40011e729d329",
+        "sourceBounds": {
+          "x": 566.988525390625,
+          "y": 865.8920288085938,
+          "width": 143.7600555419922,
+          "height": 155.80491638183594
+        },
+        "registeredOrigin": [
+          55.603759765625,
+          43.32220458984375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          143.76,
+          155.805
+        ]
+      },
+      {
+        "index": 27,
+        "nodeId": "1:941",
+        "svg": "docs/design/figma-import/svg/wave/frame_027.svg",
+        "sha256": "c96d889b403415e9b362f121397f9f9b57e0024b02d8f03e5e690be48a5033fc",
+        "sourceBounds": {
+          "x": 819.904296875,
+          "y": 867.68359375,
+          "width": 147.5534210205078,
+          "height": 154.26766967773438
+        },
+        "registeredOrigin": [
+          52.8271484375,
+          45.11376953125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          147.554,
+          154.268
+        ]
+      },
+      {
+        "index": 28,
+        "nodeId": "1:976",
+        "svg": "docs/design/figma-import/svg/wave/frame_028.svg",
+        "sha256": "d30da9ff1262395608f9489724a54473b7ece6d353023b26f3653625fef92dc9",
+        "sourceBounds": {
+          "x": 1073.46435546875,
+          "y": 869.20263671875,
+          "width": 150.92942810058594,
+          "height": 152.64682006835938
+        },
+        "registeredOrigin": [
+          50.69482421875,
+          46.6328125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          150.93,
+          152.647
+        ]
+      },
+      {
+        "index": 29,
+        "nodeId": "1:1015",
+        "svg": "docs/design/figma-import/svg/wave/frame_029.svg",
+        "sha256": "a10d5af453df1b8010825ed606e649675fe76224f5d253ebf6f416760fa16f5f",
+        "sourceBounds": {
+          "x": 1326.7686767578125,
+          "y": 870.977783203125,
+          "width": 154.10232543945312,
+          "height": 150.9191131591797
+        },
+        "registeredOrigin": [
+          48.3067626953125,
+          48.407958984375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          154.102,
+          150.919
+        ]
+      },
+      {
+        "index": 30,
+        "nodeId": "1:1051",
+        "svg": "docs/design/figma-import/svg/wave/frame_030.svg",
+        "sha256": "5765b108b5518beb9e7d59c0945a24ed9d024958a16b1a18ba9cdd5b29ced93b",
+        "sourceBounds": {
+          "x": 1580.7900390625,
+          "y": 872.38916015625,
+          "width": 156.5059356689453,
+          "height": 149.56155395507812
+        },
+        "registeredOrigin": [
+          46.6357421875,
+          49.8193359375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          156.506,
+          149.562
+        ]
+      },
+      {
+        "index": 31,
+        "nodeId": "1:1090",
+        "svg": "docs/design/figma-import/svg/wave/frame_031.svg",
+        "sha256": "d9f9bb5feefd4550c225d24ec88648a6ab46af2a11e6ecbf146d4f85db669d45",
+        "sourceBounds": {
+          "x": 1835.3895263671875,
+          "y": 871.279541015625,
+          "width": 158.11004638671875,
+          "height": 150.6461181640625
+        },
+        "registeredOrigin": [
+          45.5428466796875,
+          48.709716796875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          158.11,
+          150.646
+        ]
+      },
+      {
+        "index": 32,
+        "nodeId": "1:1128",
+        "svg": "docs/design/figma-import/svg/wave/frame_032.svg",
+        "sha256": "6a9d3c46bdca637782ba3c65c67bf2048a03bc4fe0c1a979ad41834bdd44653b",
+        "sourceBounds": {
+          "x": 44.9853515625,
+          "y": 1145.73779296875,
+          "width": 159.02040100097656,
+          "height": 150.22393798828125
+        },
+        "registeredOrigin": [
+          44.9853515625,
+          48.97802734375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          159.021,
+          150.224
+        ]
+      },
+      {
+        "index": 33,
+        "nodeId": "1:1166",
+        "svg": "docs/design/figma-import/svg/wave/frame_033.svg",
+        "sha256": "6e03d44b09d6e32296e47820624cb083f30599909602987dac385fc0bf9d64aa",
+        "sourceBounds": {
+          "x": 301.0107421875,
+          "y": 1145.13037109375,
+          "width": 158.93576049804688,
+          "height": 150.77410888671875
+        },
+        "registeredOrigin": [
+          45.318359375,
+          48.37060546875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          158.936,
+          150.774
+        ]
+      },
+      {
+        "index": 34,
+        "nodeId": "1:1203",
+        "svg": "docs/design/figma-import/svg/wave/frame_034.svg",
+        "sha256": "72a39bc3f5c4d2679d50ca96256176f54bd456bde4a9bc74e4b28dc5ca56c7eb",
+        "sourceBounds": {
+          "x": 557.521240234375,
+          "y": 1144.9609375,
+          "width": 158.4110107421875,
+          "height": 151.18685913085938
+        },
+        "registeredOrigin": [
+          46.136474609375,
+          48.201171875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          158.411,
+          151.187
+        ]
+      },
+      {
+        "index": 35,
+        "nodeId": "1:1239",
+        "svg": "docs/design/figma-import/svg/wave/frame_035.svg",
+        "sha256": "3839f32acd42bb53971d2dd02f2007d5a36ea96a00d7de1caf87126cfe03d16a",
+        "sourceBounds": {
+          "x": 814.15234375,
+          "y": 1145.392578125,
+          "width": 157.61773681640625,
+          "height": 150.4385986328125
+        },
+        "registeredOrigin": [
+          47.0751953125,
+          48.6328125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          157.618,
+          150.439
+        ]
+      },
+      {
+        "index": 36,
+        "nodeId": "1:1276",
+        "svg": "docs/design/figma-import/svg/wave/frame_036.svg",
+        "sha256": "a92c487177c6f07eefbb48c8853c2a407d98da0a4552aa51d5c2a08c73819a8c",
+        "sourceBounds": {
+          "x": 1071.4267578125,
+          "y": 1145.83642578125,
+          "width": 156.12086486816406,
+          "height": 149.98587036132812
+        },
+        "registeredOrigin": [
+          48.6572265625,
+          49.07666015625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          156.121,
+          149.986
+        ]
+      },
+      {
+        "index": 37,
+        "nodeId": "1:1310",
+        "svg": "docs/design/figma-import/svg/wave/frame_037.svg",
+        "sha256": "de7185ebe977d47ccec27d8919668cc42ac9f7758e2e5494bd7580f7de3acc82",
+        "sourceBounds": {
+          "x": 1328.723876953125,
+          "y": 1145.89404296875,
+          "width": 154.5072021484375,
+          "height": 149.98532104492188
+        },
+        "registeredOrigin": [
+          50.261962890625,
+          49.13427734375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          154.507,
+          149.985
+        ]
+      },
+      {
+        "index": 38,
+        "nodeId": "1:1341",
+        "svg": "docs/design/figma-import/svg/wave/frame_038.svg",
+        "sha256": "40e4d13ee526ea3d1016b68c36fc7fa4783a41732dcf9761dab76610c4d85056",
+        "sourceBounds": {
+          "x": 1585.781494140625,
+          "y": 1146.59130859375,
+          "width": 152.4113006591797,
+          "height": 149.23056030273438
+        },
+        "registeredOrigin": [
+          51.627197265625,
+          49.83154296875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          152.411,
+          149.231
+        ]
+      },
+      {
+        "index": 39,
+        "nodeId": "1:1376",
+        "svg": "docs/design/figma-import/svg/wave/frame_039.svg",
+        "sha256": "a75184246a193ca903da190e37f52e946723d9c3d3901b090b68bb9699ffd682",
+        "sourceBounds": {
+          "x": 1843.0869140625,
+          "y": 1144.9658203125,
+          "width": 150.37501525878906,
+          "height": 150.73629760742188
+        },
+        "registeredOrigin": [
+          53.240234375,
+          48.2060546875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          150.375,
+          150.736
+        ]
+      },
+      {
+        "index": 40,
+        "nodeId": "1:1407",
+        "svg": "docs/design/figma-import/svg/wave/frame_040.svg",
+        "sha256": "7b632b462c0502d146cc113aabc1cc232d034fb73fea616d46d4b44984b39be6",
+        "sourceBounds": {
+          "x": 53.37060546875,
+          "y": 1417.41552734375,
+          "width": 149.5265655517578,
+          "height": 152.6558380126953
+        },
+        "registeredOrigin": [
+          53.37060546875,
+          46.4658203125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          149.527,
+          152.656
+        ]
+      },
+      {
+        "index": 41,
+        "nodeId": "1:1437",
+        "svg": "docs/design/figma-import/svg/wave/frame_041.svg",
+        "sha256": "607b9d79dc87fd320a2484839f6276878c46c8e50cdc7f7297d6d23eea84a3cf",
+        "sourceBounds": {
+          "x": 308.6416015625,
+          "y": 1415.6240234375,
+          "width": 148.8684844970703,
+          "height": 154.22976684570312
+        },
+        "registeredOrigin": [
+          52.94921875,
+          44.67431640625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          148.869,
+          154.23
+        ]
+      },
+      {
+        "index": 42,
+        "nodeId": "1:1468",
+        "svg": "docs/design/figma-import/svg/wave/frame_042.svg",
+        "sha256": "7cc8748988ddd089c0d0444714998b9b7c6eb096f62d8cb65d90c81fca564f7d",
+        "sourceBounds": {
+          "x": 563.9150390625,
+          "y": 1414.1787109375,
+          "width": 148.23367309570312,
+          "height": 155.6758270263672
+        },
+        "registeredOrigin": [
+          52.5302734375,
+          43.22900390625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          148.234,
+          155.676
+        ]
+      },
+      {
+        "index": 43,
+        "nodeId": "1:1500",
+        "svg": "docs/design/figma-import/svg/wave/frame_043.svg",
+        "sha256": "265d326a15dfde6434b4d6aa80645fcbc5b0556cf1ab465bcd57e10d59fd1fe4",
+        "sourceBounds": {
+          "x": 819.3486328125,
+          "y": 1412.9228515625,
+          "width": 147.64772033691406,
+          "height": 156.93670654296875
+        },
+        "registeredOrigin": [
+          52.271484375,
+          41.97314453125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          147.648,
+          156.937
+        ]
+      },
+      {
+        "index": 44,
+        "nodeId": "1:1533",
+        "svg": "docs/design/figma-import/svg/wave/frame_044.svg",
+        "sha256": "318bcdaa2e791813d2c0c2452599e861badbc3bd18c9910c309fd10232d4d92b",
+        "sourceBounds": {
+          "x": 1075.23486328125,
+          "y": 1412.4248046875,
+          "width": 146.83726501464844,
+          "height": 157.44097900390625
+        },
+        "registeredOrigin": [
+          52.46533203125,
+          41.47509765625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          146.837,
+          157.441
+        ]
+      },
+      {
+        "index": 45,
+        "nodeId": "1:1563",
+        "svg": "docs/design/figma-import/svg/wave/frame_045.svg",
+        "sha256": "4891a4f4de982ab5cb9b0bb6c225f2da5a6234873c392f34eedbf96104550029",
+        "sourceBounds": {
+          "x": 1331.183837890625,
+          "y": 1412.013671875,
+          "width": 145.9144287109375,
+          "height": 157.8433837890625
+        },
+        "registeredOrigin": [
+          52.721923828125,
+          41.06396484375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          145.915,
+          157.844
+        ]
+      },
+      {
+        "index": 46,
+        "nodeId": "1:1594",
+        "svg": "docs/design/figma-import/svg/wave/frame_046.svg",
+        "sha256": "39556f23622122c4e75af64d314065423b937b8868605f1bccd032b37ea35610",
+        "sourceBounds": {
+          "x": 1587.05908203125,
+          "y": 1412.05224609375,
+          "width": 145.29356384277344,
+          "height": 157.9918212890625
+        },
+        "registeredOrigin": [
+          52.90478515625,
+          41.1025390625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          145.294,
+          157.992
+        ]
+      },
+      {
+        "index": 47,
+        "nodeId": "1:1623",
+        "svg": "docs/design/figma-import/svg/wave/frame_047.svg",
+        "sha256": "f88375f48b5262ca71d9ee545a8cae43d125c9a5a42ab8440d48c8137bd69621",
+        "sourceBounds": {
+          "x": 1843.026611328125,
+          "y": 1412.54345703125,
+          "width": 145.27572631835938,
+          "height": 157.67129516601562
+        },
+        "registeredOrigin": [
+          53.179931640625,
+          41.59375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          145.276,
+          157.671
+        ]
+      },
+      {
+        "index": 48,
+        "nodeId": "1:1655",
+        "svg": "docs/design/figma-import/svg/wave/frame_048.svg",
+        "sha256": "9f3174bf370d0c0f2ff54f6fb1ba302c383ad311a7132eacfcc5c79fea4b244d",
+        "sourceBounds": {
+          "x": 53.7412109375,
+          "y": 1687.17041015625,
+          "width": 145.0550079345703,
+          "height": 157.1371307373047
+        },
+        "registeredOrigin": [
+          53.7412109375,
+          42.03076171875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          145.055,
+          157.137
+        ]
+      },
+      {
+        "index": 49,
+        "nodeId": "1:1689",
+        "svg": "docs/design/figma-import/svg/wave/frame_049.svg",
+        "sha256": "b40407f2aaa4ae582d95af6cad29a33b13b9c5faef155edbec2f34d53834ec81",
+        "sourceBounds": {
+          "x": 309.56982421875,
+          "y": 1688.12548828125,
+          "width": 145.424072265625,
+          "height": 156.117431640625
+        },
+        "registeredOrigin": [
+          53.87744140625,
+          42.98583984375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          145.424,
+          156.118
+        ]
+      },
+      {
+        "index": 50,
+        "nodeId": "1:1723",
+        "svg": "docs/design/figma-import/svg/wave/frame_050.svg",
+        "sha256": "16b88af4017cba910203fd0262c2d3abe2c1b528901d695f231709ec294917ba",
+        "sourceBounds": {
+          "x": 565.8955078125,
+          "y": 1688.99853515625,
+          "width": 145.1887664794922,
+          "height": 155.22601318359375
+        },
+        "registeredOrigin": [
+          54.5107421875,
+          43.85888671875
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          145.189,
+          155.226
+        ]
+      },
+      {
+        "index": 51,
+        "nodeId": "1:1759",
+        "svg": "docs/design/figma-import/svg/wave/frame_051.svg",
+        "sha256": "93a090e76005af5a0b479eb17914651079bb4efce653b3ffd1687db5140e50ef",
+        "sourceBounds": {
+          "x": 820.388916015625,
+          "y": 1690.12841796875,
+          "width": 146.87379455566406,
+          "height": 154.14276123046875
+        },
+        "registeredOrigin": [
+          53.311767578125,
+          44.98876953125
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          146.874,
+          154.143
+        ]
+      },
+      {
+        "index": 52,
+        "nodeId": "1:1797",
+        "svg": "docs/design/figma-import/svg/wave/frame_052.svg",
+        "sha256": "8b9d1e9705afc8f27c4c84123e30c3a34cfef148f0c05680a8d13b2e3460d7c5",
+        "sourceBounds": {
+          "x": 1074.865234375,
+          "y": 1691.1181640625,
+          "width": 149.08309936523438,
+          "height": 153.12989807128906
+        },
+        "registeredOrigin": [
+          52.095703125,
+          45.978515625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          149.083,
+          153.13
+        ]
+      },
+      {
+        "index": 53,
+        "nodeId": "1:1837",
+        "svg": "docs/design/figma-import/svg/wave/frame_053.svg",
+        "sha256": "f963a1f314af358011068f884737820e104aa7cebf8dd7eefa56a98b624c7573",
+        "sourceBounds": {
+          "x": 1327.715576171875,
+          "y": 1693.4873046875,
+          "width": 153.99420166015625,
+          "height": 150.96075439453125
+        },
+        "registeredOrigin": [
+          49.253662109375,
+          48.34765625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          153.994,
+          150.961
+        ]
+      },
+      {
+        "index": 54,
+        "nodeId": "1:1882",
+        "svg": "docs/design/figma-import/svg/wave/frame_054.svg",
+        "sha256": "80c14180699cf80f76eb2c3f3e7357882908d9931126c1e11fbb0960347f2a79",
+        "sourceBounds": {
+          "x": 1580.914306640625,
+          "y": 1696.037109375,
+          "width": 158.78421020507812,
+          "height": 148.36874389648438
+        },
+        "registeredOrigin": [
+          46.760009765625,
+          50.8974609375
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          158.784,
+          148.369
+        ]
+      },
+      {
+        "index": 55,
+        "nodeId": "1:1913",
+        "svg": "docs/design/figma-import/svg/wave/frame_055.svg",
+        "sha256": "637346eaeb2c6d1b5bcf167d02bdfe81858d94c9aad92b1f8505f076e5cd3140",
+        "sourceBounds": {
+          "x": 1833.21044921875,
+          "y": 1699,
+          "width": 164.04486083984375,
+          "height": 145.85646057128906
+        },
+        "registeredOrigin": [
+          43.36376953125,
+          53.8603515625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          164.045,
+          145.856
+        ]
+      },
+      {
+        "index": 56,
+        "nodeId": "1:1942",
+        "svg": "docs/design/figma-import/svg/wave/frame_056.svg",
+        "sha256": "499d7a31d8e4076974dcf250cbd00f614a5d5515b66def4d9410a99f52d32315",
+        "sourceBounds": {
+          "x": 43.36376953125,
+          "y": 1973.18994140625,
+          "width": 164.04486083984375,
+          "height": 145.85646057128906
+        },
+        "registeredOrigin": [
+          43.36376953125,
+          53.8603515625
+        ],
+        "svgViewBox": [
+          0.0,
+          0.0,
+          164.045,
+          145.856
+        ]
+      }
+    ]
+  },
+  "qa": {
+    "sourceFramesPreserved": 57,
+    "interpolation": false,
+    "redrawing": false,
+    "minAlphaMarginPx": 17,
+    "posterIdenticalToFirstFrame": true,
+    "finalDuplicateDistance": 4.720366632682271e-06,
+    "adjacentDistanceMedian": 0.06234631687402725,
+    "adjacentDistanceMaximum": 0.1115204319357872,
+    "lastToFirstDistance": 0.2629086673259735,
+    "cyclicRangeCandidates": [
+      {
+        "start": 19,
+        "end": 42,
+        "distance": 0.0424857996404171
+      },
+      {
+        "start": 19,
+        "end": 41,
+        "distance": 0.04466543346643448
+      },
+      {
+        "start": 18,
+        "end": 41,
+        "distance": 0.04651928320527077
+      },
+      {
+        "start": 20,
+        "end": 42,
+        "distance": 0.049315374344587326
+      },
+      {
+        "start": 20,
+        "end": 43,
+        "distance": 0.05173257365822792
+      },
+      {
+        "start": 21,
+        "end": 44,
+        "distance": 0.05421896278858185
+      },
+      {
+        "start": 1,
+        "end": 25,
+        "distance": 0.055087778717279434
+      },
+      {
+        "start": 18,
+        "end": 40,
+        "distance": 0.0573425330221653
+      },
+      {
+        "start": 21,
+        "end": 43,
+        "distance": 0.0574631467461586
+      },
+      {
+        "start": 21,
+        "end": 45,
+        "distance": 0.06034919619560242
+      },
+      {
+        "start": 2,
+        "end": 26,
+        "distance": 0.0630173310637474
+      },
+      {
+        "start": 0,
+        "end": 25,
+        "distance": 0.06329570710659027
+      }
+    ]
+  },
+  "recommendedPlayback": {
+    "mode": "ping-pong",
+    "fps": 24,
+    "repeatDelayMs": 10000,
+    "reason": "Authored final smile has closed eyes; retracing the gesture avoids a last-to-first cut."
+  }
+}

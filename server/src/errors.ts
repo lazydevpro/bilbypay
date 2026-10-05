@@ -32,6 +32,10 @@ export const errors = {
   otpExpired: () => new ApiError(400, "OTP_EXPIRED", "That code has expired. Ask for a new one and try again."),
   phoneCheckExpired: () =>
     new ApiError(401, "OTP_EXPIRED", "Your number check timed out. Verify your number again to continue."),
+  recipientChanged: () => new ApiError(409, "RECIPIENT_CHANGED", "This person's details changed. Go back, check the recipient, and review the payment again."),
+  phoneUnavailable: () => new ApiError(409, "PHONE_UNAVAILABLE", "This number needs to be verified again before it can receive payments. Ask the recipient to check their number in Settings."),
+  phoneChangePending: (availableAt?: string) => new ApiError(409, "PHONE_CHANGE_PENDING", "A change to this number is being reviewed. Please wait until the review ends, then verify the number again.", availableAt ? { availableAt } : {}),
+  claimRecipientChanged: () => new ApiError(409, "CLAIM_RECIPIENT_CHANGED", "This number's details changed after this was sent. Ask the sender to take the money back and send it again."),
   rateLimited: (message = "Too many tries. Please wait a little while and try again.") =>
     new ApiError(429, "RATE_LIMITED", message),
   badSignature: () =>
@@ -106,6 +110,12 @@ export function humanizeRevert(err: unknown): ApiError {
   // relayer.RevertError carries the decoded reason already.
   const carried = (err as { reason?: unknown } | null)?.reason;
   const reason = (typeof carried === "string" ? carried : innerReason(err)) ?? "";
+  if (/RevisionMismatch|StaleRevision|StaleAttestation/.test(reason)) return errors.recipientChanged();
+  if (/RecoveryNotReady|RecoveryPending|PendingRecovery/.test(reason)) return errors.phoneChangePending();
+  if (/PhoneEpochMismatch|RecipientChanged|InvalidRecipientBinding/.test(reason)) return errors.claimRecipientChanged();
+  if (/RecipientUnavailable/.test(reason)) return errors.phoneUnavailable();
+  if (/AccountAlreadyBound/.test(reason)) return errors.invalidRequest("Stop receiving on your current number in Settings before linking a different one.");
+  if (/InvalidAccountConsent|InvalidControllerConsent|InvalidAttestation|InvalidSignature/.test(reason)) return errors.badSignature();
   if (/authorization is used|AuthorizationUsed|DepositExists/i.test(reason)) {
     return new ApiError(409, "ALREADY_DONE", "This was already sent. Check your activity before trying again.");
   }

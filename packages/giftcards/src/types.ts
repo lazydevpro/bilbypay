@@ -10,6 +10,8 @@ export type GiftBrand = {
   id: string;
   name: string;
   logoUrl: string;
+  /** Provider-supplied product artwork. Preserve its colors and aspect ratio. */
+  artworkUrl?: string;
   /** ISO 3166-1 alpha-2, upper case. */
   country: string;
   category?: string;

@@ -1,42 +1,40 @@
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { api, isApiError } from "../../api";
+import { safeMessage } from "../../api/errors";
 import type { Brand, ClaimAcceptResponse } from "../../api/types";
 import { UnlockCancelled } from "../../auth/unlock";
 import { usd } from "../../money/amount";
-import { formatE164, matchesMasked } from "../../phone/phone";
+import { matchesMasked } from "../../phone/phone";
 import { useSession } from "../../state/session";
 import { useLoad } from "../../state/useLoad";
 import { BrandGrid } from "../../ui/BrandGrid";
 import { Button } from "../../ui/Button";
-import { Card } from "../../ui/Card";
 import { GiftFace } from "../../ui/GiftDesign";
+import { Icon } from "../../ui/Icon";
 import { Mascot } from "../../ui/Mascot";
+import { prefetchMascot } from "../../ui/mascot/assets";
 import { ErrorNote, Notice } from "../../ui/Notice";
 import { Screen } from "../../ui/Screen";
 import { Muted, Text } from "../../ui/Text";
-import { colors, space } from "../../ui/theme";
-
-const ask = (title: string, message: string, ok: string) =>
-  new Promise<boolean>((resolve) =>
-    Alert.alert(title, message, [
-      { text: "Not now", style: "cancel", onPress: () => resolve(false) },
-      { text: ok, onPress: () => resolve(true) },
-    ]),
-  );
+import { colors, radius, space } from "../../ui/theme";
 
 /** Someone sent you money or a gift: see it, prove it's your number, open it. */
 export default function ClaimScreen() {
   const { code = "" } = useLocalSearchParams<{ code: string }>();
   const session = useSession();
-  const { status, profile, freshVerification, setPendingClaim, linkNumber } = session;
+  const { status, profile, freshVerification, setPendingClaim } = session;
   const { data: claim, error, loading, reload } = useLoad(() => api.claim(code), [code]);
   const [brands, setBrands] = useState<Brand[] | null>(null);
   const [brandId, setBrandId] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<ClaimAcceptResponse | null>(null);
   const [acceptError, setAcceptError] = useState<unknown>(null);
+  const [opening, setOpening] = useState(false);
+
+  useEffect(() => { void prefetchMascot("running"); }, []);
 
   const needsBrand = claim?.kind === "gift" && !claim.gift?.brandId;
   const verification = freshVerification();
@@ -59,7 +57,7 @@ export default function ClaimScreen() {
   const verifyNumber = () => router.push({ pathname: "/phone", params: { purpose: "claim", code } });
 
   const open = async () => {
-    if (!claim) return;
+    if (!claim || opening) return;
     setAcceptError(null);
     if (status === "signedOut") return router.push("/welcome");
     if (status === "locked") return router.push("/unlock");
@@ -70,22 +68,26 @@ export default function ClaimScreen() {
       setAcceptError({ userMessage: "Pick a gift card first." });
       return;
     }
+    setOpening(true);
     try {
-      if (v.phone !== profile.phone) {
-        const ok = await ask(
-          "Use this number for BilbyPay?",
-          `This was sent to ${formatE164(v.phone)}. To open it, BilbyPay will switch your number from ${formatE164(profile.phone)} to this one.`,
-          "Switch number",
-        );
-        if (!ok) return;
-        await linkNumber();
+      if (v.phone !== profile.phone || (profile.phoneStatus && profile.phoneStatus !== "active")) {
+        setPendingClaim(code);
+        setAcceptError({ userMessage: "Link and verify this number in Your number before opening this payment. Your current account and balance stay separate." });
+        router.push("/settings/phone");
+        return;
       }
       const res = await api.acceptClaim(code, { phoneToken: v.phoneToken, ...(needsBrand && brandId ? { brandId } : {}) });
+      if (res.status !== "completed") {
+        setAcceptError({ userMessage: "We couldn't confirm this yet. Check Activity before trying again." });
+        return;
+      }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       setPendingClaim(null);
       setAccepted(res);
     } catch (e) {
       if (!(e instanceof UnlockCancelled)) setAcceptError(e);
+    } finally {
+      setOpening(false);
     }
   };
 
@@ -97,7 +99,9 @@ export default function ClaimScreen() {
   if (loading && !claim) {
     return (
       <Screen>
-        <ActivityIndicator color={colors.brown} style={{ marginTop: space.xxl }} />
+        <Mascot size={180} mood="thinking" interactive={false} />
+        <Muted style={styles.center}>Finding your little surprise…</Muted>
+        <ActivityIndicator color={colors.primary} />
       </Screen>
     );
   }
@@ -105,14 +109,15 @@ export default function ClaimScreen() {
   if (!claim) {
     return (
       <Screen footer={<Button variant="secondary" label="Close" onPress={done} />}>
-        <Mascot size={140} />
+        <Mascot size={180} mood="reassuring" interactive={false} />
         <ErrorNote error={error} onRetry={reload} />
       </Screen>
     );
   }
 
   if (accepted) {
-    const brandName = claim.gift?.brandName ?? brands?.find((b) => b.id === brandId)?.name;
+    const chosenBrand = brands?.find((b) => b.id === brandId);
+    const brandName = claim.gift?.brandName ?? chosenBrand?.name;
     return (
       <Screen
         edges={["top", "bottom"]}
@@ -127,16 +132,21 @@ export default function ClaimScreen() {
           )
         }
       >
-        <Mascot size={180} />
+        <View style={styles.status}>
+          <Icon name="check" color={colors.green} size={20} />
+          <Text variant="bodyStrong" color={colors.green}>{accepted.giftCardId ? "Your gift is ready" : "Added to your balance"}</Text>
+        </View>
+        <Mascot size={244} mood={accepted.error ? "reassuring" : "success"} interactive={false} />
         <Text variant="display" style={styles.center}>
-          {claim.kind === "gift" && accepted.giftCardId ? "It's yours! 🎉" : `${usd(accepted.amount)} is yours! 🎉`}
+          {claim.kind === "gift" && accepted.giftCardId ? "A little joy, just for you." : `${usd(accepted.amount)} is yours!`}
         </Text>
         <Muted style={styles.center}>
           {claim.kind === "gift" && accepted.giftCardId
             ? `Your ${brandName ?? ""} gift card from ${claim.senderName} is ready to use.`
             : `It's in your balance, from ${claim.senderName}.`}
         </Muted>
-        {accepted.error ? <Notice tone="info" message={accepted.error.message} /> : null}
+        {claim.kind === "gift" && accepted.giftCardId ? <GiftFace design={claim.gift?.design} brandName={brandName} artworkUrl={claim.gift?.brandArtworkUrl ?? chosenBrand?.artworkUrl} logoUrl={claim.gift?.brandLogoUrl ?? chosenBrand?.logoUrl} amount={accepted.amount} message={claim.gift?.message} from={claim.senderName} companion={false} /> : null}
+        {accepted.error ? <Notice tone="info" message={safeMessage(accepted.error.message, "We couldn't prepare the gift card, so the money was added to your balance instead.")} /> : null}
       </Screen>
     );
   }
@@ -146,19 +156,33 @@ export default function ClaimScreen() {
     status !== "ready" ? (claim.kind === "gift" ? "Open your gift" : `Get your ${usd(claim.amount)}`) : verified ? "Open it" : `Verify ${claim.phoneMasked}`;
 
   return (
-    <Screen footer={closed ? <Button variant="secondary" label="Close" onPress={done} /> : <Button label={label} disabled={needsBrand && verified && !brandId} onPress={open} />}>
-      <Text variant="title">
-        {claim.kind === "gift" ? `${claim.senderName} sent you a gift` : `${claim.senderName} sent you ${usd(claim.amount)}`}
+    <Screen footer={closed ? <Button variant="secondary" label="Close" onPress={done} /> : <Button label={label} busyLabel="Opening…" disabled={needsBrand && verified && !brandId} onPress={open} />}>
+      <Text variant="display" style={styles.center}>
+        {claim.kind === "gift" ? `${claim.senderName} sent you a little joy` : `${claim.senderName} sent you ${usd(claim.amount)}`}
       </Text>
 
+      {claim.kind === "gift" && (opening || acceptError || closed) ? <Mascot size={140} mood={opening ? "running" : "reassuring"} interactive={false} /> : null}
+
       {claim.kind === "gift" ? (
-        <GiftFace design={claim.gift?.design} brandName={claim.gift?.brandName} amount={claim.amount} message={claim.gift?.message} from={claim.senderName} />
+        <GiftFace design={claim.gift?.design} brandName={claim.gift?.brandName} artworkUrl={claim.gift?.brandArtworkUrl} logoUrl={claim.gift?.brandLogoUrl} amount={claim.amount} message={claim.gift?.message} from={claim.senderName} companion={!opening && !acceptError && !closed} />
       ) : (
-        <Card tone="sand" style={styles.money}>
-          <Text variant="hero">{usd(claim.amount)}</Text>
-          {claim.note ? <Text style={{ fontStyle: "italic" }}>“{claim.note}”</Text> : null}
-          <Muted variant="small">From {claim.senderName}</Muted>
-        </Card>
+        <View style={styles.moneyLetter}>
+          <Svg width="100%" height="200" viewBox="0 0 342 200" preserveAspectRatio="none" aria-hidden style={styles.envelope}>
+            <Path d="M6 76 165 4q6-4 12 0l159 72v112q0 8-8 8H14q-8 0-8-8Z" fill={colors.apricot} />
+            <Path d="m6 80 149 96q16 10 32 0l149-96" fill={colors.sandDeep} />
+            <Path d="m6 195 138-88q27-18 54 0l138 88" fill={colors.apricot} />
+          </Svg>
+          <View style={styles.letterPaper}>
+            <Muted variant="small">From {claim.senderName}</Muted>
+            <Text variant="hero" style={styles.center} adjustsFontSizeToFit minimumFontScale={0.65} numberOfLines={1}>{usd(claim.amount)}</Text>
+            {claim.note ? <Text style={styles.center}>“{claim.note}”</Text> : null}
+            <View style={styles.letterRule} />
+            <Muted variant="caption" style={styles.center}>For {claim.phoneMasked}</Muted>
+          </View>
+          <View style={styles.letterCompanion}>
+            <Mascot size={108} mood={opening ? "running" : acceptError || closed ? "reassuring" : "receiving"} interactive={false} />
+          </View>
+        </View>
       )}
 
       {claim.status === "opened" ? <Notice tone="success" message="This has already been opened." /> : null}
@@ -191,6 +215,11 @@ export default function ClaimScreen() {
 }
 
 const styles = StyleSheet.create({
-  center: { textAlign: "center" },
-  money: { alignItems: "center", paddingVertical: space.xl },
+  center: { textAlign: "center", maxWidth: "100%" },
+  moneyLetter: { width: "100%", paddingTop: space.xxxl, paddingBottom: space.xl, marginTop: space.sm },
+  envelope: { position: "absolute", bottom: 0 },
+  letterPaper: { alignItems: "center", gap: space.md, marginHorizontal: space.lg, padding: space.xl, paddingTop: space.xxl, borderRadius: radius.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, transform: [{ rotate: "-2deg" }] },
+  letterRule: { alignSelf: "stretch", borderTopWidth: 1, borderColor: colors.line, borderStyle: "dashed", marginTop: space.xs },
+  letterCompanion: { position: "absolute", right: -space.sm, top: -space.md },
+  status: { alignSelf: "center", flexDirection: "row", alignItems: "center", gap: space.sm, backgroundColor: colors.greenSoft, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
 });

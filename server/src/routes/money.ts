@@ -15,7 +15,7 @@ export function moneyRoutes(app: Hono<AppEnv>, s: Services) {
   app.post("/v1/resolve", auth, async (c) => {
     const { phones, region } = await body(c, z.object({ phones: z.array(z.string().max(40)).max(200), region: z.string().length(2).optional() }));
     s.accounts.requireRegistered(c.get("user"));
-    return c.json({ results: s.accounts.resolve(c.get("user"), phones, region) });
+    return c.json({ results: await s.accounts.resolve(c.get("user"), phones, region) });
   });
 
   app.post("/v1/actions", auth, async (c) => {

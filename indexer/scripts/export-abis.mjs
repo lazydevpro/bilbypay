@@ -12,7 +12,7 @@ const eventsOnly = (abi, names) =>
   abi.filter((item) => item.type === "event" && (!names || names.includes(item.name)));
 
 const outputs = {
-  "BilbyDirectory.json": eventsOnly(abis.bilbyDirectoryAbi, ["Bound", "Unbound"]),
+  "BilbyDirectory.json": eventsOnly(abis.bilbyDirectoryAbi, ["Bound", "Unbound", "BindingUpdated", "RecoveryRequested", "RecoveryCancelled", "RecoveryFinalized"]),
   "BilbyEscrow.json": eventsOnly(abis.bilbyEscrowAbi, ["Deposited", "Claimed", "Refunded", "Cancelled"]),
   "BilbyRouter.json": eventsOnly(abis.bilbyRouterAbi, ["AutoSaveSet", "Swept", "Broken", "Added"]),
   // ERC-20 Transfer + ERC-4626 Deposit/Withdraw, matched on AUSD and stataAUSD for BilbyPay accounts.

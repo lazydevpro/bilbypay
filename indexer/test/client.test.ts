@@ -7,10 +7,12 @@ import {
   burrowSummary,
   createIndexerClient,
   decodeCursor,
+  directoryStatus,
   encodeCursor,
   recentlyChanged,
   toActivityItem,
   type ActivityRow,
+  type PhoneRow,
 } from "../src/client.js";
 import { INDEXER_QUERIES } from "../src/queries.js";
 
@@ -61,6 +63,7 @@ describe("queries", () => {
       "GlobalStats",
       "ContactEdge",
       "Phone",
+      "DirectoryChange",
       "GlobalStats",
       "DailyStats",
       "_meta",
@@ -70,6 +73,7 @@ describe("queries", () => {
       "AccountSummary",
       "RecentContacts",
       "PhoneStatus",
+      "DirectoryChanges",
       "ProtocolStats",
     ]);
   });
@@ -146,6 +150,28 @@ describe("mapping to docs/api.md ActivityItem", () => {
 });
 
 describe("client", () => {
+  it("treats expiry and live recovery as non-resolving without requiring another event", () => {
+    const phone = { account_id: "0xa11c", revision: "5", validUntil: 2000, revoked: false, pendingAccount: null, pendingExpiresAt: null } as PhoneRow;
+    expect(directoryStatus(undefined, 1000)).toBe("unregistered");
+    expect(directoryStatus(phone, 1999)).toBe("active");
+    expect(directoryStatus(phone, 2000)).toBe("expired");
+    expect(directoryStatus({ ...phone, revoked: true }, 1000)).toBe("revoked");
+    const pending = { ...phone, pendingAccount: "0xb0b", pendingExpiresAt: 1500 };
+    expect(directoryStatus(pending, 1500)).toBe("pending");
+    expect(directoryStatus(pending, 1501)).toBe("active");
+  });
+
+  it("queries lifecycle changes with bounded ascending cursor and configured authentication", async () => {
+    let observed: { headers: Record<string, string>; body: string } | undefined;
+    const client = createIndexerClient({
+      url: "https://indexer.test/v1/graphql", chainId: 10143, headers: { authorization: "Bearer test-only" },
+      fetch: async (_url, init) => { observed = init; return { ok: true, status: 200, json: async () => ({ data: { DirectoryChange: [] } }) }; },
+    });
+    expect(await client.directoryChanges({ afterBlock: 100, afterLog: 3, toBlock: 150, limit: 20 })).toEqual([]);
+    expect(JSON.parse(observed!.body)).toMatchObject({ operationName: "DirectoryChanges", variables: { chainId: 10143, afterBlock: 100, afterLog: 3, toBlock: 150, limit: 20 } });
+    expect(observed!.headers.authorization).toBe("Bearer test-only");
+  });
+
   it("sends the named operation with chainId and paginates", async () => {
     const calls: Array<{ url: string; body: { operationName: string; variables: Record<string, unknown>; query: string } }> = [];
     const client = createIndexerClient({

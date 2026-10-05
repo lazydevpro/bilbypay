@@ -74,6 +74,7 @@ indexer.onEvent(
       id: depositId,
       sender_id: sender,
       phone_id: phoneKey,
+      phoneEpoch: event.params.phoneEpoch,
       amount,
       kind: isGift ? "GIFT" : "TRANSFER",
       giftId,

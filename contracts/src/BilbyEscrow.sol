@@ -7,13 +7,14 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {IERC3009} from "./interfaces/IERC3009.sol";
+import {BilbyDirectory} from "./BilbyDirectory.sol";
 
 /// @title BilbyEscrow
 /// @notice Holds dollars sent to a phone number that hasn't joined yet (or a gift card to be bought
-/// at claim time). The recipient claims with a verifier attestation after proving the number;
+/// at claim time). The enrolled recipient claims with a verifier attestation in the same phone epoch;
 /// otherwise the sender gets it back after expiry, or can cancel before it is claimed.
 ///
-/// Deposits are pulled with EIP-3009 `receiveWithAuthorization`. The deposit terms (phone, expiry,
+/// Deposits are pulled with EIP-3009 `receiveWithAuthorization`. The deposit terms (phone, epoch, expiry,
 /// kind, gift id) are hashed into the authorization nonce the sender signs, so nobody who sees the
 /// signature can redirect the deposit to other terms.
 contract BilbyEscrow is EIP712, Ownable2Step {
@@ -39,11 +40,13 @@ contract BilbyEscrow is EIP712, Ownable2Step {
         uint40 expiry;
         Kind kind;
         Status status;
+        uint64 phoneEpoch;
     }
 
     /// Terms a sender commits to when signing the deposit authorization.
     struct Terms {
         bytes32 phoneKey;
+        uint64 phoneEpoch;
         uint40 expiry;
         Kind kind;
         bytes32 giftId; // zero for TRANSFER
@@ -53,12 +56,14 @@ contract BilbyEscrow is EIP712, Ownable2Step {
     bytes32 public constant CLAIM_TYPEHASH =
         keccak256("Claim(bytes32 depositId,bytes32 phoneKey,address recipient,uint256 deadline)");
     bytes32 public constant CANCEL_TYPEHASH = keccak256("Cancel(bytes32 depositId,uint256 deadline)");
-    bytes32 public constant TERMS_TAG = keccak256("BilbyEscrow.Terms.v1");
+    bytes32 public constant TERMS_TAG = keccak256("BilbyEscrow.Terms.v2");
+    uint256 public constant VERSION = 2;
 
     uint256 public constant MIN_EXPIRY = 1 hours;
     uint256 public constant MAX_EXPIRY = 180 days;
 
     IERC20 public immutable token;
+    BilbyDirectory public immutable directory;
     address public verifier;
     address public treasury;
     mapping(bytes32 depositId => Deposit) private _deposits;
@@ -70,9 +75,12 @@ contract BilbyEscrow is EIP712, Ownable2Step {
         uint256 amount,
         uint256 expiry,
         Kind kind,
-        bytes32 giftId
+        bytes32 giftId,
+        uint64 phoneEpoch
     );
-    event Claimed(bytes32 indexed depositId, address indexed recipient, address indexed paidTo, uint256 amount);
+    event Claimed(
+        bytes32 indexed depositId, address indexed recipient, address indexed paidTo, uint256 amount
+    );
     event Refunded(bytes32 indexed depositId, address indexed sender, uint256 amount);
     event Cancelled(bytes32 indexed depositId, address indexed sender, uint256 amount);
     event VerifierChanged(address indexed verifier);
@@ -86,12 +94,23 @@ contract BilbyEscrow is EIP712, Ownable2Step {
     error InvalidSignature();
     error SignatureExpired();
     error ZeroAddress();
+    error ClaimExpired();
+    error RecipientUnavailable();
+    error PhoneEpochMismatch();
 
-    constructor(IERC20 token_, address owner_, address verifier_, address treasury_)
-        EIP712("BilbyEscrow", "1")
-        Ownable(owner_)
-    {
+    constructor(
+        IERC20 token_,
+        BilbyDirectory directory_,
+        address owner_,
+        address verifier_,
+        address treasury_
+    ) EIP712("BilbyEscrow", "1") Ownable(owner_) {
+        if (address(token_) == address(0) || address(directory_) == address(0)) {
+            revert ZeroAddress();
+        }
+        if (directory_.VERSION() != 2) revert InvalidTerms();
         token = token_;
+        directory = directory_;
         _setVerifier(verifier_);
         _setTreasury(treasury_);
     }
@@ -100,7 +119,17 @@ contract BilbyEscrow is EIP712, Ownable2Step {
 
     /// @notice The EIP-3009 nonce a sender must sign for these terms.
     function termsNonce(Terms calldata terms) public pure returns (bytes32) {
-        return keccak256(abi.encode(TERMS_TAG, terms.phoneKey, terms.expiry, terms.kind, terms.giftId, terms.salt));
+        return keccak256(
+            abi.encode(
+                TERMS_TAG,
+                terms.phoneKey,
+                terms.phoneEpoch,
+                terms.expiry,
+                terms.kind,
+                terms.giftId,
+                terms.salt
+            )
+        );
     }
 
     function depositIdOf(address sender, bytes32 nonce) public pure returns (bytes32) {
@@ -118,7 +147,7 @@ contract BilbyEscrow is EIP712, Ownable2Step {
     // ------------------------------------------------------------ deposits
 
     /// @notice Pulls `amount` from `from` (who signed a ReceiveWithAuthorization to this contract
-    /// with nonce = termsNonce(terms)) and holds it for whoever proves `terms.phoneKey`.
+    /// with nonce = termsNonce(terms)) and holds it for the enrolled account in the committed epoch.
     function depositWithAuthorization(
         address from,
         uint256 amount,
@@ -135,6 +164,7 @@ contract BilbyEscrow is EIP712, Ownable2Step {
         }
         if ((terms.kind == Kind.GIFT) != (terms.giftId != bytes32(0))) revert InvalidTerms();
         if (amount > type(uint96).max) revert AmountTooLarge();
+        _validateRecipient(terms);
 
         bytes32 nonce = termsNonce(terms);
         depositId = depositIdOf(from, nonce);
@@ -146,30 +176,36 @@ contract BilbyEscrow is EIP712, Ownable2Step {
             phoneKey: terms.phoneKey,
             expiry: terms.expiry,
             kind: terms.kind,
-            status: Status.Pending
+            status: Status.Pending,
+            phoneEpoch: terms.phoneEpoch
         });
 
         uint256 before = token.balanceOf(address(this));
-        IERC3009(address(token)).receiveWithAuthorization(
-            from, address(this), amount, validAfter, validBefore, nonce, v, r, s
-        );
+        IERC3009(address(token))
+            .receiveWithAuthorization(from, address(this), amount, validAfter, validBefore, nonce, v, r, s);
         if (token.balanceOf(address(this)) - before != amount) revert InvalidTerms();
 
-        emit Deposited(depositId, from, terms.phoneKey, amount, terms.expiry, terms.kind, terms.giftId);
+        _emitDeposited(depositId, terms.giftId);
     }
 
     // -------------------------------------------------------------- claims
 
     /// @notice Releases a pending deposit after the verifier attests that `recipient` proved the
     /// deposit's phone number. Transfers pay the recipient; gifts pay the treasury, which buys the card.
-    function claim(bytes32 depositId, address recipient, uint256 deadline, bytes calldata attestation) external {
+    function claim(bytes32 depositId, address recipient, uint256 deadline, bytes calldata attestation)
+        external
+    {
         if (recipient == address(0)) revert ZeroAddress();
         if (block.timestamp > deadline) revert SignatureExpired();
         Deposit storage d = _deposits[depositId];
         if (d.status != Status.Pending) revert NotPending();
-        bytes32 digest =
-            _hashTypedDataV4(keccak256(abi.encode(CLAIM_TYPEHASH, depositId, d.phoneKey, recipient, deadline)));
+        if (block.timestamp >= d.expiry) revert ClaimExpired();
+        bytes32 digest = _hashTypedDataV4(
+            keccak256(abi.encode(CLAIM_TYPEHASH, depositId, d.phoneKey, recipient, deadline))
+        );
         if (ECDSA.recover(digest, attestation) != verifier) revert InvalidSignature();
+        if (directory.getBinding(d.phoneKey).phoneEpoch != d.phoneEpoch) revert PhoneEpochMismatch();
+        if (!directory.isClaimable(d.phoneKey, d.phoneEpoch, recipient)) revert RecipientUnavailable();
 
         d.status = Status.Claimed;
         address paidTo = d.kind == Kind.GIFT ? treasury : recipient;
@@ -177,11 +213,14 @@ contract BilbyEscrow is EIP712, Ownable2Step {
         emit Claimed(depositId, recipient, paidTo, d.amount);
     }
 
-    /// @notice After expiry, anyone may return an unclaimed deposit to its sender.
+    /// @notice Anyone may refund after expiry, or immediately after reassignment/revocation made
+    /// this deposit's phone epoch permanently unclaimable. Funds always return to the original sender.
     function refund(bytes32 depositId) external {
         Deposit storage d = _deposits[depositId];
         if (d.status != Status.Pending) revert NotPending();
-        if (block.timestamp < d.expiry) revert NotExpired();
+        if (block.timestamp < d.expiry && directory.getBinding(d.phoneKey).phoneEpoch == d.phoneEpoch) {
+            revert NotExpired();
+        }
         d.status = Status.Refunded;
         token.safeTransfer(d.sender, d.amount);
         emit Refunded(depositId, d.sender, d.amount);
@@ -219,5 +258,21 @@ contract BilbyEscrow is EIP712, Ownable2Step {
         if (treasury_ == address(0)) revert ZeroAddress();
         treasury = treasury_;
         emit TreasuryChanged(treasury_);
+    }
+
+    function _validateRecipient(Terms calldata terms) private view {
+        BilbyDirectory.Binding memory binding = directory.getBinding(terms.phoneKey);
+        if (binding.phoneEpoch != terms.phoneEpoch) revert PhoneEpochMismatch();
+        BilbyDirectory.PendingChange memory pending = directory.getPendingChange(terms.phoneKey);
+        if (
+            (pending.account != address(0) && block.timestamp <= pending.expiresAt)
+                || (binding.account != address(0)
+                    && (binding.revoked || block.timestamp >= binding.validUntil))
+        ) revert RecipientUnavailable();
+    }
+
+    function _emitDeposited(bytes32 depositId, bytes32 giftId) private {
+        Deposit memory d = _deposits[depositId];
+        emit Deposited(depositId, d.sender, d.phoneKey, d.amount, d.expiry, d.kind, giftId, d.phoneEpoch);
     }
 }

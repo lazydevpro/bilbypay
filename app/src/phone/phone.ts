@@ -7,7 +7,7 @@ import {
 } from "libphonenumber-js/min";
 
 /** Why we are verifying a number: first setup, opening a claim, or changing number. */
-export type PhonePurpose = "onboard" | "claim" | "change";
+export type PhonePurpose = "onboard" | "claim" | "change" | "renew";
 
 export type Country = { code: CountryCode; name: string; dial: string; flag: string };
 
@@ -60,6 +60,16 @@ export function isSupportedRegion(code: string | null | undefined): code is Coun
 export function countryFor(code: string | null | undefined): Country {
   const c = isSupportedRegion(code) ? (code.toUpperCase() as CountryCode) : "US";
   return countries().find((x) => x.code === c) ?? { code: "US", name: "United States", dial: "+1", flag: flagOf("US") };
+}
+
+/** Keep an international prefill's country and national input in sync, regardless of device locale. */
+export function initialPhoneInput(prefilled: string | undefined, fallbackRegion: string): { country: Country; input: string } {
+  const input = prefilled?.trim() ?? "";
+  const parsed = input.startsWith("+") ? parsePhoneNumberFromString(input, { extract: false }) : undefined;
+  if (parsed?.isValid() && parsed.country) {
+    return { country: countryFor(parsed.country), input: parsed.formatNational() };
+  }
+  return { country: countryFor(fallbackRegion), input };
 }
 
 /** Typed national number → E.164, or null when it isn't a valid number yet. */

@@ -221,6 +221,7 @@ export class LasoProvider implements GiftCardProvider {
           id: lasoBrandId(p.laso_server_id, cc),
           name: p.name,
           logoUrl: str(p.product_image_url) ?? "",
+          artworkUrl: str(p.product_image_url),
           country: cc,
           ...(str(p.category) ? { category: p.category as string } : {}),
           // Laso's order floor is $5 whatever the product says.

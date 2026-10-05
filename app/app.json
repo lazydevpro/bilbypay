@@ -11,7 +11,10 @@
     "ios": {
       "bundleIdentifier": "com.bilbypay.app",
       "supportsTablet": false,
-      "associatedDomains": ["webcredentials:bilbypay.com", "applinks:bilbypay.com"]
+      "associatedDomains": [
+        "webcredentials:bilbypay.com",
+        "applinks:bilbypay.com"
+      ]
     },
     "android": {
       "package": "com.bilbypay.app",
@@ -31,8 +34,17 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [{ "scheme": "https", "host": "bilbypay.com", "pathPrefix": "/c/" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "https",
+              "host": "bilbypay.com",
+              "pathPrefix": "/c/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -54,10 +66,15 @@
       [
         "expo-build-properties",
         {
-          "ios": { "deploymentTarget": "18.0" },
-          "android": { "minSdkVersion": 28 }
+          "ios": {
+            "deploymentTarget": "18.0"
+          },
+          "android": {
+            "minSdkVersion": 28
+          }
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": false

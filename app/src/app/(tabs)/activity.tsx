@@ -5,10 +5,11 @@ import type { ActivityItem } from "../../api/types";
 import { rememberActivity } from "../../flows/drafts";
 import { useLoad } from "../../state/useLoad";
 import { ActivityRow } from "../../ui/ActivityRow";
+import { Icon } from "../../ui/Icon";
 import { Mascot } from "../../ui/Mascot";
 import { ErrorNote } from "../../ui/Notice";
-import { Muted } from "../../ui/Text";
-import { colors, space } from "../../ui/theme";
+import { Muted, Text } from "../../ui/Text";
+import { colors, radius, space } from "../../ui/theme";
 
 export default function Activity() {
   const [more, setMore] = useState<{ items: ActivityItem[]; cursor?: string; loading: boolean; error?: unknown }>({ items: [], loading: false });
@@ -49,8 +50,31 @@ export default function Activity() {
           <ActivityIndicator color={colors.brown} style={{ marginTop: space.xxl }} />
         ) : (
           <View style={styles.empty}>
-            <Mascot size={140} />
-            <Muted style={{ textAlign: "center" }}>Payments you send and receive show up here.</Muted>
+            <View style={styles.emptyHeading}>
+              <View style={styles.emptyWords}>
+                <Text variant="title">A place for every receipt</Text>
+                <Muted variant="small">Bilby likes to keep things in order.</Muted>
+              </View>
+              <Mascot size={76} mood="organizing" accessibilityLabel="Bilby organizing receipts" />
+            </View>
+            <View style={styles.timeline}>
+              <View style={styles.rail} accessible={false}>
+                <View style={styles.dot} />
+                <View style={styles.connector} />
+                <View style={styles.endDot} />
+              </View>
+              <View style={styles.receiptColumn}>
+                <View style={styles.receipt}>
+                  <View style={styles.receiptTitle}>
+                    <Icon name="activity" size={21} color={colors.primary} />
+                    <Text variant="bodyStrong">Your first payment</Text>
+                  </View>
+                  <View style={styles.receiptRule} />
+                  <Muted variant="small">Once you send or receive money, the details will appear here.</Muted>
+                </View>
+                <Muted variant="small">Amounts, people and payment status. Easy to find when you need them.</Muted>
+              </View>
+            </View>
           </View>
         )
       }
@@ -61,5 +85,16 @@ export default function Activity() {
 
 const styles = StyleSheet.create({
   list: { padding: space.xl, gap: space.xs },
-  empty: { alignItems: "center", gap: space.lg, paddingTop: space.xxl },
+  empty: { gap: space.xl, paddingTop: space.lg },
+  emptyHeading: { flexDirection: "row", alignItems: "center", gap: space.md },
+  emptyWords: { flex: 1, gap: space.sm },
+  timeline: { flexDirection: "row", gap: space.lg },
+  rail: { width: 12, alignItems: "center", paddingTop: space.xl, paddingBottom: 30 },
+  dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primarySoft, borderWidth: 2, borderColor: colors.primary },
+  connector: { width: 2, flex: 1, backgroundColor: colors.line, marginVertical: space.sm },
+  endDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.line },
+  receiptColumn: { flex: 1, gap: space.lg },
+  receipt: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, borderRadius: radius.sm, padding: space.lg, gap: space.md },
+  receiptTitle: { flexDirection: "row", alignItems: "center", gap: space.sm },
+  receiptRule: { borderTopWidth: 1, borderStyle: "dashed", borderColor: colors.line },
 });

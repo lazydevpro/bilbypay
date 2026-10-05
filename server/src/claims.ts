@@ -2,9 +2,9 @@ import { bilbyEscrowAbi, formatUsd } from "@bilbypay/core";
 import { type Address, encodeFunctionData, type Hex } from "viem";
 import type { AccountService } from "./accounts";
 import type { ActivityRepo } from "./activity";
-import type { ChainService } from "./chain";
+import { bindingActive, type ChainService } from "./chain";
 import type { Config } from "./config";
-import type { Db } from "./db";
+import { kvGet, kvSet, type Db } from "./db";
 import { errors, humanizeRevert } from "./errors";
 import type { GiftCardService } from "./giftcards/service";
 import type { GiftBrand, GiftQuote } from "./giftcards/types";
@@ -24,6 +24,7 @@ export type ClaimRow = {
   sender_address: string;
   sender_name: string;
   phone_key: string;
+  phone_epoch: string;
   phone_masked: string;
   note: string | null;
   gift: string | null;
@@ -38,6 +39,7 @@ export type GiftInfo = {
   brandId: string | null;
   brandName?: string;
   brandLogoUrl?: string;
+  brandArtworkUrl?: string;
   design?: string;
   message?: string;
   faceValue: string;
@@ -77,6 +79,7 @@ export class ClaimService {
     sender: Address;
     senderName: string;
     phoneKey: Hex;
+    phoneEpoch: bigint;
     phoneMasked: string;
     note?: string;
     gift?: Record<string, unknown>;
@@ -87,9 +90,9 @@ export class ClaimService {
     const now = nowIso();
     this.db
       .prepare(
-        `INSERT INTO claims (code, deposit_id, kind, status, amount, sender_address, sender_name, phone_key, phone_masked, note,
+        `INSERT INTO claims (code, deposit_id, kind, status, amount, sender_address, sender_name, phone_key, phone_epoch, phone_masked, note,
           gift, gift_id, expiry, sender_activity_id, created_at, updated_at)
-         VALUES (?, ?, ?, 'waiting', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, 'waiting', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         c.code,
@@ -99,6 +102,7 @@ export class ClaimService {
         c.sender,
         c.senderName,
         c.phoneKey,
+        c.phoneEpoch.toString(),
         c.phoneMasked,
         c.note ?? null,
         c.gift ? JSON.stringify(c.gift) : null,
@@ -130,7 +134,7 @@ export class ClaimService {
       senderName: row.sender_name,
       note: row.kind === "money" ? (row.note ?? undefined) : undefined,
       gift: gift
-        ? { brandId: gift.brandId, brandName: gift.brandName, brandLogoUrl: gift.brandLogoUrl, design: gift.design, message: gift.message }
+        ? { brandId: gift.brandId, brandName: gift.brandName, brandLogoUrl: gift.brandLogoUrl, brandArtworkUrl: gift.brandArtworkUrl, design: gift.design, message: gift.message }
         : undefined,
       status: row.status === "opened" ? ("opened" as const) : row.status === "returned" ? ("returned" as const) : ("waiting" as const),
       expiresAt: isoFromUnix(row.expiry),
@@ -160,6 +164,9 @@ export class ClaimService {
         this.markReturned(code, deposit.statusName === "Cancelled" ? "cancelled" : "refunded");
         throw errors.claimExpired();
       }
+      const binding = await this.accounts.refreshBinding(row.phone_key as Hex);
+      if (binding.binding.phoneEpoch !== deposit.phoneEpoch) throw errors.claimRecipientChanged();
+      if (!bindingActive(binding) || binding.binding.account.toLowerCase() !== recipient.toLowerCase()) throw errors.phoneUnavailable();
 
       // Gifts: settle brand and price before moving any money, so an unavailable brand changes nothing.
       const gift = this.giftInfo(row);
@@ -286,6 +293,24 @@ export class ClaimService {
   /** Waiting deposits whose expiry has passed on chain (the keeper refunds them). */
   expired(chainNow: number): ClaimRow[] {
     return this.db.prepare("SELECT * FROM claims WHERE status = 'waiting' AND expiry <= ?").all(chainNow) as ClaimRow[];
+  }
+
+  /** Rotate through pending deposits so reassigned numbers refund without waiting for expiry. */
+  async refundable(chainNow: number): Promise<ClaimRow[]> {
+    const expired = this.expired(chainNow);
+    const cursor = Number(kvGet(this.db, "claims:reassignment-scan") ?? "0");
+    const rows = this.db.prepare("SELECT rowid AS scan_id, * FROM claims WHERE status = 'waiting' AND expiry > ? AND rowid > ? ORDER BY rowid LIMIT 100").all(chainNow, cursor) as (ClaimRow & { scan_id: number })[];
+    kvSet(this.db, "claims:reassignment-scan", rows.length === 100 ? String(rows.at(-1)!.scan_id) : "0");
+    const epochs = new Map<string, bigint>();
+    for (const row of rows) {
+      let epoch = epochs.get(row.phone_key);
+      if (epoch === undefined) {
+        epoch = (await this.chain.directoryState(row.phone_key as Hex)).binding.phoneEpoch;
+        epochs.set(row.phone_key, epoch);
+      }
+      if (epoch !== BigInt(row.phone_epoch)) expired.push(row);
+    }
+    return expired;
   }
 }
 

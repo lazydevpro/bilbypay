@@ -1,6 +1,8 @@
 import type { TypedDataDefinition } from "viem";
 import type { ActionRequest, ActionResult, BilbyApi, Hex, PreparedAction } from "../api/types";
 import { checkPreparedAction } from "../signing/guard";
+import { RecipientCheckError, verifySelectedRecipient, type DirectoryReader } from "../directory/verification";
+import type { Recipient } from "./drafts";
 
 export type TypedDataSigner = { signTypedData: (td: TypedDataDefinition) => Promise<Hex> };
 
@@ -14,6 +16,9 @@ export type AuthorizeInput = {
   account: Hex;
   chainId: number;
   resolvedPayee?: Hex;
+  recipient?: Recipient;
+  readDirectory?: DirectoryReader;
+  escrow?: Hex;
   unlock: Unlock;
   /** Called once authorized, before submitting — keep these to retry a failed submit without Face ID. */
   onAuthorized?: (signatures: Record<string, Hex>) => void;
@@ -26,7 +31,12 @@ export type AuthorizeInput = {
  */
 export async function authorizeAndSubmit(input: AuthorizeInput): Promise<{ result: ActionResult; signatures: Record<string, Hex> }> {
   const entries = checkPreparedAction(input);
+  const checkRecipient = () => verifySelectedRecipient(input.request, input.recipient, input.readDirectory ?? (() => { throw new RecipientCheckError("missing reader"); }));
+  await checkRecipient();
   const signatures = await input.unlock(async (signer) => {
+    // The person may leave the biometric sheet open. Recheck immediately before
+    // the key authorizes the fixed destination they reviewed.
+    await checkRecipient();
     const out: Record<string, Hex> = {};
     for (const { key, typedData } of entries) out[key] = await signer.signTypedData(typedData);
     return out;

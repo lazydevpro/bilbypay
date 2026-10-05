@@ -21,9 +21,9 @@ import {
   ZERO_BYTES32,
 } from "@bilbypay/core";
 import { type Address, encodeFunctionData, type Hex, isHex, maxUint256, parseSignature, recoverTypedDataAddress } from "viem";
-import type { AccountService } from "./accounts";
+import type { AccountService, DirectoryProof } from "./accounts";
 import { type ActivityRepo, claimLink } from "./activity";
-import type { ChainService } from "./chain";
+import { bindingActive, pendingActive, type ChainService } from "./chain";
 import type { ClaimService } from "./claims";
 import type { Config } from "./config";
 import type { Db } from "./db";
@@ -43,6 +43,7 @@ type Funding = { shortfall: bigint; permit?: { value: bigint; deadline: bigint }
 type State =
   | {
       type: "send";
+      directory: DirectoryProof;
       amount: bigint;
       note?: string;
       funding: Funding;
@@ -53,13 +54,14 @@ type State =
     }
   | {
       type: "gift_send";
+      directory: DirectoryProof;
       amount: bigint;
       faceValue: bigint;
       funding: Funding;
       auth: Authorization;
       terms: EscrowTerms;
       phoneMasked: string;
-      gift: { brandId: string | null; brandName?: string; brandLogoUrl?: string; design?: string; message?: string };
+      gift: { brandId: string | null; brandName?: string; brandLogoUrl?: string; brandArtworkUrl?: string; design?: string; message?: string };
     }
   | { type: "gift_buy"; price: bigint; faceValue: bigint; funding: Funding; auth: Authorization; brandId: string; giftId: Hex; quote: GiftQuote }
   | { type: "cancel"; activityId: string; claimCode: string; depositId: Hex; deadline: bigint; amount: bigint }
@@ -234,8 +236,8 @@ export class ActionService {
     return parsed.e164;
   }
 
-  private escrowTerms(phoneKey: Hex, now: bigint, kind: DepositKind, giftId: Hex): EscrowTerms {
-    return { phoneKey, expiry: Number(now) + this.cfg.escrowExpiryDays * 86_400, kind, giftId, salt: randomBytes32() };
+  private escrowTerms(phoneKey: Hex, phoneEpoch: bigint, now: bigint, kind: DepositKind, giftId: Hex): EscrowTerms {
+    return { phoneKey, phoneEpoch, expiry: Number(now) + this.cfg.escrowExpiryDays * 86_400, kind, giftId, salt: randomBytes32() };
   }
 
   private async prepareSend(ctx: Ctx, params: Record<string, unknown>): Promise<Draft> {
@@ -245,7 +247,11 @@ export class ActionService {
     const key = this.x.accounts.phoneKeyOf(e164);
     const phoneMasked = maskPhone(e164);
     // The directory is the source of truth for where money goes; our DB only supplies the name.
-    const { account } = await this.x.chain.resolve(key);
+    const state = await this.x.accounts.refreshBinding(key);
+    const directory = this.x.accounts.proof(key, state);
+    if (pendingActive(state)) throw errors.phoneChangePending();
+    if (!bindingActive(state) && state.binding.revision !== 0n) throw errors.phoneUnavailable();
+    const account = bindingActive(state) ? state.binding.account : null;
     const { funding, toSign } = await this.fund(ctx.user, amount, ctx.deadline);
     const warnings: Draft["summary"]["warnings"] = [];
 
@@ -259,7 +265,7 @@ export class ActionService {
       }
       const auth = newAuthorization({ from: ctx.user, to: account, value: amount, ttlSeconds: this.cfg.actionTtlSeconds, now: Number(ctx.now) });
       return {
-        state: { type: "send", amount, note, funding, auth, recipient: { kind: "registered", address: account, name, phoneMasked } },
+        state: { type: "send", directory, amount, note, funding, auth, recipient: { kind: "registered", address: account, name, phoneMasked } },
         summary: {
           title: `Send ${formatUsd(amount)} to ${name}`,
           lines: [{ label: "To", value: name }, { label: "Amount", value: formatUsd(amount) }, ...this.fundingLines(funding, amount), ...(note ? [{ label: "Note", value: note }] : [])],
@@ -268,15 +274,15 @@ export class ActionService {
           warnings,
         },
         toSign: [this.authEntry("TransferWithAuthorization", auth), ...toSign],
-        expect: { payer: ctx.user, amount: amount.toString(), payee: account },
+        expect: { payer: ctx.user, amount: amount.toString(), payee: account, directory },
       };
     }
     if (account === ctx.user) throw errors.invalidRequest("That number is linked to your own account.");
 
-    const terms = this.escrowTerms(key, ctx.now, DepositKind.TRANSFER, ZERO_BYTES32);
+    const terms = this.escrowTerms(key, state.binding.phoneEpoch, ctx.now, DepositKind.TRANSFER, ZERO_BYTES32);
     const auth = this.escrowAuth(ctx, amount, terms);
     return {
-      state: { type: "send", amount, note, funding, auth, recipient: { kind: "invite", phoneMasked, terms } },
+      state: { type: "send", directory, amount, note, funding, auth, recipient: { kind: "invite", phoneMasked, terms } },
       summary: {
         title: `Send ${formatUsd(amount)} to ${phoneMasked}`,
         lines: [
@@ -291,7 +297,7 @@ export class ActionService {
         warnings,
       },
       toSign: [this.authEntry("ReceiveWithAuthorization", auth), ...toSign],
-      expect: { payer: ctx.user, amount: amount.toString() },
+      expect: { payer: ctx.user, amount: amount.toString(), directory, terms: { ...terms, phoneEpoch: terms.phoneEpoch.toString() } },
     };
   }
 
@@ -309,6 +315,10 @@ export class ActionService {
     const e164 = this.recipientPhone(ctx.me, params);
     const key = this.x.accounts.phoneKeyOf(e164);
     const phoneMasked = maskPhone(e164);
+    const state = await this.x.accounts.refreshBinding(key);
+    if (pendingActive(state)) throw errors.phoneChangePending();
+    if (!bindingActive(state) && state.binding.revision !== 0n) throw errors.phoneUnavailable();
+    const directory = this.x.accounts.proof(key, state);
 
     let brand: GiftBrand | undefined;
     let price: bigint;
@@ -324,19 +334,20 @@ export class ActionService {
       price = faceValue + (faceValue * BigInt(Math.round(maxFee * 100)) + 9_999n) / 10_000n;
     }
     const { funding, toSign } = await this.fund(ctx.user, price, ctx.deadline);
-    const terms = this.escrowTerms(key, ctx.now, DepositKind.GIFT, randomBytes32());
+    const terms = this.escrowTerms(key, state.binding.phoneEpoch, ctx.now, DepositKind.GIFT, randomBytes32());
     const auth = this.escrowAuth(ctx, price, terms);
     const what = brand ? `${formatUsd(faceValue)} ${brand.name} gift card` : `${formatUsd(faceValue)} gift card`;
     return {
       state: {
         type: "gift_send",
+        directory,
         amount: price,
         faceValue,
         funding,
         auth,
         terms,
         phoneMasked,
-        gift: { brandId, brandName: brand?.name, brandLogoUrl: brand?.logoUrl, design, message },
+        gift: { brandId, brandName: brand?.name, brandLogoUrl: brand?.logoUrl, brandArtworkUrl: brand?.artworkUrl, design, message },
       },
       summary: {
         title: `Send a ${what} to ${phoneMasked}`,
@@ -353,7 +364,7 @@ export class ActionService {
         warnings: [],
       },
       toSign: [this.authEntry("ReceiveWithAuthorization", auth), ...toSign],
-      expect: { payer: ctx.user, amount: price.toString() },
+      expect: { payer: ctx.user, amount: price.toString(), directory, terms: { ...terms, phoneEpoch: terms.phoneEpoch.toString() } },
     };
   }
 
@@ -554,6 +565,13 @@ export class ActionService {
   }
 
   private async execute(user: Address, id: string, state: State, sigs: Sigs): Promise<ActionResult> {
+    if (state.type === "send" || state.type === "gift_send") {
+      if (!state.directory) throw errors.actionExpired(); // Prepared v1 actions cannot authorize v2 deposits.
+      const current = await this.x.accounts.refreshBinding(state.directory.phoneKey);
+      if (current.binding.revision.toString() !== state.directory.revision || pendingActive(current) ||
+        (!bindingActive(current) && current.binding.revision !== 0n)) throw errors.recipientChanged();
+      if (state.type === "send" && state.recipient.kind === "registered" && current.binding.account.toLowerCase() !== state.recipient.address.toLowerCase()) throw errors.recipientChanged();
+    }
     const onSent = (hash: Hex) => this.x.db.prepare("UPDATE actions SET tx_hash = ? WHERE id = ?").run(hash, id);
     switch (state.type) {
       case "send":
@@ -696,6 +714,7 @@ export class ActionService {
       sender: user,
       senderName: a.senderName,
       phoneKey: a.terms.phoneKey,
+      phoneEpoch: a.terms.phoneEpoch,
       phoneMasked: a.phoneMasked,
       note: a.note,
       gift: a.gift,
@@ -827,4 +846,3 @@ type Ctx = { user: Address; me: { phone_e164: string; display_name: string }; no
 function shortDate(unix: number): string {
   return new Date(unix * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }
-

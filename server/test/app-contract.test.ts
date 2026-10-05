@@ -3,7 +3,7 @@
  * (app/src/api/http.ts, app/src/signing/guard.ts, app/src/flows/authorize.ts) driving this server
  * on a real local chain. Catches drift between docs/api.md, the server and the app.
  */
-import { type Deployment, mockAusdAbi } from "@bilbypay/core";
+import { hydrateTypedData, type Deployment, mockAusdAbi } from "@bilbypay/core";
 import type { Hono } from "hono";
 import { type Address, createWalletClient, type Hex, http } from "viem";
 import { generatePrivateKey, type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
@@ -12,7 +12,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createHttpApi } from "../../app/src/api/http";
 import type { ActionRequest, BilbyApi } from "../../app/src/api/types";
 import { authorizeAndSubmit } from "../../app/src/flows/authorize";
+import { createPinnedDirectoryReader } from "../../app/src/directory/verification";
+import type { Recipient } from "../../app/src/flows/drafts";
 import { registerMessage, sessionMessage } from "../../app/src/signing/messages";
+import { checkDirectoryConsent } from "../../app/src/signing/directory";
 import { createApp } from "../src/app";
 import { loadConfig } from "../src/config";
 import { openDb } from "../src/db";
@@ -49,13 +52,24 @@ class Phone {
     const v = await this.verify();
     const issuedAt = Math.floor(Date.now() / 1000);
     const signature = await this.account.signMessage({ message: registerMessage(v.phone, this.account.address, issuedAt) });
-    const res = await this.api.register({ phoneToken: v.phoneToken, address: this.account.address, displayName: this.name, issuedAt, signature });
+    const consent = await this.api.prepareRegistration({ phoneToken: v.phoneToken, address: this.account.address });
+    const consentSignature = await this.account.signTypedData(hydrateTypedData(consent.typedData) as never);
+    const res = await this.api.register({ phoneToken: v.phoneToken, address: this.account.address, displayName: this.name, issuedAt, signature, registrationId: consent.id, consentSignature });
     this.token = res.sessionToken;
     return res;
   }
 
   /** The app's confirm path: prepare → guard → one unlock → sign all → submit. */
   async act(request: ActionRequest, resolvedPayee?: Hex) {
+    let recipient: Recipient | undefined;
+    if (request.type === "send" || request.type === "gift_send") {
+      const selected = (await this.api.resolve([request.params.phone], "US")).results[0]!;
+      if (!selected.e164 || (selected.status !== "registered" && selected.status !== "invite")) throw new Error("Recipient unavailable");
+      recipient = { ...selected, status: selected.status, e164: selected.e164, name: selected.displayName ?? selected.e164 };
+      request = request.type === "send"
+        ? { ...request, params: { ...request.params, phone: selected.e164 } }
+        : { ...request, params: { ...request.params, phone: selected.e164 } };
+    }
     const prepared = await this.api.prepareAction(request);
     const { result } = await authorizeAndSubmit({
       api: this.api,
@@ -64,6 +78,9 @@ class Phone {
       account: this.account.address,
       chainId: 143,
       resolvedPayee,
+      recipient,
+      escrow: d.escrow,
+      readDirectory: createPinnedDirectoryReader({ chainId: 143, directory: d.directory, rpcUrl: anvil.rpcUrl }),
       unlock: (fn) => fn(this.account),
     });
     return { prepared, result };
@@ -120,6 +137,17 @@ const bob = new Phone("+1 555 555 0202", "Bob");
 const carol = new Phone("+1 555 555 0203", "Carol");
 
 describe("app ↔ server contract", () => {
+  it("exposes the complete typed consent shape for account-owned number management", async () => {
+    const manager = new Phone("+15555550298", "Manager");
+    await manager.onboard();
+    const status = await manager.api.phoneStatus();
+    const prepared = await manager.api.preparePhoneAction("revoke");
+    const typed = checkDirectoryConsent(prepared, { account: manager.account.address, chainId: 143, directoryAddress: d.directory, operation: "revoke", phoneKey: status.phoneKey! });
+    const result = await manager.api.submitPhoneAction({ id: prepared.id, signature: await manager.account.signTypedData(typed) });
+    expect(result.status).toBe("revoked");
+    expect((await manager.api.me()).phoneStatus).toBe("revoked");
+  });
+
   it("onboards, signs in again and reads profile + balance", async () => {
     await alice.onboard();
     await bob.onboard();

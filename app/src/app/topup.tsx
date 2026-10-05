@@ -1,165 +1,147 @@
-// glossary-allow-file — the one screen that must name where outside money comes from (e.g. "USDC on Base")
-// and show the deposit address to send it to (lead's instruction; server contract "Top-up").
-import * as Clipboard from "expo-clipboard";
-import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import * as Crypto from "expo-crypto";
+import * as Linking from "expo-linking";
+import { router, useLocalSearchParams } from "expo-router";
+import { useRef, useState } from "react";
+import { StyleSheet, TextInput, View } from "react-native";
 import { api } from "../api";
-import type { TopupOrigin, TopupQuote, TopupStatus } from "../api/types";
-import { displayTyped, isPositive, typedToBase, usd } from "../money/amount";
+import { amountProblem, fundingAttempt, isAttemptId, type FundingAttempt } from "../funding/checkout";
+import { baseToTyped, typedToBase, usd, usdShort } from "../money/amount";
+import { formatE164 } from "../phone/phone";
+import { useSession } from "../state/session";
 import { useLoad } from "../state/useLoad";
-import { Button } from "../ui/Button";
-import { Card, Line } from "../ui/Card";
-import { Icon } from "../ui/Icon";
-import { Keypad } from "../ui/Keypad";
 import { ErrorNote, Notice } from "../ui/Notice";
-import { Row } from "../ui/Row";
+import { Button } from "../ui/Button";
+import { Card } from "../ui/Card";
+import { Icon } from "../ui/Icon";
+import { Mascot } from "../ui/Mascot";
 import { Screen } from "../ui/Screen";
 import { Muted, Text } from "../ui/Text";
 import { colors, radius, space } from "../ui/theme";
 
-const POLL_MS = 5000;
+const PRESETS = ["25", "50", "100"];
 
-/** "$12.50" without the $ sign, for "Send exactly 12.50 USDC". */
-const plain = (base: string) => usd(base).slice(1);
-
-/** Add money from another account: pick where from, how much, then send to the one-time deposit details. */
 export default function TopUp() {
-  const origins = useLoad(() => api.topupOrigins());
-  const [origin, setOrigin] = useState<TopupOrigin | null>(null);
-  const [typed, setTyped] = useState("");
-  const [quote, setQuote] = useState<TopupQuote | null>(null);
-  const [status, setStatus] = useState<TopupStatus | null>(null);
+  const params = useLocalSearchParams<{ amount?: string; attempt?: string }>();
+  const { profile } = useSession();
+  const options = useLoad(() => api.fundingOptions());
+  const number = useLoad(() => api.phoneStatus());
+  const [typed, setTyped] = useState(() => typeof params.amount === "string" && /^\d{1,13}$/.test(params.amount) ? baseToTyped(params.amount) : "50");
+  const [touched, setTouched] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [copied, setCopied] = useState<string | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  const returnUrl = Linking.createURL("funding");
+  const attempt = useRef<FundingAttempt | null>(isAttemptId(params.attempt) && typeof params.amount === "string"
+    ? { amount: params.amount, returnUrl, idempotencyKey: params.attempt }
+    : null);
   const amount = typedToBase(typed);
+  const limits = options.data?.available ? options.data : null;
+  const problem = limits ? amountProblem(typed, limits.minAmount, limits.maxAmount) : null;
+  const available = !!limits?.available && !options.error;
+  const canReceive = !number.error && number.data?.status === "active" && number.data.phone === profile?.phone;
 
-  // Poll the status while the deposit is on its way.
-  useEffect(() => {
-    if (!quote) return;
-    let alive = true;
-    const tick = async () => {
-      try {
-        const st = await api.topupStatus(quote.quoteId);
-        if (!alive) return;
-        setStatus(st);
-        setError(null);
-        if (st.status === "waiting" || st.status === "processing") timer.current = setTimeout(tick, POLL_MS);
-      } catch (e) {
-        if (!alive) return;
-        setError(e);
-        timer.current = setTimeout(tick, POLL_MS * 2);
-      }
-    };
-    void tick();
-    return () => {
-      alive = false;
-      if (timer.current) clearTimeout(timer.current);
-    };
-  }, [quote]);
-
-  const getQuote = async () => {
-    if (!origin) return;
+  const choose = (value: string) => {
+    if (busy || !/^\d{0,7}(?:\.\d{0,2})?$/.test(value)) return;
+    setTyped(value);
     setError(null);
+  };
+
+  const review = async () => {
+    setTouched(true);
+    if (!available || problem) return;
+    setError(null);
+    setBusy(true);
     try {
-      setQuote(await api.topupQuote(origin.id, amount));
+      attempt.current = fundingAttempt(attempt.current, amount, returnUrl, () => Crypto.randomUUID());
+      // Keep the request identity on reload as well as on a network retry.
+      router.setParams({ amount, attempt: attempt.current.idempotencyKey });
+      const session = await api.createFundingSession(attempt.current);
+      router.push({ pathname: "/funding", params: { id: session.id } });
     } catch (e) {
       setError(e);
-    }
+    } finally { setBusy(false); }
   };
 
-  const copy = async (what: string, value: string) => {
-    await Clipboard.setStringAsync(value);
-    setCopied(what);
-    setTimeout(() => setCopied(null), 2000);
-  };
-
-  // Step 3: deposit details + live status.
-  if (quote && origin) {
-    const done = status?.status === "completed";
-    const ended = done || status?.status === "failed" || status?.status === "refunded";
-    return (
-      <Screen footer={<Button variant={ended ? "primary" : "secondary"} label="Done" onPress={() => router.back()} />}>
-        <Text variant="title">
-          Send exactly {plain(quote.amountIn)} {origin.symbol}
-        </Text>
-        <Muted>
-          From your {origin.label} account, send to the details below. We'll add about {usd(quote.amountOut)} to your balance (at least{" "}
-          {usd(quote.minAmountOut)}).
-        </Muted>
-
-        <Card>
-          <Muted variant="small">Send to ({origin.networkLabel} only)</Muted>
-          <Pressable accessibilityRole="button" accessibilityHint="Copies the deposit address" onPress={() => copy("address", quote.depositAddress)} style={styles.copyRow}>
-            <Text variant="bodyStrong" selectable style={styles.mono}>
-              {quote.depositAddress}
-            </Text>
-            <Icon name={copied === "address" ? "check" : "copy"} color={copied === "address" ? colors.green : colors.brown} />
-          </Pressable>
-          {quote.depositMemo ? (
-            <>
-              <Muted variant="small">Memo (required)</Muted>
-              <Pressable accessibilityRole="button" onPress={() => copy("memo", quote.depositMemo!)} style={styles.copyRow}>
-                <Text variant="bodyStrong" selectable style={styles.mono}>
-                  {quote.depositMemo}
-                </Text>
-                <Icon name={copied === "memo" ? "check" : "copy"} color={copied === "memo" ? colors.green : colors.brown} />
-              </Pressable>
-            </>
-          ) : null}
-          <Line label="Amount" value={`${plain(quote.amountIn)} ${origin.symbol}`} />
-          <Line label="Use by" value={new Date(quote.expiresAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} />
-          {quote.etaSeconds ? <Line label="Usually takes" value={`about ${Math.max(1, Math.round(quote.etaSeconds / 60))} min`} /> : null}
-        </Card>
-
-        <Notice
-          tone={done ? "success" : status?.status === "failed" ? "danger" : "info"}
-          title={done ? "Added to your balance" : status?.status === "processing" ? "On its way" : ended ? undefined : "Waiting for your deposit"}
-          message={status?.message ?? "We'll update this as soon as it arrives."}
-        />
-        {!ended ? <ActivityIndicator color={colors.brown} /> : null}
-        <ErrorNote error={error} />
-      </Screen>
-    );
-  }
-
-  // Step 2: amount.
-  if (origin) {
-    return (
-      <Screen footer={<Button label="Get deposit details" disabled={!isPositive(amount)} onPress={getQuote} />}>
-        <Row title={origin.label} subtitle="Change" onPress={() => setOrigin(null)} />
-        <View style={styles.amount}>
-          <Text variant="hero" adjustsFontSizeToFit numberOfLines={1}>
-            {displayTyped(typed)}
-          </Text>
-          <Muted variant="small">How much do you want to add?</Muted>
-        </View>
-        <ErrorNote error={error} />
-        <Keypad value={typed} onChange={setTyped} />
-      </Screen>
-    );
-  }
-
-  // Step 1: where from.
   return (
-    <Screen>
-      <Text variant="title">Add money</Text>
-      <Muted>Move dollars you hold somewhere else into BilbyPay. Pick where they're coming from.</Muted>
-      <ErrorNote error={origins.error} onRetry={origins.reload} />
-      {origins.loading && !origins.data ? <ActivityIndicator color={colors.brown} /> : null}
-      <Card>
-        {origins.data?.origins.map((o) => (
-          <Row key={o.id} title={o.label} subtitle={o.networkLabel} onPress={() => setOrigin(o)} />
-        ))}
+    <Screen footer={<Button label={options.loading ? "Checking card payments…" : available ? "Review practice payment" : "Card preview unavailable"} busyLabel="Preparing your preview…" disabled={!available || !!problem || busy} onPress={review} />}>
+      <View style={styles.hero}>
+        <View style={styles.heroCopy}>
+          <Text variant="display">A little boost.</Text>
+          <Muted>A card payment preview, with Bilby by your side.</Muted>
+        </View>
+        <Mascot size={112} mood={busy ? "thinking" : "receiving"} accessibilityLabel="Bilby ready to receive" />
+      </View>
+      <Notice tone="warning" title="Sandbox preview" message="No real money moves. This practice checkout does not add money to your BilbyPay balance." />
+
+      <Card style={styles.amountCard}>
+        <Text variant="bodyStrong">Amount in US dollars</Text>
+        <View style={[styles.amountInput, focused && styles.amountFocused]}>
+          <Text variant="hero" color={colors.muted}>$</Text>
+          <TextInput
+            accessibilityLabel="Amount in US dollars"
+            accessibilityHint="Enter dollars and cents for a practice payment"
+            aria-invalid={touched && !!problem}
+            value={typed}
+            onChangeText={choose}
+            keyboardType="decimal-pad"
+            inputMode="decimal"
+            autoComplete="off"
+            editable={!busy}
+            placeholder="50"
+            placeholderTextColor={colors.muted}
+            onFocus={() => setFocused(true)}
+            onBlur={() => { setFocused(false); setTouched(true); }}
+            onSubmitEditing={() => { void review(); }}
+            style={styles.input}
+            maxLength={10}
+          />
+          <Text variant="small" color={colors.muted}>USD</Text>
+        </View>
+        <View style={styles.presets}>
+          {PRESETS.map(value => <Button key={value} compact label={usdShort(typedToBase(value))} accessibilityHint={`Set the practice amount to ${value} dollars`} variant={amount === typedToBase(value) ? "primary" : "secondary"} disabled={busy} onPress={() => choose(value)} style={styles.preset} />)}
+        </View>
+        {touched && problem ? <Text accessibilityRole="alert" variant="small" color={colors.red}>{problem}</Text> : limits ? <Muted variant="small">From {usd(limits.minAmount)} to {usd(limits.maxAmount)} per preview.</Muted> : <Muted variant="small">{options.loading ? "Checking the available amount range…" : "Available amounts will appear when card payments are ready."}</Muted>}
+      </Card>
+
+      <View style={styles.method}>
+        <View style={styles.methodHeading}>
+          <Text variant="heading">Pay by card</Text>
+          <View style={styles.provider}><Text variant="caption" color={colors.primaryDeep}>via Ramp</Text></View>
+        </View>
+        <Muted variant="small">Ramp shows the payment methods available to you and the final fees before you confirm. Timing depends on the method you choose.</Muted>
+        {options.loading ? <View accessibilityLabel="Checking card payment availability" style={styles.loading}><View style={styles.skeletonLong} /><View style={styles.skeletonShort} /></View> : options.error ? <Notice tone="warning" message="We couldn't check card payments. Try again in a moment." action={{ label: "Check again", onPress: options.reload }} /> : !available ? <Notice title="Card payments are being set up" message="The practice checkout isn't available yet. You can still receive money from a friend." action={{ label: "Check again", onPress: options.reload }} /> : null}
+        <Muted variant="small">Bank deposits aren&apos;t available yet.</Muted>
+      </View>
+      <ErrorNote error={error} onRetry={available ? review : undefined} />
+
+      <Card tone="sand">
+        <View style={styles.friendHeading}>
+          <View style={styles.friendIcon}><Icon name="receive" size={22} color={colors.primaryDeep} /></View>
+          <View style={styles.friendCopy}><Text variant="bodyStrong">Receive from a friend</Text><Muted variant="small">Already using BilbyPay? They just need your number.</Muted></View>
+        </View>
+        {canReceive && profile ? <Text variant="heading" selectable>{formatE164(profile.phone)}</Text> : number.error ? <Muted variant="small">We couldn&apos;t check your number. Check it before asking a friend to send money.</Muted> : number.loading ? <Muted variant="small">Checking your number…</Muted> : <Muted variant="small">Check your number to receive payments.</Muted>}
+        <Button variant="secondary" compact label={canReceive ? "Show my number" : "Check my number"} disabled={number.loading || busy} onPress={() => router.push(canReceive ? "/receive" : "/settings/phone")} />
       </Card>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  copyRow: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 48, borderRadius: radius.sm },
-  mono: { flex: 1, fontFamily: "Menlo" },
-  amount: { alignItems: "center", gap: space.xs, paddingVertical: space.lg },
+  hero: { flexDirection: "row", alignItems: "center", gap: space.sm },
+  heroCopy: { flex: 1, gap: space.sm },
+  amountCard: { padding: space.xl, gap: space.lg },
+  amountInput: { flexDirection: "row", alignItems: "center", gap: space.sm, borderBottomWidth: 2, borderBottomColor: colors.line, paddingBottom: space.sm },
+  amountFocused: { borderBottomColor: colors.primary },
+  input: { flex: 1, minWidth: 0, minHeight: 60, paddingVertical: space.sm, fontSize: 48, fontFamily: "Nunito_800ExtraBold", color: colors.ink },
+  presets: { flexDirection: "row", gap: space.sm },
+  preset: { flex: 1, paddingHorizontal: space.sm },
+  method: { gap: space.md, paddingVertical: space.sm },
+  methodHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.md },
+  provider: { paddingHorizontal: space.md, paddingVertical: space.xs, backgroundColor: colors.primarySoft, borderRadius: radius.pill },
+  loading: { minHeight: 76, backgroundColor: colors.sand, borderRadius: radius.md, padding: space.lg, gap: space.sm },
+  skeletonLong: { height: 12, width: "80%", borderRadius: radius.sm, backgroundColor: colors.sandDeep },
+  skeletonShort: { height: 12, width: "55%", borderRadius: radius.sm, backgroundColor: colors.sandDeep },
+  friendHeading: { flexDirection: "row", alignItems: "center", gap: space.md },
+  friendIcon: { width: 44, height: 44, borderRadius: radius.sm, backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center" },
+  friendCopy: { flex: 1, gap: space.xs },
 });

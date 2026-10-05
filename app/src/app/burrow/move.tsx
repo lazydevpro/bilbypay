@@ -51,7 +51,7 @@ export default function Move() {
             </Text>
           </Pressable>
         ) : null}
-        {tooMuch ? <Text variant="small" color={colors.red}>That's more than you have.</Text> : null}
+        {tooMuch ? <Text variant="small" color={colors.red}>That&apos;s more than you have.</Text> : null}
         {busyLimit !== null && limit !== null && BigInt(busyLimit) < BigInt(limit) ? (
           <Muted variant="small">Right now you can move up to {usd(busyLimit)}. The rest is busy for a little while.</Muted>
         ) : null}

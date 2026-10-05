@@ -1,5 +1,7 @@
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 import type { Profile } from "../api/types";
+import { API_URL, CHAIN_ID, DIRECTORY_ADDRESS } from "../config";
 
 /**
  * What BilbyPay keeps on the device:
@@ -16,6 +18,28 @@ const K = {
   demo: "bilbypay_demo_secret_v1",
   burrowAck: "bilbypay_burrow_ack_v1",
 } as const;
+
+// A preview and a deployed test environment may share the same browser origin.
+// Never restore one environment's session or test account into another.
+const webKey = (key: string) => `${key}:${CHAIN_ID}:${API_URL}:${DIRECTORY_ADDRESS.toLowerCase()}`;
+
+async function readPlain(key: string): Promise<string | null> {
+  if (Platform.OS !== "web") return quietly(SecureStore.getItemAsync(key), null);
+  try { return globalThis.sessionStorage.getItem(webKey(key)); }
+  catch { return null; }
+}
+
+async function writePlain(key: string, value: string | null): Promise<void> {
+  if (Platform.OS !== "web") {
+    await quietly(value === null ? SecureStore.deleteItemAsync(key) : SecureStore.setItemAsync(key, value), undefined);
+    return;
+  }
+  // Browser sessions survive a reload, but are discarded when the tab is closed.
+  try {
+    if (value === null) globalThis.sessionStorage.removeItem(webKey(key));
+    else globalThis.sessionStorage.setItem(webKey(key), value);
+  } catch { /* Storage may be unavailable in a restricted browser. */ }
+}
 
 export const FACE_ID_PROMPT = "Confirm with Face ID";
 
@@ -68,30 +92,35 @@ export async function readUnlockSecret(): Promise<Uint8Array | null> {
 }
 
 export async function deleteUnlockSecret(): Promise<void> {
+  if (Platform.OS === "web") return;
   await quietly(SecureStore.deleteItemAsync(K.unlock, { requireAuthentication: true }), undefined);
 }
 
 // ── demo key (mock mode or Monad testnet only; see config.DEMO_KEY) ──────────────────────────────────────────────────
 
 export async function demoSecret(): Promise<Uint8Array> {
-  const existing = await quietly(SecureStore.getItemAsync(K.demo), null);
+  // SecureStore has no web implementation. This key is used only in explicit demo mode.
+  const existing = Platform.OS === "web"
+    ? globalThis.localStorage.getItem(webKey(K.demo))
+    : await quietly(SecureStore.getItemAsync(K.demo), null);
   if (existing) return fromHex(existing);
   const fresh = new Uint8Array(32);
   globalThis.crypto.getRandomValues(fresh);
-  await SecureStore.setItemAsync(K.demo, toHex(fresh));
+  if (Platform.OS === "web") globalThis.localStorage.setItem(webKey(K.demo), toHex(fresh));
+  else await SecureStore.setItemAsync(K.demo, toHex(fresh));
   return fresh;
 }
 
 // ── plain items ───────────────────────────────────────────────────────────────────────────────
 
-export const loadSessionToken = () => quietly(SecureStore.getItemAsync(K.session), null);
-export const saveSessionToken = (t: string) => quietly(SecureStore.setItemAsync(K.session, t), undefined);
+export const loadSessionToken = () => readPlain(K.session);
+export const saveSessionToken = (t: string) => writePlain(K.session, t);
 
-export const loadAccountId = () => quietly(SecureStore.getItemAsync(K.account), null) as Promise<`0x${string}` | null>;
-export const saveAccountId = (a: string) => quietly(SecureStore.setItemAsync(K.account, a), undefined);
+export const loadAccountId = () => readPlain(K.account) as Promise<`0x${string}` | null>;
+export const saveAccountId = (a: string) => writePlain(K.account, a);
 
 export async function loadCachedProfile(): Promise<Profile | null> {
-  const raw = await quietly(SecureStore.getItemAsync(K.profile), null);
+  const raw = await readPlain(K.profile);
   try {
     return raw ? (JSON.parse(raw) as Profile) : null;
   } catch {
@@ -99,18 +128,18 @@ export async function loadCachedProfile(): Promise<Profile | null> {
   }
 }
 export const saveCachedProfile = (p: Profile | null) =>
-  quietly(p ? SecureStore.setItemAsync(K.profile, JSON.stringify(p)) : SecureStore.deleteItemAsync(K.profile), undefined);
+  writePlain(K.profile, p ? JSON.stringify(p) : null);
 
-export const loadPendingClaim = () => quietly(SecureStore.getItemAsync(K.claim), null);
+export const loadPendingClaim = () => readPlain(K.claim);
 export const savePendingClaim = (code: string | null) =>
-  quietly(code ? SecureStore.setItemAsync(K.claim, code) : SecureStore.deleteItemAsync(K.claim), undefined);
+  writePlain(K.claim, code);
 
 /** The person has read the Burrow disclosure on this phone. */
-export const loadBurrowAck = async () => (await quietly(SecureStore.getItemAsync(K.burrowAck), null)) === "1";
-export const saveBurrowAck = () => quietly(SecureStore.setItemAsync(K.burrowAck, "1"), undefined);
+export const loadBurrowAck = async () => (await readPlain(K.burrowAck)) === "1";
+export const saveBurrowAck = () => writePlain(K.burrowAck, "1");
 
 /** Log out: forget everything local. The passkey stays with the phone's password manager. */
 export async function clearAll(): Promise<void> {
   await deleteUnlockSecret();
-  await Promise.all([K.session, K.account, K.profile, K.claim].map((k) => quietly(SecureStore.deleteItemAsync(k), undefined)));
+  await Promise.all([K.session, K.account, K.profile, K.claim].map((k) => writePlain(k, null)));
 }

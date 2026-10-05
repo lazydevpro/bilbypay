@@ -82,7 +82,45 @@ export type PhoneRow = {
   boundAt: number | null;
   rebindCount: number;
   lastReboundAt: number | null;
+  revision: BigIntString;
+  phoneEpoch: BigIntString;
+  validUntil: number;
+  revoked: boolean;
+  pendingAccount: string | null;
+  pendingExecutableAt: number | null;
+  pendingExpiresAt: number | null;
+  pendingRevision: BigIntString | null;
+  lastUpdatedBlock: number;
+  lastUpdatedLog: number;
 };
+
+export type DirectoryChangeRow = {
+  id: string;
+  phone_id: string;
+  action: "UPDATED" | "RECOVERY_REQUESTED" | "RECOVERY_CANCELLED" | "RECOVERY_FINALIZED";
+  account: string | null;
+  proposedAccount: string | null;
+  revision: BigIntString;
+  phoneEpoch: BigIntString | null;
+  validUntil: number | null;
+  revoked: boolean | null;
+  executableAt: number | null;
+  expiresAt: number | null;
+  timestamp: number;
+  blockNumber: number;
+  logIndex: number;
+  txHash: string;
+  directoryAddress: string;
+};
+
+/** Time-based expiry/recovery is evaluated here because elapsed time emits no chain event. */
+export function directoryStatus(phone: PhoneRow | undefined, nowSeconds: number): "unregistered" | "revoked" | "pending" | "expired" | "active" {
+  if (!phone || phone.revision === "0") return "unregistered";
+  if (phone.revoked) return "revoked";
+  if (phone.pendingAccount && phone.pendingExpiresAt !== null && nowSeconds <= phone.pendingExpiresAt) return "pending";
+  if (!phone.account_id || nowSeconds >= phone.validUntil) return "expired";
+  return "active";
+}
 
 export type GlobalStatsRow = {
   accounts: number;
@@ -220,7 +258,7 @@ export function burrowSummary(row: BurrowRow | undefined, sharePriceWad: bigint)
 }
 
 /** docs/api.md `recentlyChanged`: the number moved to its current account within `cooldownSeconds`. */
-export function recentlyChanged(phone: PhoneRow | undefined, nowSeconds: number, cooldownSeconds: number): boolean {
+export function recentlyChanged(phone: Pick<PhoneRow, "lastReboundAt" | "account_id"> | undefined, nowSeconds: number, cooldownSeconds: number): boolean {
   if (!phone?.lastReboundAt || !phone.account_id) return false;
   return nowSeconds - phone.lastReboundAt < cooldownSeconds;
 }
@@ -286,6 +324,11 @@ export function createIndexerClient(options: IndexerClientOptions) {
 
     async phone(phoneKey: string): Promise<PhoneRow | undefined> {
       return (await run<{ Phone: PhoneRow[] }>("PhoneStatus", { phoneKey: lower(phoneKey) })).Phone[0];
+    },
+
+    /** Indexed changes in canonical processing order; callers own finality/reorg verification. */
+    async directoryChanges(opts: { afterBlock: number; afterLog: number; toBlock: number; limit?: number }): Promise<DirectoryChangeRow[]> {
+      return (await run<{ DirectoryChange: DirectoryChangeRow[] }>("DirectoryChanges", { ...opts, limit: opts.limit ?? 100 })).DirectoryChange;
     },
 
     async stats(days = 30) {

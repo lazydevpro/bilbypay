@@ -19,6 +19,9 @@ import { Senders, type TxSender } from "./relayer";
 import { Treasury } from "./treasury";
 import { KeyedMutex } from "./util";
 import { Verifier } from "./verifier";
+import { createDirectoryRpcSource, DirectoryCache, type DirectoryRpcState } from "./directory-cache";
+import { assertDirectoryConfig } from "./directory-config";
+import { RampFundingService } from "./ramp";
 
 export type Services = {
   config: Config;
@@ -38,10 +41,13 @@ export type Services = {
   actions: ActionService;
   balances: BalanceService;
   topups: TopUpService;
+  directoryCache: DirectoryCache<DirectoryRpcState>;
+  funding: RampFundingService;
 };
 
 export function createServices(config: Config, overrides: { db?: Db; giftProvider?: GiftCardProvider; otp?: OtpProvider; topup?: TopUpProvider } = {}): Services {
   const db = overrides.db ?? openDb(config.databasePath);
+  assertDirectoryConfig(db, config);
   const chain = new ChainService(config);
   const senders = new Senders(chain);
   const relayer = senders.forKey(config.keys.relayer);
@@ -49,9 +55,15 @@ export function createServices(config: Config, overrides: { db?: Db; giftProvide
   const verifier = new Verifier(config.keys.verifier, config.deployment);
   const treasury = new Treasury(config.keys.treasury, chain, relayer);
   const tokens = new Tokens(config.tokenSecret);
+  const funding = new RampFundingService(db, config.ramp, config.tokenSecret, config.giftCodeKey);
   const otp = overrides.otp ?? createOtpProvider(config.otp);
   const userLocks = new KeyedMutex();
   const accounts = new AccountService(db, config, chain, verifier, relayer, tokens);
+  const directoryCache = new DirectoryCache(db, createDirectoryRpcSource(chain.client, config.deployment.directory), {
+    chainId: config.chainId, directory: config.deployment.directory, startBlock: config.directoryStartBlock,
+    applySnapshot: (snapshot) => accounts.cacheBinding(snapshot.phoneKey, { ...snapshot.binding, blockNumber: snapshot.blockNumber, timestamp: snapshot.timestamp }),
+    resetMirror: () => { db.prepare("DELETE FROM phone_bindings").run(); },
+  });
   const activity = new ActivityRepo(db, chain, config.publicBaseUrl);
   const gifts = new GiftCardService(db, overrides.giftProvider ?? createGiftProvider(config, db), treasury, activity, config.giftCodeKey);
   let topupProvider = overrides.topup ?? createTopUpProviderFromEnv();
@@ -65,5 +77,5 @@ export function createServices(config: Config, overrides: { db?: Db; giftProvide
   const actions = new ActionService({ db, config, chain, relayer, accounts, activity, claims, gifts, treasury, keeper, userLocks });
   keeper.hasOpenAction = (user) => actions.hasOpenAction(user);
   const balances = new BalanceService(config, chain, accounts, claims);
-  return { config, db, chain, relayer, keeperSender, verifier, treasury, tokens, otp, accounts, activity, gifts, claims, keeper, actions, balances, topups };
+  return { config, db, chain, relayer, keeperSender, verifier, treasury, tokens, otp, accounts, activity, gifts, claims, keeper, actions, balances, topups, directoryCache, funding };
 }

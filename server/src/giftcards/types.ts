@@ -5,6 +5,8 @@ export type GiftBrand = {
   id: string;
   name: string;
   logoUrl: string;
+  /** Provider-supplied product artwork; absent for older records/providers. */
+  artworkUrl?: string;
   country: string;
   category?: string;
   minAmount: bigint;

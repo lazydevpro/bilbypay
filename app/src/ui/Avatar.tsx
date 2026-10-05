@@ -5,6 +5,7 @@ import { colors } from "./theme";
 const TINTS = [colors.blueSoft, colors.goldSoft, colors.greenSoft, colors.redSoft, colors.sand];
 
 export function initials(name: string): string {
+  if (/^[+\d\s().•-]+$/.test(name)) return "#";
   const parts = name.replace(/[^\p{L}\p{N} ]/gu, "").trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "#";
   return (parts[0]![0]! + (parts.length > 1 ? parts[parts.length - 1]![0]! : "")).toUpperCase();

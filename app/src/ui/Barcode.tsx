@@ -23,11 +23,9 @@ export function Barcode({ format, value, width = 300 }: { format: string; value:
   const quiet = 10;
   const modules = widths.reduce((a, b) => a + b, 0) + quiet * 2;
   const unit = width / modules;
-  let x = quiet * unit;
+  const offsets = widths.reduce<number[]>((positions, w) => [...positions, positions[positions.length - 1] + w], [quiet]);
   const bars = widths.map((w, i) => {
-    const rect = i % 2 === 0 ? <Rect key={i} x={x} y={0} width={w * unit} height={90} fill={colors.ink} /> : null;
-    x += w * unit;
-    return rect;
+    return i % 2 === 0 ? <Rect key={i} x={offsets[i] * unit} y={0} width={w * unit} height={90} fill={colors.ink} /> : null;
   });
   return (
     <View accessibilityLabel="Gift card barcode" style={{ alignSelf: "center", backgroundColor: colors.white, borderRadius: 12, paddingVertical: 12 }}>
