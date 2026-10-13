@@ -4,10 +4,16 @@ The v2 contracts are deployed on **Monad testnet, chain 10143**. The API/keeper 
 
 ## Try it
 
-- Web app: http://127.0.0.1:8081
-- API health: http://127.0.0.1:8787/health
-- Verification code: **000000** (test mode; no SMS is sent).
-- Prepared browser account: **Bilby Tester**, **+1 415 555 0199**, initially funded with **$250 test dollars**, with **$245 remaining** after the verified $5 browser payment.
+Hosted on Cloudflare since 2026-10-12 (no local setup needed):
+
+- Web app: **https://bilbypay-app.lazydevpro.workers.dev** (test mode; accounts use a key stored in the browser, not a passkey)
+- Android APKs (standalone, hosted API): https://bilbypay.pages.dev/download/android (test mode, key on the phone) and https://bilbypay.pages.dev/download/android-passkey (passkeys via Mera; early beta, not yet tested on a physical phone). Same package, so one replaces the other. EAS profiles `apk-testmode` / `apk-passkey`; both signed with the EAS keystore in `site/signing.json`.
+- API health: https://bilbypay-api.lazydevpro.workers.dev/health
+- Landing page, passkey domain and claim links: https://bilbypay.pages.dev (claim links offer "Open in your browser")
+- Verification code: **000000** for any number (test mode; no SMS is sent).
+- New accounts start with **$100 test dollars** (testnet welcome grant), so you can send right away.
+- Running locally instead: web app http://127.0.0.1:8081, API http://127.0.0.1:8787 (don't run the local API while the hosted one is live; they share the relayer key).
+- Earlier local browser account: **Bilby Tester**, **+1 415 555 0199** ($245 test dollars); its key lives in the local preview's browser storage, so it isn't usable from the hosted web app.
 - Recipient for testing: **Test Friend**, **+1 415 555 0198**.
 
 The browser test key is scoped to the API, network, and directory deployment. The session survives a page reload in the same tab. If signed out, choose **I already have an account** in the same browser; a phone number alone cannot recover the previous account's balance. A different browser has a different test key.
@@ -18,14 +24,16 @@ The current Add money screen offers receiving from a friend. The backend top-up 
 
 Manifest: `contracts/deployments/10143-v2.json`. Directory creation block: **67216804**.
 
-| Contract | Address |
-| --- | --- |
-| Directory v2 | `0x6CE6a93600D389247971Dd2B0F65ff07FEbE6219` |
-| Escrow v2 | `0x65Cf95BA67831B6A75a58eeB91bd99289A25EaAa` |
-| Router | `0xec93D63127b20b2116d38e176448B515880AaBD9` |
-| Test dollar | `0x281E5E2fFE4F6EEb887A0fe82E9859a7656ad300` |
-| Savings stand-in | `0xe589463D6EC1E05681dc4a4dA209EF9bEECc2Ed7` |
-| Test USDC | `0x51C923016b405518A356d95eCBEfDA27CabCD538` |
+| Contract | Address | Source | Verified |
+| --- | --- | --- | --- |
+| Directory v2 | [`0x6CE6a93600D389247971Dd2B0F65ff07FEbE6219`](https://testnet.monadvision.com/address/0x6CE6a93600D389247971Dd2B0F65ff07FEbE6219?tab=Contract) | `contracts/src/BilbyDirectory.sol` | ✅ exact match |
+| Escrow v2 | [`0x65Cf95BA67831B6A75a58eeB91bd99289A25EaAa`](https://testnet.monadvision.com/address/0x65Cf95BA67831B6A75a58eeB91bd99289A25EaAa?tab=Contract) | `contracts/src/BilbyEscrow.sol` | ✅ exact match |
+| Router | [`0xec93D63127b20b2116d38e176448B515880AaBD9`](https://testnet.monadvision.com/address/0xec93D63127b20b2116d38e176448B515880AaBD9?tab=Contract) | `contracts/src/BilbyRouter.sol` | ✅ exact match |
+| Test dollar | [`0x281E5E2fFE4F6EEb887A0fe82E9859a7656ad300`](https://testnet.monadvision.com/address/0x281E5E2fFE4F6EEb887A0fe82E9859a7656ad300?tab=Contract) | `contracts/test/mocks/MockAUSD.sol` | ✅ exact match |
+| Savings stand-in | [`0xe589463D6EC1E05681dc4a4dA209EF9bEECc2Ed7`](https://testnet.monadvision.com/address/0xe589463D6EC1E05681dc4a4dA209EF9bEECc2Ed7?tab=Contract) | `contracts/test/mocks/MockStata.sol` | ✅ exact match |
+| Test USDC | [`0x51C923016b405518A356d95eCBEfDA27CabCD538`](https://testnet.monadvision.com/address/0x51C923016b405518A356d95eCBEfDA27CabCD538?tab=Contract) | `contracts/test/mocks/MockAUSD.sol` | ✅ exact match |
+
+All six are source-verified on MonadVision (Sourcify, runtime bytecode **exact match**, 2026-10-13): solc 0.8.30, optimizer 10 000 runs, EVM `prague`. Re-run with `forge verify-contract <address> <path>:<Contract> --chain 10143 --verifier sourcify --verifier-url https://sourcify-api-monad.blockvision.org/ --constructor-args=<abi-encoded args>` from `contracts/`.
 
 Owner, relayer and keeper use the funded signer `0x6E743B233A103F804255C31aEECbAE723D93dD4E`. Verifier and treasury have separate keys. The treasury was funded with 100,000 test dollars. Deployment used 1.303518792 test MON; integration and browser tests consume additional gas.
 

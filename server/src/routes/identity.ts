@@ -53,7 +53,10 @@ export function identityRoutes(app: Hono<AppEnv>, s: Services) {
       z.object({ phoneToken: z.string(), address: z.string(), displayName: z.string().max(80), issuedAt: z.number().int(), signature: hex,
         registrationId: z.string().max(100), consentSignature: hex, controllerSignature: hex.optional() }),
     );
-    return c.json(await s.accounts.register({ ...input, signature: input.signature as `0x${string}`, consentSignature: input.consentSignature as `0x${string}`, controllerSignature: input.controllerSignature as `0x${string}` | undefined }));
+    const result = await s.accounts.register({ ...input, signature: input.signature as `0x${string}`, consentSignature: input.consentSignature as `0x${string}`, controllerSignature: input.controllerSignature as `0x${string}` | undefined });
+    // Testnet: new accounts start with test dollars (no-op unless TESTNET_WELCOME_USD is set).
+    if (result.status === "registered") await s.welcome.grant(input.address);
+    return c.json(result);
   });
 
   app.post("/v1/accounts/registration/prepare", async (c) => {

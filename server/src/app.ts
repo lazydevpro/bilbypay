@@ -13,7 +13,7 @@ import type { Services } from "./services";
 
 export function createApp(s: Services, options: { corsOrigins?: string } = {}): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
-  const origins = (options.corsOrigins ?? process.env.CORS_ORIGINS ?? "").split(",").map(value => value.trim()).filter(Boolean);
+  const origins = (options.corsOrigins ?? process.env.CORS_ORIGINS ?? "").split(",").map((value: string) => value.trim()).filter(Boolean);
   for (const origin of origins) {
     let parsed: URL;
     try { parsed = new URL(origin); }

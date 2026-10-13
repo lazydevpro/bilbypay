@@ -2,13 +2,12 @@ import {
   type Address,
   createWalletClient,
   type Hex,
-  http,
   type PrivateKeyAccount,
   type TransactionReceipt,
   type WalletClient,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import type { ChainService } from "./chain";
+import { type ChainService, rpcTransport } from "./chain";
 import { innerReason } from "./errors";
 
 export type Call = { to: Address; data: Hex; label: string };
@@ -44,7 +43,7 @@ export class TxSender {
     private readonly chain: ChainService,
   ) {
     this.account = privateKeyToAccount(privateKey);
-    this.wallet = createWalletClient({ account: this.account, chain: chain.chain, transport: http(chain.config.rpcUrl) });
+    this.wallet = createWalletClient({ account: this.account, chain: chain.chain, transport: rpcTransport(chain.config.rpcUrl) });
   }
 
   get address(): Address {

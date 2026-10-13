@@ -28,6 +28,8 @@ export function sharePage(args: {
   baseUrl: string;
   appStoreUrl?: string;
   playStoreUrl?: string;
+  /** Web build of the app; adds "Open in your browser" (claim screen) for people without the app. */
+  webAppUrl?: string;
 }): string {
   const { code, view, baseUrl } = args;
   const title = view ? shareTitle(view) : "BilbyPay";
@@ -41,6 +43,7 @@ export function sharePage(args: {
   const deepLink = `bilbypay://claim/${encodeURIComponent(code)}`;
   const image = `${baseUrl}/og/${encodeURIComponent(code)}.png`;
   const store = args.appStoreUrl || args.playStoreUrl;
+  const web = args.webAppUrl ? `${args.webAppUrl}/claim/${encodeURIComponent(code)}` : undefined;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -81,6 +84,7 @@ export function sharePage(args: {
   <h1>${esc(title)}</h1>
   <p>${esc(description)}</p>
   ${view?.status === "waiting" ? `<a class="button" href="${esc(deepLink)}">Open in BilbyPay</a>` : ""}
+  ${view?.status === "waiting" && web ? `<a class="secondary" href="${esc(web)}">Open in your browser</a>` : ""}
   ${store ? `<a class="secondary" href="${esc(store)}">Don't have the app? Get BilbyPay</a>` : ""}
 </main>
 </body>
@@ -90,6 +94,14 @@ export function sharePage(args: {
 // ------------------------------------------------------------------ OG image
 
 let ready: Promise<{ fonts: Uint8Array[] }> | undefined;
+
+/** For builds without a filesystem (the Cloudflare Worker): the resvg module and fonts, bundled. */
+export function provideOgAssets(assets: { wasm: WebAssembly.Module; fonts: ArrayBuffer[] }) {
+  ready = (async () => {
+    await initWasm(assets.wasm);
+    return { fonts: assets.fonts.map((f) => new Uint8Array(f)) };
+  })();
+}
 
 function init() {
   ready ??= (async () => {

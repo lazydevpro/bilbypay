@@ -1,0 +1,4 @@
+# Android APKs (157 MB each, too big for static hosting): hosted by EAS, linked from the "Try the beta" section.
+# Update these when a new build ships (pnpm --dir app exec eas-cli build --profile apk-testmode|apk-passkey -p android).
+/download/android          https://expo.dev/artifacts/eas/rcWTLn6u-6F99AlC-Wk7H-cmbPFf9T10kpSwGUr-1UU.apk  302
+/download/android-passkey  https://expo.dev/artifacts/eas/q6BKUlkEebfrE88D5hHJkZgLTcL2IEMzZoU0sozYblM.apk  302

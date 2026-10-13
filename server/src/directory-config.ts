@@ -42,7 +42,8 @@ export function assertDirectoryConfig(db: Db, config: Pick<Config, "chainId" | "
 
     // Treat every application row as evidence of an existing deployment. Merely adding the
     // latest SQLite schema does not migrate on-chain bindings or pending escrow payments.
-    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").all() as Array<{ name: string }>;
+    // Skips platform/internal tables: "_bilby_meta" (Durable Object adapter) and Cloudflare's unreadable "__cf_kv".
+    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '\\_%' ESCAPE '\\'").all() as Array<{ name: string }>;
     for (const { name } of tables) {
       const quoted = `"${name.replaceAll('"', '""')}"`;
       if (db.prepare(`SELECT 1 AS present FROM ${quoted} LIMIT 1`).get()) {

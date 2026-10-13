@@ -1,0 +1,10 @@
+# Cloudflare Pages project for the passkey / universal-link domain (bilbypay.pages.dev).
+# Build: `node build.mjs`, deploy: `npx wrangler pages deploy` (both from site/). See site/README.md.
+name = "bilbypay"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+# Optional: forward /c/* and /og/* to the API so claim links get the server's share page + preview image.
+# Set it in the Pages dashboard (Settings → Variables) or here once the API is hosted, e.g.
+[vars]
+API_ORIGIN = "https://bilbypay-api.lazydevpro.workers.dev"

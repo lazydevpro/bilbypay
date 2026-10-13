@@ -58,3 +58,15 @@ assets/mascot/blender/bilby_export.blend
 /app/assets/bilby-poses/gifting.png
 /app/assets/bilby-poses/organizing.png
 /app/assets/bilby-poses/sleeping.png
+
+# Cloudflare Pages build output
+/site/dist/
+/site/.wrangler/
+
+# Wrangler local secrets
+.dev.vars
+.dev.vars.*
+.wrangler/
+
+# Expo web export (deployed by `pnpm --dir app deploy:web`)
+/app/dist-web/

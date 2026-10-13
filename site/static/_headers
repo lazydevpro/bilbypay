@@ -1,0 +1,7 @@
+# Apple and Google fetch these directly: JSON content type, no redirects, short cache while iterating.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=300

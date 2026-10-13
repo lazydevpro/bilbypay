@@ -4,7 +4,10 @@ import { fileURLToPath } from "node:url";
 import { type Deployment, getNetwork, type TokenInfo } from "@bilbypay/core";
 import { type Address, getAddress, type Hex, isHex } from "viem";
 
-export const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+// Bundled (Cloudflare Worker) builds have no module file path; nothing there reads files relative to it.
+export const SERVER_ROOT = (() => {
+  try { return resolve(dirname(fileURLToPath(import.meta.url)), ".."); } catch { return "/"; }
+})();
 const REPO_ROOT = resolve(SERVER_ROOT, "..");
 
 export type RampConfig = {
@@ -41,6 +44,8 @@ export type Config = {
   publicBaseUrl: string;
   appStoreUrl?: string;
   playStoreUrl?: string;
+  /** Web build of the app (claim links offer it as "Open in your browser"). */
+  webAppUrl?: string;
   databasePath: string;
   directoryStartBlock: bigint;
   rebindCooldownDays: number;
@@ -52,6 +57,8 @@ export type Config = {
   trustProxy: boolean;
   keeper: { enabled: boolean; intervalMs: number; debounceMs: number; blockRange: number };
   ramp: RampConfig;
+  /** Testnet only: test dollars minted to each new account (0 = off). */
+  testnetWelcomeUsd: number;
 };
 
 type Env = Record<string, string | undefined>;
@@ -82,7 +89,10 @@ function loadDeployment(env: Env, chainId: number): Deployment {
     : env.AUSD_ADDRESS
       ? undefined
       : resolve(REPO_ROOT, "contracts/deployments", `${chainId}-v2.json`);
-  const raw: Record<string, string | number> = file
+  // DEPLOYMENT_JSON: the manifest itself, for builds without a filesystem (the Worker bundles it).
+  const raw: Record<string, string | number> = env.DEPLOYMENT_JSON
+    ? JSON.parse(env.DEPLOYMENT_JSON)
+    : file
     ? JSON.parse(readFileSync(file, "utf8"))
     : {
         chainId,
@@ -126,6 +136,13 @@ export function loadRampConfig(env: Env): RampConfig {
   return { mode, hostApiKey: env.RAMP_HOST_API_KEY || undefined, sandboxAsset, returnOrigins,
     hostLogoUrl: externalHttps(env.RAMP_HOST_LOGO_URL, "RAMP_HOST_LOGO_URL"),
     webhookBaseUrl: externalHttps(env.RAMP_WEBHOOK_BASE_URL, "RAMP_WEBHOOK_BASE_URL", true) };
+}
+
+function welcomeUsd(env: Env, chainId: number): number {
+  const usd = Number(env.TESTNET_WELCOME_USD ?? "0");
+  if (!Number.isFinite(usd) || usd < 0 || usd > 10_000) throw new Error("TESTNET_WELCOME_USD must be between 0 and 10000");
+  if (usd > 0 && chainId === 143) throw new Error("TESTNET_WELCOME_USD is testnet-only (it mints test dollars)");
+  return usd;
 }
 
 export function loadConfig(rawEnv: Env = process.env): Config {
@@ -178,6 +195,7 @@ export function loadConfig(rawEnv: Env = process.env): Config {
     publicBaseUrl: (env.PUBLIC_BASE_URL ?? "http://localhost:8787").replace(/\/$/, ""),
     appStoreUrl: env.APP_STORE_URL || undefined,
     playStoreUrl: env.PLAY_STORE_URL || undefined,
+    webAppUrl: env.WEB_APP_URL ? env.WEB_APP_URL.replace(/\/$/, "") : undefined,
     databasePath: env.DATABASE_PATH === ":memory:" ? ":memory:" : resolve(SERVER_ROOT, env.DATABASE_PATH ?? "data/bilbypay.db"),
     directoryStartBlock: BigInt(env.DIRECTORY_START_BLOCK ?? "0"),
     rebindCooldownDays: Number(env.REBIND_COOLDOWN_DAYS ?? "7"),
@@ -195,5 +213,6 @@ export function loadConfig(rawEnv: Env = process.env): Config {
       blockRange: Number(env.KEEPER_BLOCK_RANGE ?? "100"),
     },
     ramp: loadRampConfig(env),
+    testnetWelcomeUsd: welcomeUsd(env, chainId),
   };
 }

@@ -84,7 +84,10 @@ function sameAsset(a: Asset, b: Asset) {
 export class RampFundingService {
   private readonly fetcher: typeof fetch;
   private readonly now: () => number;
-  private readonly publicKey: KeyObject;
+  // Parsed on first webhook: secp256k1 keys are unsupported by some runtimes (Cloudflare Workers), and Ramp is
+  // disabled there, so construction must not depend on it.
+  private webhookKey?: KeyObject;
+  private readonly webhookKeyInput?: KeyObject;
   private readonly locks = new KeyedMutex();
   private discoveryCache?: { at: number; result: Discovery };
   private discoveryInFlight?: Promise<Discovery>;
@@ -93,7 +96,11 @@ export class RampFundingService {
     if (config.mode !== "disabled" && config.mode !== "sandbox") throw new Error("Live Ramp funding is not implemented");
     this.fetcher = dependencies.fetch ?? fetch;
     this.now = dependencies.now ?? Date.now;
-    this.publicKey = dependencies.webhookPublicKey ?? createPublicKey(RAMP_DEMO_PUBLIC_KEY);
+    this.webhookKeyInput = dependencies.webhookPublicKey;
+  }
+
+  private publicKey(): KeyObject {
+    return (this.webhookKey ??= this.webhookKeyInput ?? createPublicKey(RAMP_DEMO_PUBLIC_KEY));
   }
 
   async options(): Promise<FundingOptions> { return (await this.discovery()).options; }
@@ -164,7 +171,7 @@ export class RampFundingService {
     try {
       raw = JSON.parse(rawBody);
       canonical = canonicalRampJson(raw);
-      if (!verify("sha256", Buffer.from(canonical), this.publicKey, Buffer.from(signature, "base64"))) throw new Error("signature");
+      if (!verify("sha256", Buffer.from(canonical), this.publicKey(), Buffer.from(signature, "base64"))) throw new Error("signature");
     } catch { throw new ApiError(401, "FUNDING_WEBHOOK_INVALID", "Invalid provider update."); }
     const parsed = webhookSchema.safeParse(raw);
     if (!parsed.success) throw errors.invalidRequest("Unsupported provider update.");

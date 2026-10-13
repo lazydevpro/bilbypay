@@ -10,7 +10,9 @@
     "prebuild": "expo prebuild --clean",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "export:web": "EXPO_PUBLIC_API_URL=https://bilbypay-api.lazydevpro.workers.dev EXPO_PUBLIC_CHAIN_ID=10143 EXPO_PUBLIC_DEMO_KEY=1 EXPO_PUBLIC_DIRECTORY_ADDRESS=0x6CE6a93600D389247971Dd2B0F65ff07FEbE6219 EXPO_PUBLIC_ESCROW_ADDRESS=0x65Cf95BA67831B6A75a58eeB91bd99289A25EaAa EXPO_PUBLIC_RP_ID=bilbypay.pages.dev expo export --platform web --output-dir dist-web",
+    "deploy:web": "pnpm export:web && wrangler deploy"
   },
   "dependencies": {
     "@bilbypay/core": "workspace:*",

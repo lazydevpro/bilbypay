@@ -167,6 +167,37 @@ See [`.env.example`](.env.example) for the full list. The important ones:
   `contracts/script/Deploy.s.sol` using the verifier/treasury/keeper addresses of these keys.
 - Codes, OTPs, tokens and request bodies are never logged.
 
+### Cloudflare (hosted testnet API)
+
+Live at **https://bilbypay-api.lazydevpro.workers.dev** (Monad testnet). `src/worker/index.ts` runs the same Hono
+app inside one SQLite-backed Durable Object (`BilbyApi`): `src/worker/do-db.ts` gives the object's storage the
+`node:sqlite` API the repositories use, its alarm replaces the keeper/directory timers (`TICK_SECONDS`), and the
+deployment manifest, fonts and resvg WASM are bundled. The one object is the "one instance" above.
+
+```bash
+cd server
+npx wrangler deploy                          # non-secret vars live in wrangler.jsonc
+npx wrangler secret bulk secrets.json        # RELAYER/KEEPER/VERIFIER/TREASURY keys, PHONE_PEPPER, TOKEN_SECRET, GIFT_CODE_KEY, ADMIN_TOKEN
+npx wrangler dev --port 8788                 # local run; secrets from .dev.vars (gitignored)
+E2E_API_URL=https://bilbypay-api.lazydevpro.workers.dev pnpm e2e:testnet   # 23/23 on 2026-10-13 (welcome grant on)
+```
+
+- `/__admin/*` (Bearer `ADMIN_TOKEN`, kept in `server/.env`): `GET stats` (row counts, kv, alarm, last 20 errors
+  logged inside the object; `wrangler tail` doesn't show Durable Object logs), `POST import` (one-time copy of a Node
+  database, `?replace=1`), `POST kv` (cursor repair; `admin:paused = "1"` pauses background work), `POST restart`
+  (re-reads vars/secrets; a deploy doesn't always recycle the busy object promptly, so run it after every deploy).
+- `RPC_URL` is a comma-separated fallback list (Ankr, Crouton, official). Public Monad RPCs rate-limit per IP
+  ("requests limited to 15/sec") and Workers share egress IPs, so a single public endpoint failed ~1 in 5 flows.
+  A keyed endpoint (QuickNode/Alchemy/Dwellir sponsor perks) belongs first in the list for anything beyond a demo.
+- `TESTNET_WELCOME_USD=100`: each new account gets $100 test dollars minted by the relayer (`src/welcome.ts`,
+  once per address; refused on chain 143). `/health` reports it as `welcomeGrant` and the e2e suite adjusts for it.
+- The hosted database was imported from `data/bilbypay-v2.db` on 2026-10-12. The directory cursor was moved to
+  block 70320998 after a log scan found no directory events between 67235279 (the local server's last block) and
+  70320998. **Don't run the local server against the same keys** while the Worker is live: both would relay
+  with the relayer's nonce.
+- Free-plan limits apply (Worker size ~1.7 MB gzipped of 3 MB; Durable Object duration while the alarm keeps it
+  awake). Ramp webhooks are not supported here (secp256k1 keys); Ramp stays disabled.
+
 ## Not covered by tests
 
 - `TwilioVerifyProvider` (needs real credentials; small REST client over Twilio Verify v2).

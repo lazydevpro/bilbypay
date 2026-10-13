@@ -10,16 +10,12 @@
     "backgroundColor": "#FBF6EE",
     "ios": {
       "bundleIdentifier": "com.bilbypay.app",
-      "supportsTablet": false,
-      "associatedDomains": [
-        "webcredentials:bilbypay.com",
-        "applinks:bilbypay.com"
-      ]
+      "supportsTablet": false
     },
     "android": {
       "package": "com.bilbypay.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#A8CEF2",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -29,23 +25,6 @@
         "android.permission.WRITE_CONTACTS",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
-      ],
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "https",
-              "host": "bilbypay.com",
-              "pathPrefix": "/c/"
-            }
-          ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
-        }
       ]
     },
     "plugins": [
@@ -78,6 +57,13 @@
     ],
     "experiments": {
       "typedRoutes": false
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "269f4d7b-9d7a-4e48-9091-cb10c3428415"
+      }
+    },
+    "owner": "lazydevpro"
   }
 }

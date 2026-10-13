@@ -1,25 +1,53 @@
 # BilbyPay — TODO
 
 Spec & plan: [docs/plans/2026-09-25-bilbypay-spec.md](docs/plans/2026-09-25-bilbypay-spec.md)
-Deadline: **2026-10-13 11:59 PM ET** · Track 02 (Consumer & Payments) · Monad mainnet (chain 143)
+Deadline: **2026-10-13 11:59 PM ET** · Track 02 (Consumer & Payments) · live on Monad testnet v2 (chain 10143); mainnet (143) is P2
 
 Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 
-## Now
-- [ ] Try the app on your phone against testnet: `eas build --profile testnet --platform android`, `cp app/.env.testnet.example app/.env`, `npx expo start --dev-client` ([docs/testnet.md](docs/testnet.md#the-app-on-a-phone-testnet)) #app #testnet
-- [ ] Register domain (`bilbypay.com` was unregistered on 2026-09-25) #admin
-- [ ] Claim sponsor perks: Tenderly Pro, Quicknode, Zerion #admin
-- [ ] Read official rules modal + Agora/Mera bounty pages on hackathon.monad.xyz; resolve rubric/open-source conflicts #admin
-- [ ] Email/DM Agora for API key + staging access (cross-border bounty) #admin
-- [~] Spike: Expo dev build + `@category-labs/mera` react-native client; create passkey on a real iPhone (iOS 18+) and Android; same address after reinstall #app #spike
-  - code done (`app/`, bundles for iOS + Android); remaining: host `.well-known` files on the rpId domain, build dev client, run on devices — [runbook](docs/phase-0-runbook.md) steps A–C
-- [~] Spike: script that signs EIP-3009 `transferWithAuthorization` for AUSD from a 0-MON account and relays it on mainnet #contracts #spike
-  - `server/scripts/relay-3009.ts` done + passing on local anvil (key-signed and app/passkey-signed); remaining: fund relayer (> 10 MON) and run on mainnet — [runbook](docs/phase-0-runbook.md) step D
-- [ ] Apply to Bitrefill Business / partner program (KYB via SumSub); ask: discounts/rev-share, KYB time, webhook signing, idempotency, P2P gifting from a crypto app #admin #giftcards
-- [ ] Pre-fund the Base USDC float (~$50) for Laso demo purchases (users never touch Base) #admin #giftcards
-- [ ] Spike: buy one real $5 card via Laso x402 (wallet sign-in → search → 402 quote → pay) and confirm code/PIN/URL in response #giftcards #spike
-- [ ] Spike: gasless AUSD → stataAUSD deposit, then permit + `withdraw` to the user and pay in one tx on mainnet (stataAUSD permit ✓ verified 2026-09-26) #burrow #spike
-- [ ] Decide feature name (working name "Burrow"; avoid "FD") #burrow
+## Now — submission sprint (evaluated 2026-10-05, 8 days left)
+Judges see this for 3–5 min: a **hosted live link + real phone demo** beats any feature. Rubric: Tech 20 · Design 20 ·
+Originality 15 · **Founder & Market 25 · Traction 20**. Bounty judging is ~40% "adherence to published requirements".
+
+### P0 — blockers (without these the submission is weak or ineligible)
+- [ ] Repo access: `lazydevpro/bilbypay` is **PRIVATE** — make public (also needed for Envio's public config/schema/handlers) or grant metropolis@hackathon.monad.xyz #submission
+- [~] Passkey domain: **https://bilbypay.pages.dev** live on Cloudflare Pages (`site/`, 2026-10-05) instead of buying `bilbypay.com` for now #admin #app
+  - Android ✓: EAS keystore SHA-256 in `site/signing.json`, Google asset-links check `linked: true`; `testnet-passkey` APK built (EAS build bd0c64dc)
+  - iOS: blocked on an Apple developer account → then set `appleTeamId` in `site/signing.json` and redeploy
+  - Play Store: add the Play App Signing SHA-256 to `site/signing.json` before testing a Play-distributed build
+  - buy `bilbypay.com` before mainnet/real users — passkeys don't move between domains
+- [~] Host the stack publicly #backend #submission
+  - [x] API + keeper on Cloudflare (Worker + SQLite Durable Object): https://bilbypay-api.lazydevpro.workers.dev — local DB imported, e2e 23/23 against it (2026-10-12); claim links + preview images via bilbypay.pages.dev ([server/README.md](server/README.md#cloudflare-hosted-testnet-api))
+  - [x] Web app (Expo web export, device-key test accounts) as a static-assets Worker: https://bilbypay-app.lazydevpro.workers.dev — `pnpm --dir app deploy:web`; CORS + claim links ("Open in your browser") wired (2026-10-12)
+  - [x] Testnet welcome grant: new accounts get $100 test dollars (`TESTNET_WELCOME_USD`, `src/welcome.ts`); hosted e2e 23/23 with it on (2026-10-13)
+  - [x] RPC fallback list for the hosted API (public RPCs throttle Cloudflare's shared IPs)
+  - [ ] Keyed RPC endpoint (claim QuickNode/Alchemy/Dwellir perk) first in `RPC_URL`; keep the relayer topped up (~0.5 test MON per full e2e run) #admin
+  - [x] Standalone Android APKs against the hosted API, linked from bilbypay.pages.dev "Try the beta" with a beta/not-audited disclaimer (2026-10-13): test mode (EAS 4f063b55) + passkey (EAS 4a5d0605); `/download/*` redirects in `site/static/_redirects`
+  - [ ] Install the passkey APK on a real Android phone: create → pay → reinstall → same account (Mera stateless/cross-device test)
+  - [ ] Shrink the APK (157 MB universal): arm64-only ABI filter + smaller sprite sheets; mirror APKs to a GitHub release once the repo is public (EAS artifact links may expire)
+  - keep the local server **off** while the Worker is live (same relayer key/nonces)
+- [~] Real-phone passkey run (Mera), **Android first**: install the `testnet-passkey` APK, `.env` from `.env.testnet.example` with `EXPO_PUBLIC_DEMO_KEY=0`; create → pay → reinstall → same account ([runbook](docs/phase-0-runbook.md) A–C). iPhone later (needs Apple developer account) #app
+- [ ] Read the gated Rules modal + Agora/Mera/Envio/Aurora bounty pages (signed in) and re-check every checklist item below #admin
+- [ ] Demo video ≤ 3 min of the **live product** (not slides) + pitch video ≤ 2 min (team, problem, why you) #submission
+
+### P1 — scoring (Founder & Market + Traction = 45%)
+- [ ] Name the first user: one corridor (e.g. US → India, "send home to a phone number") — use it in README, pitch, demo #submission
+- [ ] Traction: onboard 5–10 real people on testnet; log sends, claims, gifts + 2–3 quotes; screenshot the indexer stats #qa #submission
+- [ ] "Grandma test" with one non-crypto person; fix every confusing word/step #qa
+- [ ] Pitch framing: map to Resources ideas "Payments Embedded in Social Gestures" + "Programmable Gifts" (claim links, gift cards) #submission
+- [ ] README rewrite for judges: problem → demo link → Why Monad (300 ms / 600 ms per docs.monad.xyz, verified 2026-10-05) → architecture → v2 addresses → limits #submission
+- [ ] Logo + submission one-liner ("Your number is your wallet.") + description #submission
+
+### P1 — bounties (confirm requirements on the live pages first)
+- [ ] **Agora cross-border ($10K)** — req: mobile app + Mera onboarding + AUSD cross-border send + built against Agora's API/staging. **Gap: no Agora API integration.** Email/DM Agora today; if no access by **Oct 9**, submit with on-chain AUSD and say so #admin #bounty
+- [ ] **Mera UX ($2.5K)** — req: Mera is the whole account layer, one passkey ceremony, prompt-free session signing, passes "stateless test" (clear storage mid-demo). **Decide:** we prompt Face ID per payment — check whether that fails "prompt-free session signing" #app #bounty
+- [ ] Stateless test on a real phone: clear storage mid-flow, recover via passkey — record it for the demo #qa #bounty
+- [ ] **Envio ($1K)** — point `indexer/config.yaml` at v2 testnet addresses (directory block 67216804), deploy to Envio Cloud, use it in a core screen (activity) #stretch #bounty
+- [ ] **Aurora Intents ($2.5K tier)** — req: live, not mocked, funds from another chain used in the app. Needs Studio key + mainnet; drop if mainnet slips #stretch #bounty
+
+### P2 — only if P0/P1 are done
+- [ ] Mainnet deploy (v2 bundle) + fund relayer; one real EIP-3009 relay from a 0-MON account ([runbook](docs/phase-0-runbook.md) D) #contracts
+- [ ] Claim sponsor perks (one voucher per team): Tenderly Pro, Quicknode, Zerion, BlockVision, Spectrum, Dwellir; Crouton free RPC #admin
 
 ## Next
 ### Contracts #contracts
@@ -29,6 +57,7 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 - [x] `BilbyEscrow` deposit `kind`: `TRANSFER` (→ recipient) vs `GIFT` (→ treasury on claim, emits `giftId`)
 - [x] Tests: happy paths, bad sigs, replay, expiry, double-claim, rebind, fork test against mainnet AUSD
 - [x] Deploy to testnet (full stack + test dollar/stata stand-in/test USDC; testnet AUSD faucet is owner-locked) — [docs/testnet.md](docs/testnet.md); **20/20 flows pass e2e** (`pnpm --filter @bilbypay/server e2e:testnet`)
+- [x] Testnet v2 contracts source-verified on MonadVision (all 6, exact match, 2026-10-13) — [docs/testnet-v2.md](docs/testnet-v2.md)
 - [ ] Deploy to mainnet; verify on explorer
 - [ ] Record contract addresses + tx hashes in README
 
@@ -93,7 +122,6 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 
 ### Verification #qa
 - [ ] Run every acceptance criterion in the spec on two physical phones
-- [ ] Stateless test: clear storage mid-flow, recover via passkey
 - [ ] Confirm user account holds 0 MON throughout
 - [ ] Gift card e2e: send to a phone number → claim on another device → code shown natively; retry never buys twice; unclaimed gift refunds
 - [ ] Burrow e2e: set threshold → incoming money above it auto-saves; pay more than balance → one-tx break+pay; Move to balance; disable revokes allowance
@@ -102,12 +130,15 @@ Legend: `- [ ]` open · `- [~]` in progress · `- [x]` done · `#tags` = area
 ### Submission #submission
 - [ ] README: problem, demo, "Why Monad" (300ms/600ms, EIP-3009 gasless, P256), architecture, addresses, tx hashes, AI-tool disclosure
 - [x] OSI license (MIT)
-- [ ] Repo access for judges: make github.com/lazydevpro/bilbypay public (or grant metropolis@hackathon.monad.xyz) before Oct 13
-- [ ] Demo video ≤ 3 min (real mainnet txs) + pitch video ≤ 2 min + optional 30s ad
+- [ ] Optional 30s ad (repo access + demo/pitch videos are P0 in Now)
 - [ ] Logo (bilby 🐰) + live link
 - [ ] Submit Track 02 + bounties (Agora cross-border, Mera UX; + Envio/Aurora if built)
 
 ## Later (stretch — only after all acceptance criteria pass)
+- [ ] Bitrefill Business / partner program (KYB via SumSub) — post-hackathon #admin #giftcards
+- [ ] Laso: pre-fund Base USDC float (~$50) + buy one real $5 card via x402 — demo uses mock codes until then #giftcards #spike
+- [ ] Burrow on mainnet: gasless AUSD → stataAUSD deposit, permit + `withdraw` + pay in one tx (testnet uses a stand-in) #burrow #spike
+- [ ] Decide feature name (working name "Burrow"; avoid "FD") #burrow
 - [~] Envio HyperIndex for activity feed #stretch #bounty — `indexer/` built + tested offline; needs contract addresses and Envio Cloud deploy
 - [~] Aurora Intents cross-chain top-up #stretch #bounty — `packages/topup` + server routes + app screen; needs Studio key and one live $5 top-up; USDC lands in the treasury and the server credits AUSD 1:1 (keep the treasury AUSD float funded)
 - [ ] WhatsApp bot (or mocked in demo) #stretch

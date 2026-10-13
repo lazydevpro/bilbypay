@@ -9,7 +9,17 @@ import {
   getNetwork,
   type TokenInfo,
 } from "@bilbypay/core";
-import { type Address, type Chain, createPublicClient, domainSeparator, erc20Abi, type Hex, http, type PublicClient } from "viem";
+import { type Address, type Chain, createPublicClient, domainSeparator, erc20Abi, fallback, type Hex, http, type PublicClient, type Transport } from "viem";
+
+/**
+ * RPC_URL may list several endpoints (comma-separated): requests fail over to the next one when an endpoint
+ * errors or rate-limits (public Monad RPCs cap per-IP request rates, and hosted platforms share egress IPs).
+ */
+export function rpcTransport(rpcUrl: string): Transport {
+  const urls = rpcUrl.split(",").map((u) => u.trim()).filter(Boolean);
+  if (urls.length <= 1) return http(urls[0] ?? rpcUrl);
+  return fallback(urls.map((u) => http(u, { retryCount: 1 })), { retryCount: 2 });
+}
 import type { Config } from "./config";
 
 export type DirectoryState = {
@@ -32,7 +42,7 @@ export class ChainService {
   constructor(readonly config: Config) {
     const base = getNetwork(config.chainId).chain;
     this.chain = { ...base, rpcUrls: { default: { http: [config.rpcUrl] } } };
-    this.client = createPublicClient({ chain: this.chain, transport: http(config.rpcUrl), pollingInterval: config.pollingIntervalMs });
+    this.client = createPublicClient({ chain: this.chain, transport: rpcTransport(config.rpcUrl), pollingInterval: config.pollingIntervalMs });
     this.d = config.deployment;
   }
 

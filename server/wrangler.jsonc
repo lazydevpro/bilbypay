@@ -1,0 +1,36 @@
+// BilbyPay API on Cloudflare Workers + one SQLite Durable Object (src/worker/index.ts).
+// Secrets (keys, pepper, token secrets, ADMIN_TOKEN) are set with `wrangler secret bulk`, never here.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "bilbypay-api",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "durable_objects": {
+    "bindings": [{ "name": "BILBY_API", "class_name": "BilbyApi" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["BilbyApi"] }],
+  "rules": [{ "type": "Data", "globs": ["**/*.ttf"], "fallthrough": true }],
+  "vars": {
+    "CHAIN_ID": "10143",
+    "RPC_URL": "https://rpc.ankr.com/monad_testnet,https://monad-testnet-rpc.crouton.digital,https://testnet-rpc.monad.xyz",
+    "DIRECTORY_START_BLOCK": "67216804",
+    "USDC_ADDRESS": "0x51C923016b405518A356d95eCBEfDA27CabCD538",
+    "OTP_PROVIDER": "test",
+    "OTP_TEST_ALL": "1",
+    "GIFT_PROVIDER": "mock",
+    "TOPUP_PROVIDER": "mock",
+    "PUBLIC_BASE_URL": "https://bilbypay.pages.dev",
+    "TRUST_PROXY": "1",
+    "ESCROW_EXPIRY_DAYS": "14",
+    "KEEPER_ENABLED": "1",
+    "KEEPER_BLOCK_RANGE": "100",
+    "POLLING_INTERVAL_MS": "500",
+    "TICK_SECONDS": "15",
+    "TESTNET_WELCOME_USD": "100",
+    "WEB_APP_URL": "https://bilbypay-app.lazydevpro.workers.dev",
+    "CORS_ORIGINS": "https://bilbypay-app.lazydevpro.workers.dev,https://bilbypay.pages.dev"
+  }
+}

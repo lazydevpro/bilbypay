@@ -22,6 +22,7 @@ import { Verifier } from "./verifier";
 import { createDirectoryRpcSource, DirectoryCache, type DirectoryRpcState } from "./directory-cache";
 import { assertDirectoryConfig } from "./directory-config";
 import { RampFundingService } from "./ramp";
+import { WelcomeGrant } from "./welcome";
 
 export type Services = {
   config: Config;
@@ -42,6 +43,7 @@ export type Services = {
   balances: BalanceService;
   topups: TopUpService;
   directoryCache: DirectoryCache<DirectoryRpcState>;
+  welcome: WelcomeGrant;
   funding: RampFundingService;
 };
 
@@ -77,5 +79,6 @@ export function createServices(config: Config, overrides: { db?: Db; giftProvide
   const actions = new ActionService({ db, config, chain, relayer, accounts, activity, claims, gifts, treasury, keeper, userLocks });
   keeper.hasOpenAction = (user) => actions.hasOpenAction(user);
   const balances = new BalanceService(config, chain, accounts, claims);
-  return { config, db, chain, relayer, keeperSender, verifier, treasury, tokens, otp, accounts, activity, gifts, claims, keeper, actions, balances, topups, directoryCache, funding };
+  const welcome = new WelcomeGrant(db, config, relayer, activity);
+  return { config, db, chain, relayer, keeperSender, verifier, treasury, tokens, otp, accounts, activity, gifts, claims, keeper, actions, balances, topups, directoryCache, funding, welcome };
 }

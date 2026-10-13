@@ -27,7 +27,8 @@ export function requireSession(s: Services): MiddlewareHandler<AppEnv> {
 
 export function clientIp(c: Context, trustProxy: boolean): string {
   if (trustProxy) {
-    const fwd = c.req.header("x-forwarded-for")?.split(",")[0]?.trim();
+    // Cloudflare sets CF-Connecting-IP itself (clients can't override it); other proxies use X-Forwarded-For.
+    const fwd = c.req.header("cf-connecting-ip")?.trim() || c.req.header("x-forwarded-for")?.split(",")[0]?.trim();
     if (fwd) return fwd;
   }
   try {

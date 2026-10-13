@@ -21,7 +21,7 @@ export function publicRoutes(app: Hono<AppEnv>, s: Services) {
   app.get("/c/:code", (c) => {
     const code = c.req.param("code");
     const v = view(code);
-    const html = sharePage({ code, view: v, baseUrl: s.config.publicBaseUrl, appStoreUrl: s.config.appStoreUrl, playStoreUrl: s.config.playStoreUrl });
+    const html = sharePage({ code, view: v, baseUrl: s.config.publicBaseUrl, appStoreUrl: s.config.appStoreUrl, playStoreUrl: s.config.playStoreUrl, webAppUrl: s.config.webAppUrl });
     return c.html(html, v ? 200 : 404);
   });
 
@@ -33,7 +33,12 @@ export function publicRoutes(app: Hono<AppEnv>, s: Services) {
   });
 
   for (const name of WELL_KNOWN) {
-    const content = readFileSync(resolve(SERVER_ROOT, "public/.well-known", name), "utf8");
+    let content: string;
+    try {
+      content = readFileSync(resolve(SERVER_ROOT, "public/.well-known", name), "utf8");
+    } catch {
+      continue; // no filesystem (Cloudflare Worker): the passkey domain's site serves these files instead
+    }
     app.get(`/.well-known/${name}`, (c) => c.body(content, 200, { "Content-Type": "application/json" }));
   }
 
@@ -49,6 +54,7 @@ export function publicRoutes(app: Hono<AppEnv>, s: Services) {
       block: Number(block),
       relayerBalance: relayerBalance.toString(),
       treasuryFloat: treasuryFloat.toString(),
+      ...(s.welcome.amount > 0n ? { welcomeGrant: s.welcome.amount.toString() } : {}),
     });
   });
 }

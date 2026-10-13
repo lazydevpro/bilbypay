@@ -228,23 +228,24 @@ export function openDb(path: string): Db {
   return db;
 }
 
-function migrate(db: Db) {
+export function migrate(db: Db) {
   const { user_version: current } = db.prepare("PRAGMA user_version").get() as { user_version: number };
   for (let i = current; i < MIGRATIONS.length; i++) {
-    db.exec("BEGIN");
-    try {
+    atomically(db, "BEGIN", () => {
       db.exec(MIGRATIONS[i]!);
       db.exec(`PRAGMA user_version = ${i + 1}`);
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+    });
   }
 }
 
-export function tx<T>(db: Db, fn: () => T): T {
-  db.exec("BEGIN IMMEDIATE");
+/**
+ * Runs fn in one transaction. A Db may bring its own (Durable Object storage has transactionSync and rejects
+ * BEGIN/COMMIT statements); otherwise it's plain SQL.
+ */
+function atomically<T>(db: Db, begin: string, fn: () => T): T {
+  const native = (db as { transactionSync?: <R>(f: () => R) => R }).transactionSync;
+  if (native) return native.call(db, fn) as T;
+  db.exec(begin);
   try {
     const out = fn();
     db.exec("COMMIT");
@@ -253,6 +254,10 @@ export function tx<T>(db: Db, fn: () => T): T {
     db.exec("ROLLBACK");
     throw e;
   }
+}
+
+export function tx<T>(db: Db, fn: () => T): T {
+  return atomically(db, "BEGIN IMMEDIATE", fn);
 }
 
 export function kvGet(db: Db, key: string): string | undefined {

@@ -27,6 +27,7 @@ import { registerMessage, sessionMessage } from "../../app/src/signing/messages"
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const STATE_FILE = resolve(ROOT, "data/e2e-testnet-v2-state.json");
+let WELCOME = 0n;
 const API = process.env.E2E_API_URL ?? "http://localhost:8787";
 const RPC = process.env.RPC_URL ?? "https://testnet-rpc.monad.xyz";
 const CHAIN_ID = 10143;
@@ -224,7 +225,9 @@ async function preflight() {
     && same(routerEscrow, deployment.escrow) && same(stataAsset, deployment.ausd), "Deployed bundle wiring differs from the manifest");
   directoryAddress = deployment.directory;
   escrowAddress = deployment.escrow;
-  console.log(`Server ${API} on Monad testnet · block ${health.block} · v2 directory ${directoryAddress}\n`);
+  // Testnet welcome grant (TESTNET_WELCOME_USD): every new account starts with this many base units.
+  WELCOME = BigInt(health.welcomeGrant ?? "0");
+  console.log(`Server ${API} on Monad testnet · block ${health.block} · v2 directory ${directoryAddress}${WELCOME ? ` · welcome grant ${usd(WELCOME)}` : ""}\n`);
 }
 
 // ---------------------------------------------------------------- flows
@@ -257,7 +260,7 @@ async function main() {
     const q = await alice.api.topupQuote(origins[0]!.id, String(25n * USD));
     const done = await until(() => alice.api.topupStatus(q.quoteId), (s) => ["completed", "failed", "refunded"].includes(s.status), 60_000, "top-up");
     check(done.status === "completed", `top-up ${done.status}: ${done.message}`);
-    const bal = await until(() => alice.balance(), (b) => BigInt(b.balance) > 0n, 30_000, "balance credit");
+    const bal = await until(() => alice.balance(), (b) => BigInt(b.balance) > WELCOME, 30_000, "balance credit");
     return `balance ${usd(bal.balance)} via ${origins[0]!.id}`;
   });
 
@@ -274,7 +277,7 @@ async function main() {
     note(result);
     check(result.status === "completed", `status ${result.status}`);
     const b = await bob.balance();
-    check(BigInt(b.balance) === 20n * USD, `Bob has ${usd(b.balance)}`);
+    check(BigInt(b.balance) === WELCOME + 20n * USD, `Bob has ${usd(b.balance)}`);
     return `completed in ${ms} ms, Bob ${usd(b.balance)}`;
   });
 
@@ -297,7 +300,7 @@ async function main() {
     note(accepted);
     check(accepted.status === "completed", `accept ${accepted.status}`);
     const b = await carol.balance();
-    check(BigInt(b.balance) === 15n * USD, `Carol has ${usd(b.balance)}`);
+    check(BigInt(b.balance) === WELCOME + 15n * USD, `Carol has ${usd(b.balance)}`);
     return `Carol ${usd(b.balance)}`;
   });
 
