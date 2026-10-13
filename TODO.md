@@ -10,7 +10,7 @@ Judges see this for 3–5 min: a **hosted live link + real phone demo** beats an
 Originality 15 · **Founder & Market 25 · Traction 20**. Bounty judging is ~40% "adherence to published requirements".
 
 ### P0 — blockers (without these the submission is weak or ineligible)
-- [ ] Repo access: `lazydevpro/bilbypay` is **PRIVATE** (history scanned 2026-10-14: no real keys/tokens ever committed) — make public (also needed for Envio's public config/schema/handlers) or grant metropolis@hackathon.monad.xyz #submission
+- [x] Repo access: `lazydevpro/bilbypay` made **public** 2026-10-14 (all branches scanned first: no real keys/tokens ever committed) — make public (also needed for Envio's public config/schema/handlers) or grant metropolis@hackathon.monad.xyz #submission
 - [~] Passkey domain: **https://bilbypay.pages.dev** live on Cloudflare Pages (`site/`, 2026-10-05) instead of buying `bilbypay.com` for now #admin #app
   - Android ✓: EAS keystore SHA-256 in `site/signing.json`, Google asset-links check `linked: true`; `testnet-passkey` APK built (EAS build bd0c64dc)
   - iOS: blocked on an Apple developer account → then set `appleTeamId` in `site/signing.json` and redeploy

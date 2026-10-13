@@ -8,7 +8,7 @@ Ready-to-paste answers for the submission form. Deadline: Oct 13, 11:59 PM ET = 
 | # | Item | File / link | Status |
 |---|---|---|---|
 | 1 | Logo (≤ 3 MB) | `app/assets/icon.png` (1024×1024) | ✅ |
-| 2 | Repo, open source, accessible to metropolis@hackathon.monad.xyz | https://github.com/lazydevpro/bilbypay (MIT) | ⚠️ **private**: make it public, or invite that address. History checked: no secrets committed |
+| 2 | Repo, open source, accessible to metropolis@hackathon.monad.xyz | https://github.com/lazydevpro/bilbypay (MIT) | ✅ public since Oct 14 (all branches scanned for secrets first) |
 | 3 | Demo video (≤ 3 min, the live product) | `video/out/bilbypay-demo.mp4` (2:49, 1080p, your voice) | ✅ upload to YouTube (unlisted) and paste the link |
 | 4 | Pitch video (≤ 2 min: you, the problem, why you) | `video/out/bilbypay-launch.mp4` (1:27 product film) | ⚠️ the film has no founder on camera; see *Pitch video* below |
 | 5 | Live product on Monad testnet, with access instructions and test credentials | see *Try it* | ✅ |
