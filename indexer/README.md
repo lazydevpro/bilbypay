@@ -196,7 +196,9 @@ range is practical; see "What is verified").
 After a contract change: run `forge build`, then `node contracts/script/export-abis.mjs`, then
 `pnpm --filter @bilbypay/indexer abis`. After editing `queries/activity.graphql`, run `pnpm queries`.
 
-### Deploy to Envio Cloud (hosted GraphQL)
+### Deploy to Envio Cloud
+
+**Live:** https://indexer.dev.hyperindex.xyz/e8ec786/v1/graphql (Monad testnet 10143, v2 contracts, deployed 2026-10-14). (hosted GraphQL)
 
 Envio Cloud builds from GitHub (Vercel-style). It uploads **only the indexer directory** (so nothing
 here may import from outside `indexer/`; nothing does), installs with pnpm, ignores the lockfile and

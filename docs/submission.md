@@ -255,5 +255,7 @@ up into an activity feed, per-account stats, a contact graph and daily/global pr
 - 30 indexer tests (handler simulations), 9 app tests including one that keeps the app's query identical to
   `indexer/queries/activity.graphql`.
 
-Hosted endpoint: see `indexer/README.md` (Envio Cloud, root `indexer/`, branch `main`).
+**Hosted on Envio Cloud:** https://indexer.dev.hyperindex.xyz/e8ec786/v1/graphql (root `indexer/`, branch `main`, HyperSync). On Oct 14 it was synced to the
+chain head (block 70,773,369, 597 events), and the app's own client pulled a real account's feed from it: refunds, gifts
+and Burrow moves, with paging. The hosted web app's Activity tab reads it.
 Code: `indexer/config.yaml`, `indexer/src/`, `app/src/api/indexer.ts`, `app/src/app/(tabs)/activity.tsx`.

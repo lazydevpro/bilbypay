@@ -45,7 +45,7 @@ Originality 15 · **Founder & Market 25 · Traction 20**. Bounty judging is ~40%
 - [~] **Agora cross-border ($10K)** — Agora API client (`server/src/agora/`): live public AUSD metrics on Add money; mint/redeem routes coded, need an API key (2026-10-14). Original note: — req: mobile app + Mera onboarding + AUSD cross-border send + built against Agora's API/staging. **Gap: no Agora API integration.** Email/DM Agora today; if no access by **Oct 9**, submit with on-chain AUSD and say so #admin #bounty
 - [ ] **Mera UX ($2.5K)** — req: Mera is the whole account layer, one passkey ceremony, prompt-free session signing, passes "stateless test" (clear storage mid-demo). **Decide:** we prompt Face ID per payment — check whether that fails "prompt-free session signing" #app #bounty
 - [ ] Stateless test on a real phone: clear storage mid-flow, recover via passkey — record it for the demo #qa #bounty
-- [~] **Envio ($1K)** — v2 testnet config + Activity tab reads the indexer (2026-10-14) ✓; still: deploy on Envio Cloud, set `EXPO_PUBLIC_INDEXER_URL`, rebuild web/APK #stretch #bounty
+- [~] **Envio ($1K)** — v2 testnet config + Activity tab reads the indexer (2026-10-14) ✓; on Envio Cloud (https://indexer.dev.hyperindex.xyz/e8ec786/v1/graphql, synced 2026-10-14) and wired into the web export + EAS APK profiles; still: redeploy web, rebuild APKs #stretch #bounty
 - [~] **Aurora Intents ($2.5K tier)** — live 1Click (keyless) on the hosted API, delivers real USDC on Monad mainnet to the treasury, credits test dollars (≤ $25); app: Add money → Add from another account (2026-10-14). Still: deploy, one real $5 top-up from Arbitrum #stretch #bounty
 
 ### P2 — only if P0/P1 are done
