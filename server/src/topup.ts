@@ -1,5 +1,5 @@
 import { TopUpError, type TopUpOrigin, type TopUpProvider, type TopUpStatus } from "@bilbypay/topup";
-import { type Address, erc20Abi, getAddress, type Hex, parseEventLogs } from "viem";
+import { type Address, erc20Abi, getAddress, type Hex, isHex, parseEventLogs, type PublicClient } from "viem";
 import type { ActivityRepo } from "./activity";
 import type { ChainService } from "./chain";
 import type { Config } from "./config";
@@ -21,6 +21,12 @@ type Row = {
   activity_id: string | null;
 };
 
+/** Keeper polls unused deposit details for this long (1Click keeps a deposit address open ~3 days). */
+const WAITING_POLL_MS = 4 * 24 * 60 * 60 * 1000;
+
+/** Per top-up limit when real deliveries are credited as test dollars (see config.topup.delivery). */
+const PREVIEW_MAX = 25_000_000n;
+
 const MESSAGES = {
   processing: "Money received. Adding it to your balance now.",
   completed: "Added to your balance.",
@@ -33,6 +39,9 @@ const MESSAGES = {
  *
  *   user sends USDC on Base → provider delivers USDC on Monad to the treasury
  *   → we check the delivery on-chain → treasury pays the user AUSD (one EIP-3009 payment).
+ *
+ * On a testnet server with a live provider the delivery is real USDC on Monad mainnet (checked through
+ * `deliveryClient`, see config.topup.delivery) and the credit is test dollars on the testnet.
  *
  * Refunds (a top-up the provider can't complete) go back to the user's own address on the origin
  * network, never to the treasury. The USDC the treasury accumulates is converted back to AUSD out
@@ -48,7 +57,13 @@ export class TopUpService {
     private readonly provider: TopUpProvider,
     private readonly treasury: Treasury,
     private readonly activity: ActivityRepo,
+    /** Reads the network the provider delivers to (defaults to this chain). */
+    private readonly deliveryClient: PublicClient = chain.client,
   ) {}
+
+  private get deliveryUsdc(): Address | undefined {
+    return this.config.topup?.delivery.usdc ?? this.config.usdc;
+  }
 
   /**
    * Only origins whose refund address can be the user's own account (EVM networks: the passkey
@@ -62,7 +77,11 @@ export class TopUpService {
   async quote(user: Address, originAsset: string, amount: bigint) {
     const origin = this.origins().find((o) => o.id === originAsset || o.assetId === originAsset);
     if (!origin) throw errors.invalidRequest("We can't add money from there yet. Please pick another option.");
-    if (!this.config.usdc) throw errors.internal();
+    if (!this.deliveryUsdc) throw errors.internal();
+    // Real money in, test dollars out (testnet server, live provider): keep each top-up small.
+    if (this.config.topup?.crossNetwork && amount > PREVIEW_MAX) {
+      throw errors.invalidRequest("While BilbyPay is in preview you can add up to $25 at a time.");
+    }
     const quote = await run(() =>
       this.provider.quote({ originAsset: origin.id, amount, recipient: this.treasury.address, refundTo: user }),
     );
@@ -85,11 +104,15 @@ export class TopUpService {
     return settled;
   }
 
-  /** Keeper: move every open top-up forward. */
+  /**
+   * Keeper: move every open top-up forward. Deposit details nobody used stop being polled after
+   * WAITING_POLL_MS (live deposit addresses lapse after a few days); the owner's own status check still works.
+   */
   async settlePending() {
+    const since = new Date(Date.now() - WAITING_POLL_MS).toISOString();
     const open = this.db
-      .prepare("SELECT quote_id FROM topups WHERE status IN ('waiting', 'processing', 'crediting')")
-      .all() as { quote_id: string }[];
+      .prepare("SELECT quote_id FROM topups WHERE status IN ('processing', 'crediting') OR (status = 'waiting' AND created_at >= ?)")
+      .all(since) as { quote_id: string }[];
     for (const { quote_id } of open) {
       await this.settle(quote_id).catch((e) => console.error(`top-up ${quote_id}:`, e instanceof Error ? e.message : e));
     }
@@ -128,12 +151,13 @@ export class TopUpService {
     let total = 0n;
     const usable: Hex[] = [];
     for (const hash of hashes) {
+      if (!isHex(hash) || hash.length !== 66) continue;
       const claimed = this.db.prepare("SELECT quote_id FROM topup_deliveries WHERE tx_hash = ?").get(hash) as { quote_id: string } | undefined;
       if (claimed && claimed.quote_id !== quoteId) continue;
-      const receipt = await this.chain.client.getTransactionReceipt({ hash }).catch(() => undefined);
+      const receipt = await this.deliveryClient.getTransactionReceipt({ hash }).catch(() => undefined);
       if (!receipt || receipt.status !== "success") continue;
       const transfers = parseEventLogs({ abi: erc20Abi, eventName: "Transfer", logs: receipt.logs }).filter(
-        (l) => getAddress(l.address) === getAddress(this.config.usdc!) && getAddress(l.args.to) === getAddress(this.treasury.address),
+        (l) => getAddress(l.address) === getAddress(this.deliveryUsdc!) && getAddress(l.args.to) === getAddress(this.treasury.address),
       );
       for (const t of transfers) total += t.args.value;
       if (transfers.length) usable.push(hash);

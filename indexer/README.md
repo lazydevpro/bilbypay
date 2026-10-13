@@ -15,7 +15,7 @@ API and `createTestIndexer` for tests.
 
 ```
 indexer/
-├── config.yaml            chains (Monad 143 + testnet 10143), contracts, env placeholders
+├── config.yaml            chains: Monad testnet 10143 (live v2 defaults) + mainnet 143 (skipped), contracts
 ├── schema.graphql         12 entities + 8 enums (see "Data model")
 ├── abis/                  event-only ABIs generated from packages/core/src/abis.ts
 ├── src/handlers/          BilbyDirectory.ts, BilbyEscrow.ts, BilbyRouter.ts, BilbyAccount.ts
@@ -171,34 +171,82 @@ by this source change.
 
 ## Run it
 
+`config.yaml` defaults to the **live Monad testnet v2 deployment** (chain 10143, Directory
+`0x6CE6…6219`, Escrow `0x65Cf…EaAa`, Router `0xec93…aBD9`, start block **67216804**, test dollar
+`0x281E…d300` and savings vault `0xe589…2Ed7` as AUSD/stataAUSD in `src/lib/tokens.ts`). Mainnet
+(143) is skipped until BilbyPay is deployed there (`ENVIO_MONAD_SKIP=false` plus the
+`ENVIO_MONAD_*` addresses and start block turn it on). Every value can be overridden with the
+`ENVIO_*` variables in `.env.example`.
+
 ```bash
 pnpm install                       # from the repo root (indexer is a workspace package)
 cd indexer
-cp .env.example .env               # set ENVIO_API_TOKEN and the three contract addresses + start block
+cp .env.example .env               # add ENVIO_API_TOKEN (HyperSync needs it, https://envio.dev/app/api-tokens)
 pnpm codegen                       # generates .envio/types.d.ts from config.yaml + schema.graphql
-pnpm test                          # handler scenarios + unit tests (offline, no Docker)
+pnpm test                          # handler scenarios + unit tests (offline, no Docker; enables chain 143 for the scenarios)
 pnpm dev                           # Postgres + Hasura in Docker, indexer, GraphQL at http://localhost:8080 (password: testing)
+node scripts/check-testnet-events.mjs <file-of-tx-hashes>   # decode real v2 receipts with the indexer ABIs (RPC only)
 ```
 
-When BilbyPay is deployed, set `ENVIO_MONAD_{DIRECTORY,ESCROW,ROUTER}_ADDRESS` and
-`ENVIO_MONAD_START_BLOCK`. Those are the only placeholders. Until then, the default addresses
-(`0x…B1001/2/3`) never emit logs, so the indexer runs but stays empty. To index the staging
-deployment on testnet, set `ENVIO_TESTNET_SKIP=false` and the `ENVIO_TESTNET_*` values.
+Without Docker, `envio start` also runs against a local Postgres (`ENVIO_PG_HOST/PORT/USER/PASSWORD/DATABASE`,
+`ENVIO_HASURA=false`). Without a HyperSync token, point a copy of the config at an RPC with `for: sync`
+(the public Monad testnet RPC allows 100-block `eth_getLogs` windows and rate-limits hard, so only a short
+range is practical; see "What is verified").
 
 After a contract change: run `forge build`, then `node contracts/script/export-abis.mjs`, then
 `pnpm --filter @bilbypay/indexer abis`. After editing `queries/activity.graphql`, run `pnpm queries`.
 
-### Deploy
+### Deploy to Envio Cloud (hosted GraphQL)
 
-- **Envio Cloud** (hosted, free for hackathon winners): connect the GitHub repo in the Envio
-  dashboard, or use `npx envio-cloud indexer add --name bilbypay --repo <owner>/bilbypay`. Then set
-  the root directory to `indexer` and the config file to `config.yaml`. Add the `ENVIO_*` variables
-  with `envio-cloud indexer env set` (`ENVIO_API_TOKEN` is not needed there). Each push deploys a
-  version. `envio-cloud deployment endpoint <indexer> <commit>` prints the GraphQL URL that you pass
-  to `createIndexerClient`.
-- **Self-host**: `pnpm start` (`envio start`) against your own Postgres
-  (`ENVIO_PG_HOST/PORT/USER/PASSWORD/DATABASE`) and Hasura (`HASURA_GRAPHQL_ENDPOINT`,
-  `HASURA_GRAPHQL_ADMIN_SECRET`), with `ENVIO_API_TOKEN` for HyperSync.
+Envio Cloud builds from GitHub (Vercel-style). It uploads **only the indexer directory** (so nothing
+here may import from outside `indexer/`; nothing does), installs with pnpm, ignores the lockfile and
+requires an exact `envio` version in `package.json` (`"envio": "3.13.0"`). No secrets are needed: the
+testnet addresses are config defaults and Envio Cloud provides HyperSync itself.
+
+Dashboard flow (what to click):
+
+1. Go to https://envio.dev/app/login and **log in with GitHub** (account `lazydevpro`).
+2. **Select the organisation**: your personal account `lazydevpro`.
+3. **Install the "Envio Deployments" GitHub App** when prompted, and grant it access to
+   `lazydevpro/bilbypay` (or all repositories).
+4. **Connect a repo**: pick `bilbypay`, then **Add Indexer**.
+5. **Configure the indexer**:
+   - Indexer name: `bilbypay`
+   - **Indexer Directory / root directory: `indexer`** (or `./indexer`)
+   - **Config file: `config.yaml`** (relative to the indexer directory)
+   - **Git release branch: `main`**
+   - Plan: Development (free). Auto-deploy on push: on. Environment variables: none needed.
+6. **Deploy**: auto-deploy picks up the next push to `main`. To deploy what is already on `main`
+   without a new push, open the indexer → **Recent Commits** → **Deploy** on the latest commit.
+7. Wait for the build and the historical sync (the dashboard shows progress). Then open the
+   deployment and copy its **GraphQL endpoint**. On the development plan it looks like
+   `https://indexer.dev.hyperindex.xyz/<deployment-id>/v1/graphql` (there is a GraphQL playground in
+   the dashboard; Hasura's console is not exposed).
+
+CLI alternative (same result; alpha):
+
+```bash
+npx envio-cloud login                                  # browser login with GitHub
+npx envio-cloud indexer add --name bilbypay --repo bilbypay --branch main --root-dir indexer --config-file config.yaml --tier development
+# push to main (or deploy a commit: envio-cloud indexer commits bilbypay; envio-cloud deployment deploy bilbypay <commit>)
+npx envio-cloud deployment endpoint bilbypay <commit>  # prints the GraphQL URL
+```
+
+Check it:
+
+```bash
+curl -s "$URL" -H 'content-type: application/json' \
+  -d '{"query":"{ _meta { chainId isReady } ActivityItem(limit: 3, order_by: {blockNumber: desc}) { kind amount txHash } }"}'
+```
+
+Then wire it into the app: set `EXPO_PUBLIC_INDEXER_URL=<that URL>` (app/.env, or prefix the
+`export:web` script) and rebuild. The Activity tab then reads `ActivityFeed` from Envio and falls back
+to the API on any error (`app/src/api/indexer.ts`). Development-plan limits: 3 deployments per indexer,
+deleted after 30 days, soft limit 100k events.
+
+**Self-host**: `pnpm start` (`envio start`) against your own Postgres
+(`ENVIO_PG_HOST/PORT/USER/PASSWORD/DATABASE`) and Hasura (`HASURA_GRAPHQL_ENDPOINT`,
+`HASURA_GRAPHQL_ADMIN_SECRET`), with `ENVIO_API_TOKEN` for HyperSync.
 
 ## What is verified, what is not
 
@@ -214,21 +262,31 @@ Verified here:
   - Unit tests for the classifier, histogram quantiles and Burrow maths.
   - Client tests: request shape, pagination, API mapping, directory expiry and pending boundaries. One test checks that every field the
     GraphQL documents select exists in `schema.graphql`.
+- **The ABIs match the live v2 contracts** (2026-10-14). `scripts/check-testnet-events.mjs` fetched
+  75 real testnet v2 transactions (blocks 67216848–70609699) and decoded every indexed event with
+  `abis/*.json`: Directory `Bound` 7, `BindingUpdated` 10, `RecoveryRequested` 1, `RecoveryCancelled` 1,
+  `Unbound` 1; Escrow `Deposited` 8, `Claimed` 4, `Refunded` 2, `Cancelled` 2; Router `AutoSaveSet` 2,
+  `Swept` 2, `Added` 2, `Broken` 8; test-dollar `Transfer` 45; savings `Transfer` 12, `Deposit` 4,
+  `Withdraw` 8. Only events the indexer does not subscribe to (ownership, verifier/keeper/treasury
+  changes, `Approval`, `AuthorizationUsed`) were left undecoded. `RecoveryFinalized` has not happened on
+  testnet yet.
+- **The real indexer ingested real v2 events.** `envio start` (no Docker: local Postgres,
+  `ENVIO_HASURA=false`, public RPC as the sync source because no HyperSync token was available) indexed
+  blocks 67216804–67218300 of Monad testnet into: 4 `Account`, 6 `Phone`, 6 `PhoneBinding`,
+  10 `DirectoryChange` (incl. a recovery request and cancel), 5 `EscrowDeposit`, 29 `TokenTransfer`,
+  7 `BurrowEvent`, 1 `GlobalStats` and **25 `ActivityItem`** rows (sent/received, a cancelled and a waiting
+  phone send, gift sent/received, a refunded gift and its refund, Burrow in/out). The full range to the
+  head was not synced locally: the public RPC rate-limits (HTTP 429) and allows only 100-block windows.
+  HyperSync (Envio Cloud, or a local token) has no such limit; `10143.hypersync.xyz` is live.
 
-Not verified (the sandbox had no network to Monad or HyperSync, and no Docker daemon):
-- `envio dev` / `envio start` against Monad. `envio dev` stops at
-  `Failed starting Docker containers: Failed connecting to Docker or Podman`.
-  `143.hypersync.xyz` and `rpc.monad.xyz` were unreachable. Monad (143) and Monad testnet (10143)
-  are both in Envio's HyperSync chain list (`packages/cli/src/config_parsing/chain_helpers.rs`).
-- The GraphQL documents against a live Hasura. Field names are checked against the schema, and
-  `chainId` / `_meta` follow Envio's e2e tests, but no query was executed.
-- Log order inside the deployed stataAUSD. The handlers rely on the order in
-  `aave-dao/aave-v3-origin` `ERC4626StataTokenUpgradeable`, which was read for this work: in
-  `_withdraw`, `_burn`, then `POOL.withdraw` (AUSD from the aToken to the receiver), then
-  `Withdraw`. In `_deposit`, `transferFrom(caller)`, then mint, then `Deposit`. The tests simulate
-  that order, but it was not checked against the bytecode at `0x9e1A…fE76`.
-- V2 BilbyPay contracts have not been deployed by this change. V2 addresses/start blocks must be configured
-  separately; any existing v1 deployment manifest is not compatible with these handlers.
+Not verified:
+- The GraphQL documents against a live Hasura (the local run had Hasura off). Field names are checked
+  against the schema and `chainId` / `_meta` follow Envio's e2e tests.
+- A full sync to the chain head, and an Envio Cloud deployment (needs the human steps above).
+- Log order inside the mainnet stataAUSD. The handlers rely on the order in
+  `aave-dao/aave-v3-origin` `ERC4626StataTokenUpgradeable`: in `_withdraw`, `_burn`, then
+  `POOL.withdraw` (AUSD from the aToken to the receiver), then `Withdraw`. In `_deposit`,
+  `transferFrom(caller)`, then mint, then `Deposit`. The testnet savings vault is a stand-in.
 
 ## Known gaps
 

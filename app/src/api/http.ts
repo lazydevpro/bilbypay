@@ -103,5 +103,6 @@ export function createHttpApi(opts: HttpApiOptions): BilbyApi {
     fundingOptions: () => call("GET", "/v1/funding/options", undefined, true),
     createFundingSession: (request) => call("POST", "/v1/funding/sessions", request, true),
     fundingSession: (id) => call("GET", `/v1/funding/sessions/${enc(id)}`, undefined, true),
+    agoraMetrics: () => call("GET", "/v1/agora/metrics"),
   };
 }

@@ -152,6 +152,24 @@ See [`.env.example`](.env.example) for the full list. The important ones:
 | `USDC_ADDRESS` | USDC on the chain (defaults to Monad mainnet USDC). Used to verify top-up deliveries into the treasury. |
 | `REBIND_COOLDOWN_DAYS` | Senders see `recentlyChanged` for this long after a number moves (default 7). |
 
+## Agora (AUSD)
+
+BilbyPay balances are AUSD, Agora's dollar stablecoin. `src/agora/client.ts` is a fetch-only client for
+Agora's API (`https://api.agora.finance`, typed from its OpenAPI 0.1.0 spec), so it runs on Node and in the Worker.
+
+| Endpoint | Key? | What it does |
+|---|---|---|
+| `GET /v1/agora/metrics` | no | AUSD total/circulating supply overall and per network (`home` = Monad), from Agora's public `GET /v0/metrics`. Six-decimal base-unit strings like every other amount. Cached 5 min in memory; if Agora is down, the last figures are served for up to an hour with `stale: true`, otherwise `503 AGORA_UNAVAILABLE`. The app's Add money screen shows one line from it. |
+| `GET /v1/agora/mint-instructions` 🔒 | `AGORA_API_KEY` | Agora mint routes (`mint-fiat`, `mint-stablecoin`) landing on Monad, with their settlement instructions (wire memo + beneficiary, or deposit addresses). Without a key: `503 AGORA_NOT_CONFIGURED`, no upstream call. |
+| `GET /v1/agora/routes/:id` 🔒 | `AGORA_API_KEY` | One route's instructions. |
+
+With a key the client exchanges it for a session JWT (`POST /v0/auth/token`), caches the JWT until a minute
+before its `exp`, retries once on a 401, and also exposes `createRoute`, `listTransactions` and `getTransaction`
+(not routed; for operator scripts). Agora errors become `AgoraError { status, code, reason, requestId }`; logs carry
+the `Request-Id`, never the key. Agora issues keys to approved organisations, so the keyed path is tested only
+against a mocked API (`test/agora.test.ts`); the metrics path also has a live test that skips when offline.
+On Cloudflare, set the key with `npx wrangler secret put AGORA_API_KEY` (and `AGORA_API_BASE` as a var only to override).
+
 ## Deploying
 
 - Run **one instance**. Per-user locks, the relayer's nonce queue and the keeper live in-process,

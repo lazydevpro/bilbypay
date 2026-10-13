@@ -42,11 +42,11 @@ Originality 15 · **Founder & Market 25 · Traction 20**. Bounty judging is ~40%
 - [x] Logo + submission one-liner ("Your number is your wallet.") + description — [docs/submission.md](docs/submission.md) #submission
 
 ### P1 — bounties (confirm requirements on the live pages first)
-- [ ] **Agora cross-border ($10K)** — req: mobile app + Mera onboarding + AUSD cross-border send + built against Agora's API/staging. **Gap: no Agora API integration.** Email/DM Agora today; if no access by **Oct 9**, submit with on-chain AUSD and say so #admin #bounty
+- [~] **Agora cross-border ($10K)** — Agora API client (`server/src/agora/`): live public AUSD metrics on Add money; mint/redeem routes coded, need an API key (2026-10-14). Original note: — req: mobile app + Mera onboarding + AUSD cross-border send + built against Agora's API/staging. **Gap: no Agora API integration.** Email/DM Agora today; if no access by **Oct 9**, submit with on-chain AUSD and say so #admin #bounty
 - [ ] **Mera UX ($2.5K)** — req: Mera is the whole account layer, one passkey ceremony, prompt-free session signing, passes "stateless test" (clear storage mid-demo). **Decide:** we prompt Face ID per payment — check whether that fails "prompt-free session signing" #app #bounty
 - [ ] Stateless test on a real phone: clear storage mid-flow, recover via passkey — record it for the demo #qa #bounty
-- [ ] **Envio ($1K)** — point `indexer/config.yaml` at v2 testnet addresses (directory block 67216804), deploy to Envio Cloud, use it in a core screen (activity) #stretch #bounty
-- [ ] **Aurora Intents ($2.5K tier)** — req: live, not mocked, funds from another chain used in the app. Needs Studio key + mainnet; drop if mainnet slips #stretch #bounty
+- [~] **Envio ($1K)** — v2 testnet config + Activity tab reads the indexer (2026-10-14) ✓; still: deploy on Envio Cloud, set `EXPO_PUBLIC_INDEXER_URL`, rebuild web/APK #stretch #bounty
+- [~] **Aurora Intents ($2.5K tier)** — live 1Click (keyless) on the hosted API, delivers real USDC on Monad mainnet to the treasury, credits test dollars (≤ $25); app: Add money → Add from another account (2026-10-14). Still: deploy, one real $5 top-up from Arbitrum #stretch #bounty
 
 ### P2 — only if P0/P1 are done
 - [ ] Mainnet deploy (v2 bundle) + fund relayer; one real EIP-3009 relay from a 0-MON account ([runbook](docs/phase-0-runbook.md) D) #contracts

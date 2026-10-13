@@ -1,9 +1,10 @@
 import * as Linking from "expo-linking";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { api } from "../api";
 import type { FundingSession } from "../api/types";
+import { agoraLine } from "../funding/agora";
 import { FUNDING_POLL_MS, fundingCopy, safeCheckoutUrl, shouldPollFunding } from "../funding/checkout";
 import { usd } from "../money/amount";
 import { useSession } from "../state/session";
@@ -14,6 +15,17 @@ import { Notice } from "../ui/Notice";
 import { Screen } from "../ui/Screen";
 import { Muted, Text } from "../ui/Text";
 import { colors, radius, space } from "../ui/theme";
+
+/** Where BilbyPay dollars come from, from Agora's public figures. Renders nothing until (and unless) they load. */
+function AgoraNote() {
+  const [line, setLine] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    api.agoraMetrics().then(m => { if (alive) setLine(agoraLine(m)); }, () => {});
+    return () => { alive = false; };
+  }, []);
+  return line ? <Muted variant="small" style={styles.center} accessibilityRole="text">{line}</Muted> : null;
+}
 
 /** A hosted-checkout return is only navigation. Read payment status from Bilby's API. */
 export default function Funding() {
@@ -84,6 +96,7 @@ export default function Funding() {
       <Text variant="title">Let&apos;s start with an amount</Text>
       <Muted>Choose an amount to preview a card payment.</Muted>
       <Notice tone="warning" title="Sandbox preview" message="No real money moves and your BilbyPay balance won't change." />
+      <AgoraNote />
     </Screen>
   );
 
@@ -117,6 +130,7 @@ export default function Funding() {
       {error ? <Notice tone="warning" message="We couldn't check this practice payment. Try again in a moment." action={{ label: "Check again", onPress: retry }} /> : null}
       {openError ? <Notice tone="warning" message="We couldn't open the practice checkout. Check the payment status and try again." action={{ label: "Check status", onPress: retry }} /> : null}
       {current && !finished ? <Muted variant="small" style={styles.center}>{polling ? "Checking for updates while you're here." : "Still waiting for Ramp. Tap Check status whenever you're ready."}</Muted> : null}
+      <AgoraNote />
     </Screen>
   );
 }

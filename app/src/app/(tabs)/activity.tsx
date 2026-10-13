@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { api } from "../../api";
+import { loadActivity } from "../../api/indexer";
 import type { ActivityItem } from "../../api/types";
+import { CHAIN_ID, INDEXER_URL, IS_MOCK } from "../../config";
 import { rememberActivity } from "../../flows/drafts";
+import { useSession } from "../../state/session";
 import { useLoad } from "../../state/useLoad";
 import { ActivityRow } from "../../ui/ActivityRow";
 import { Icon } from "../../ui/Icon";
@@ -12,13 +15,17 @@ import { Muted, Text } from "../../ui/Text";
 import { colors, radius, space } from "../../ui/theme";
 
 export default function Activity() {
+  const { address } = useSession();
+  // On-chain feed from the Envio indexer when configured; the API otherwise and on any indexer error.
+  const fetchPage = (cursor?: string) =>
+    loadActivity({ cursor, account: address, indexerUrl: IS_MOCK ? undefined : INDEXER_URL, chainId: CHAIN_ID, apiActivity: (c) => api.activity(c) });
   const [more, setMore] = useState<{ items: ActivityItem[]; cursor?: string; loading: boolean; error?: unknown }>({ items: [], loading: false });
   const { data, error, loading, refreshing, refresh, reload } = useLoad(async () => {
-    const page = await api.activity();
+    const page = await fetchPage();
     rememberActivity(page.items);
     setMore({ items: [], cursor: page.nextCursor, loading: false });
     return page;
-  });
+  }, [address]);
 
   const items = [...(data?.items ?? []), ...more.items];
 
@@ -26,7 +33,7 @@ export default function Activity() {
     if (!more.cursor || more.loading) return;
     setMore((m) => ({ ...m, loading: true }));
     try {
-      const page = await api.activity(more.cursor);
+      const page = await fetchPage(more.cursor);
       rememberActivity(page.items);
       setMore((m) => ({ items: [...m.items, ...page.items], cursor: page.nextCursor, loading: false }));
     } catch (e) {

@@ -19,9 +19,10 @@ export const TOKENS: Record<number, ChainTokens> = {
     stata: lower(process.env.ENVIO_MONAD_STATA_ADDRESS, "0x9e1AcC5BFbf34e2E579763cE14042d957719fE76"),
   },
   10143: {
-    ausd: lower(process.env.ENVIO_TESTNET_AUSD_ADDRESS, "0xa9012a055bd4e0eDfF8Ce09f960291C09D5322dC"),
-    // No stataAUSD on testnet yet; the Burrow is mocked there (contracts/test/mocks/MockStata.sol).
-    stata: lower(process.env.ENVIO_TESTNET_STATA_ADDRESS, ZERO_ADDRESS),
+    // v2 testnet deployment (contracts/deployments/10143-v2.json): a 6-decimal test dollar
+    // standing in for AUSD, and an ERC-4626 savings vault standing in for stataAUSD.
+    ausd: lower(process.env.ENVIO_TESTNET_AUSD_ADDRESS, "0x281E5E2fFE4F6EEb887A0fe82E9859a7656ad300"),
+    stata: lower(process.env.ENVIO_TESTNET_STATA_ADDRESS, "0xe589463D6EC1E05681dc4a4dA209EF9bEECc2Ed7"),
   },
 };
 

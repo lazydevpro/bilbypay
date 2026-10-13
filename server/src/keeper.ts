@@ -63,9 +63,14 @@ export class Keeper {
         await this.runDueSweeps();
         await this.refundExpired();
         await this.gifts.reconcile();
-        await this.topups?.settlePending();
       } finally {
-        this.ticking = undefined;
+        // Top-ups don't depend on the jobs above (and may read another network): a failing RPC scan
+        // must not stop deliveries from being credited.
+        try {
+          await this.topups?.settlePending();
+        } finally {
+          this.ticking = undefined;
+        }
       }
     })();
     return this.ticking;

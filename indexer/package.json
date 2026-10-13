@@ -11,7 +11,7 @@
     "abis": "node scripts/export-abis.mjs",
     "queries": "node scripts/embed-queries.mjs",
     "typecheck": "envio codegen && tsc --noEmit -p .",
-    "test": "vitest run --test-timeout=20000"
+    "test": "ENVIO_MONAD_SKIP=false vitest run --test-timeout=20000"
   },
   "dependencies": {
     "envio": "3.13.0"

@@ -59,9 +59,11 @@ contracts:
       - event: Withdraw # ERC-4626 Withdraw on stataAUSD (owner = account)
 
 chains:
-  # Monad mainnet (HyperSync-supported; needs ENVIO_API_TOKEN). The public RPC is only a
-  # fallback for realtime stalls.
+  # Monad mainnet (HyperSync-supported). The public RPC is only a fallback for realtime stalls.
+  # BilbyPay is not on mainnet yet, so this chain is skipped unless ENVIO_MONAD_SKIP=false
+  # (otherwise the inert placeholder addresses below would make the indexer scan mainnet from 0).
   - id: 143
+    skip: ${ENVIO_MONAD_SKIP:-true}
     start_block: ${ENVIO_MONAD_START_BLOCK:-0}
     rpc:
       - url: ${ENVIO_MONAD_RPC_URL:-https://rpc.monad.xyz}
@@ -77,18 +79,19 @@ chains:
         address: "${ENVIO_MONAD_ROUTER_ADDRESS:-0x00000000000000000000000000000000000B1003}"
       - name: BilbyAccount
 
-  # Monad testnet, for the staging deployment. Skipped unless ENVIO_TESTNET_SKIP=false.
+  # Monad testnet: the live v2 deployment (contracts/deployments/10143-v2.json, docs/testnet-v2.md).
+  # Indexed by default, from the Directory creation block. HyperSync serves chain 10143.
   - id: 10143
-    skip: ${ENVIO_TESTNET_SKIP:-true}
-    start_block: ${ENVIO_TESTNET_START_BLOCK:-0}
+    skip: ${ENVIO_TESTNET_SKIP:-false}
+    start_block: ${ENVIO_TESTNET_START_BLOCK:-67216804}
     rpc:
       - url: ${ENVIO_TESTNET_RPC_URL:-https://testnet-rpc.monad.xyz}
         for: fallback
     contracts:
       - name: BilbyDirectory
-        address: "${ENVIO_TESTNET_DIRECTORY_ADDRESS:-0x00000000000000000000000000000000000B1001}"
+        address: "${ENVIO_TESTNET_DIRECTORY_ADDRESS:-0x6CE6a93600D389247971Dd2B0F65ff07FEbE6219}"
       - name: BilbyEscrow
-        address: "${ENVIO_TESTNET_ESCROW_ADDRESS:-0x00000000000000000000000000000000000B1002}"
+        address: "${ENVIO_TESTNET_ESCROW_ADDRESS:-0x65Cf95BA67831B6A75a58eeB91bd99289A25EaAa}"
       - name: BilbyRouter
-        address: "${ENVIO_TESTNET_ROUTER_ADDRESS:-0x00000000000000000000000000000000000B1003}"
+        address: "${ENVIO_TESTNET_ROUTER_ADDRESS:-0xec93D63127b20b2116d38e176448B515880AaBD9}"
       - name: BilbyAccount

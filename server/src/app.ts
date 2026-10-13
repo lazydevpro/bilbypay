@@ -9,6 +9,7 @@ import { moneyRoutes } from "./routes/money";
 import { publicRoutes } from "./routes/public";
 import { topUpRoutes } from "./routes/topup";
 import { fundingRoutes } from "./routes/funding";
+import { agoraRoutes } from "./routes/agora";
 import type { Services } from "./services";
 
 export function createApp(s: Services, options: { corsOrigins?: string } = {}): Hono<AppEnv> {
@@ -44,6 +45,7 @@ export function createApp(s: Services, options: { corsOrigins?: string } = {}): 
   giftCardRoutes(app, s);
   topUpRoutes(app, s);
   fundingRoutes(app, s);
+  agoraRoutes(app, s);
   publicRoutes(app, s);
   return app;
 }

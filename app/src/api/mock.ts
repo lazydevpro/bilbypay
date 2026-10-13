@@ -904,6 +904,18 @@ export function createMockApi(opts: MockApiOptions): BilbyApi & { readDirectory:
       throw new ApiError("NOT_FOUND", "We couldn't find that payment. Go back to Add money.", 404);
     }),
 
+    // Agora's public figures, as GET /v1/agora/metrics returned them on 14 Oct 2026 (six-decimal dollars).
+    agoraMetrics: () => wait(() => ({
+      source: "agora" as const, partial: false,
+      totalSupply: "211631514798976", circulatingSupply: "187063472246883",
+      home: { network: "monad", chainId: "eip155:143", totalSupply: "109206890954020", circulatingSupply: "104350204252830" },
+      networks: [
+        { network: "monad", chainId: "eip155:143", totalSupply: "109206890954020", circulatingSupply: "104350204252830" },
+        { network: "ethereum", chainId: "eip155:1", totalSupply: "71919999240777", circulatingSupply: "64870315160326" },
+      ],
+      fetchedAt: "2026-10-14T00:00:00.000Z",
+    })),
+
     topupOrigins: () =>
       wait(() => {
         registered();

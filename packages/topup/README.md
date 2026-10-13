@@ -139,9 +139,16 @@ require `refundTo`.
 - **Verified from source:** endpoint paths, base URLs, auth styles, request/response field names
   and status enum (SDK + widget source). The Monad destination ids (catalogue snapshot + Aurora
   demo). The HOT id encoding (reproduces the listed ids).
-- **Not verified live:** the build sandbox blocks `1click.chaindefuser.com` and
-  `intents-api.aurora.dev` (proxy 403 "Host not in allowlist"). No real call was made. The test
-  fixtures are hand-built from the SDK types, not captured traffic.
+- **Verified live (2026-10-13, no funds sent):** keyless 1Click (`TOPUP_PROVIDER=oneclick`, no JWT)
+  lists Monad USDC, returns dry quotes and real deposit addresses for Base and Arbitrum USDC → Monad
+  USDC ($5 in → $4.988323 out, min $4.963381; 1Click adds a 0.2% `appFees` entry when no JWT is sent).
+  The deposit address stays open ~72h (`quote.deadline`/`timeWhenInactive`). `timeEstimate` was ~27s
+  from Arbitrum and ~1h from Base. Status for an unused address is `PENDING_DEPOSIT` with null
+  amounts. These bodies are pinned in `test/intents.test.ts` ("live 1Click shapes"). The Aurora
+  backend refuses requests without a Studio key (404 "Application key not found").
+- **Not verified live:** a completed transfer (the `SUCCESS` status body and the format of
+  `destinationChainTxHashes` for Monad). The server only credits for 0x transaction ids whose
+  receipts show USDC arriving in the treasury.
 - **Assumed:** the Aurora proxy's error body is `{ message }`, like 1Click (the widget reads
   `response.data.message`). The Aurora `/api/deposit/submit` response body. The Aurora
   `/api/tokens` item shape. Whether the Aurora backend works without Studio fee configuration.

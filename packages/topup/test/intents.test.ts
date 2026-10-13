@@ -298,3 +298,65 @@ describe("createTopUpProviderFromEnv", () => {
     expect(() => createTopUpProviderFromEnv({ INTENTS_API_KEY: "k", TOPUP_SLIPPAGE_BPS: "abc" })).toThrow();
   });
 });
+
+/** Bodies captured from the live keyless 1Click API (2026-10-13, Arbitrum USDC → Monad USDC, $5, no funds sent). */
+describe("live 1Click shapes (captured, no API key)", () => {
+  const LIVE_DEPOSIT = "0x8935EC2C286f17cdbB9d62Ad0D46E0Cf91d6893A";
+  const TREASURY = "0xC9f2F2533A8698377CF4aA3bf0Bd515B03a57a51";
+  const liveQuote = {
+    quote: {
+      amountIn: "5000000", amountInFormatted: "5.0", amountInUsd: "4.998760000000", minAmountIn: "5000000",
+      amountOut: "4988323", amountOutFormatted: "4.988323", amountOutUsd: "4.987085895896", minAmountOut: "4963381",
+      timeEstimate: 27, refundFee: "5300", withdrawFee: "664",
+      deadline: "2026-10-16T20:45:26.008Z", timeWhenInactive: "2026-10-16T20:45:26.008Z", depositAddress: LIVE_DEPOSIT,
+    },
+    quoteRequest: {
+      dry: false, depositMode: "SIMPLE", swapType: "EXACT_INPUT", slippageTolerance: 50,
+      originAsset: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near", depositType: "ORIGIN_CHAIN",
+      destinationAsset: MONAD_USDC, amount: "5000000", refundTo: TREASURY, refundType: "ORIGIN_CHAIN",
+      recipient: TREASURY, recipientType: "DESTINATION_CHAIN", deadline: "2026-10-13T20:45:26.008Z",
+      confidentiality: "public", quoteWaitingTimeMs: 0, insured: false,
+      appFees: [{ recipient: "5880ad2b362620fadf759cbceb1cd5737ce8c6ed7fb8e9942881e6731f9247dd", fee: 20, limitOrderId: null }],
+    },
+    signature: "ed25519:25QWB5pVWdWrA6JQcsF66qtCbjkx6JK5tB3up6zrVYrqHDM6nuKvnLvapuCRjpkP4y16vqSB1aFxBNxkGsZvF1Vr",
+    timestamp: "2026-10-13T19:45:26.632Z",
+    correlationId: "df39576d-d202-4ab8-8739-1f96fe01bf00",
+  };
+  const livePending = {
+    status: "PENDING_DEPOSIT",
+    updatedAt: "2026-10-13T19:45:27.394Z",
+    correlationId: "8013666c-198b-4dde-a025-be83b98fd1d0",
+    swapDetails: {
+      depositedAmount: null, depositedAmountUsd: null, depositedAmountFormatted: null, intentHashes: [], nearTxHashes: [],
+      amountIn: null, amountInFormatted: null, amountInUsd: null, amountOut: null, amountOutFormatted: null, amountOutUsd: null,
+      slippage: null, refundedAmount: "0", refundedAmountFormatted: "0", originChainTxHashes: [], destinationChainTxHashes: [],
+    },
+  };
+
+  function oneclick() {
+    const f = fakeFetch({
+      "POST /v0/quote": () => ({ body: liveQuote }),
+      "GET /v0/status": () => ({ body: livePending }),
+    });
+    return { provider: new IntentsTopUpProvider({ backend: "oneclick", fetch: f.fetch, now: () => NOW }), calls: f.calls };
+  }
+
+  it("parses the live quote: deposit address, amounts, the deposit window", async () => {
+    const { provider, calls } = oneclick();
+    const q = await provider.quote({ originAsset: "arb:usdc", amount: parseUsd("5"), recipient: TREASURY, refundTo: TREASURY });
+    expect(calls[0]!.url).toBe("https://1click.chaindefuser.com/v0/quote");
+    expect(calls[0]!.headers.Authorization).toBeUndefined();
+    expect(q).toMatchObject({
+      quoteId: LIVE_DEPOSIT, depositAddress: LIVE_DEPOSIT, amountIn: 5_000_000n, amountInBaseUnits: "5000000",
+      amountOut: 4_988_323n, minAmountOut: 4_963_381n, expiresAt: "2026-10-16T20:45:26.008Z", etaSeconds: 27, dry: false,
+    });
+  });
+
+  it("parses the live pending status (null amounts are not zero)", async () => {
+    const { provider } = oneclick();
+    const st = await provider.status(LIVE_DEPOSIT);
+    expect(st).toMatchObject({ status: "waiting", providerStatus: "PENDING_DEPOSIT", refundedAmount: 0n, destinationTxHashes: [] });
+    expect(st.amountIn).toBeUndefined();
+    expect(st.amountOut).toBeUndefined();
+  });
+});

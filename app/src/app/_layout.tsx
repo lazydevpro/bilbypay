@@ -56,6 +56,7 @@ export default function RootLayout() {
           <Stack.Screen name="settings/phone" options={{ title: "Your number" }} />
           <Stack.Screen name="settings/about" options={{ title: "About BilbyPay" }} />
           <Stack.Screen name="topup" options={{ title: "" }} />
+          <Stack.Screen name="topup-other" options={{ title: "" }} />
           <Stack.Screen name="funding" options={{ title: "Add money" }} />
           <Stack.Screen name="dev/spike" options={{ title: "Developer" }} />
         </Stack>

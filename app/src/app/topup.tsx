@@ -122,6 +122,14 @@ export default function TopUp() {
         {canReceive && profile ? <Text variant="heading" selectable>{formatE164(profile.phone)}</Text> : number.error ? <Muted variant="small">We couldn&apos;t check your number. Check it before asking a friend to send money.</Muted> : number.loading ? <Muted variant="small">Checking your number…</Muted> : <Muted variant="small">Check your number to receive payments.</Muted>}
         <Button variant="secondary" compact label={canReceive ? "Show my number" : "Check my number"} disabled={number.loading || busy} onPress={() => router.push(canReceive ? "/receive" : "/settings/phone")} />
       </Card>
+
+      <Card tone="sand">
+        <View style={styles.friendHeading}>
+          <View style={styles.friendIcon}><Icon name="receive" size={22} color={colors.primaryDeep} /></View>
+          <View style={styles.friendCopy}><Text variant="bodyStrong">Add from another account</Text><Muted variant="small">Move dollars you hold somewhere else into BilbyPay.</Muted></View>
+        </View>
+        <Button variant="secondary" compact label="Add from another account" disabled={busy} onPress={() => router.push("/topup-other")} />
+      </Card>
     </Screen>
   );
 }

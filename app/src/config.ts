@@ -15,6 +15,12 @@ export const CHAIN_ID = Number(process.env.EXPO_PUBLIC_CHAIN_ID ?? "143");
 export const DIRECTORY_ADDRESS = process.env.EXPO_PUBLIC_DIRECTORY_ADDRESS ?? "";
 export const ESCROW_ADDRESS = process.env.EXPO_PUBLIC_ESCROW_ADDRESS ?? "";
 export const RPC_URL = process.env.EXPO_PUBLIC_RPC_URL;
+/**
+ * Optional GraphQL endpoint of the BilbyPay Envio indexer (indexer/, e.g. Envio Cloud's
+ * https://indexer.dev.hyperindex.xyz/<id>/v1/graphql). When set, Activity reads the on-chain feed
+ * from it and falls back to the API on any error. Never put credentials here: it ships in the app.
+ */
+export const INDEXER_URL: string | undefined = process.env.EXPO_PUBLIC_INDEXER_URL || undefined;
 
 /** Domain for claim links and universal links. */
 export const LINK_DOMAIN: string = process.env.EXPO_PUBLIC_LINK_DOMAIN ?? "bilbypay.com";

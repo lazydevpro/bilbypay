@@ -57,8 +57,24 @@ export type Config = {
   trustProxy: boolean;
   keeper: { enabled: boolean; intervalMs: number; debounceMs: number; blockRange: number };
   ramp: RampConfig;
+  /** Agora AUSD API. Metrics are public; routes/transactions need AGORA_API_KEY. */
+  agora: { apiKey?: string; baseUrl?: string };
   /** Testnet only: test dollars minted to each new account (0 = off). */
   testnetWelcomeUsd: number;
+  topup: TopUpConfig;
+};
+
+/**
+ * Top-up provider settings. `env` is what @bilbypay/topup's createTopUpProviderFromEnv reads (passed explicitly
+ * so the Worker doesn't depend on process.env). `delivery` is where the provider's USDC delivery to the treasury
+ * is checked before anyone is credited.
+ */
+export type TopUpConfig = {
+  env: Record<string, string | undefined>;
+  provider: "aurora" | "oneclick" | "mock";
+  delivery: { chainId: number; rpcUrl: string; usdc?: Address };
+  /** Real deliveries credited as test dollars (testnet server, live provider): top-ups are capped. */
+  crossNetwork: boolean;
 };
 
 type Env = Record<string, string | undefined>;
@@ -105,6 +121,13 @@ function loadDeployment(env: Env, chainId: number): Deployment {
   if (Number(raw.chainId) !== chainId) throw new Error(`Deployment is for chain ${raw.chainId}, CHAIN_ID is ${chainId}`);
   const addr = (k: string) => getAddress(String(raw[k]));
   return { chainId, ausd: addr("ausd"), stata: addr("stata"), directory: addr("directory"), escrow: addr("escrow"), router: addr("router") };
+}
+
+/** AGORA_API_KEY is optional (public metrics work without it); AGORA_API_BASE must be HTTPS (the key is sent there). */
+export function loadAgoraConfig(env: Env): Config["agora"] {
+  const baseUrl = env.AGORA_API_BASE || undefined;
+  if (baseUrl && !/^https:\/\/[^/@\s]+\/?$/.test(baseUrl)) throw new Error("AGORA_API_BASE must be an HTTPS origin, e.g. https://api.agora.finance");
+  return { apiKey: env.AGORA_API_KEY || undefined, baseUrl };
 }
 
 /** No production Ramp endpoint or mode can be enabled by environment configuration. */
@@ -213,6 +236,40 @@ export function loadConfig(rawEnv: Env = process.env): Config {
       blockRange: Number(env.KEEPER_BLOCK_RANGE ?? "100"),
     },
     ramp: loadRampConfig(env),
+    agora: loadAgoraConfig(env),
     testnetWelcomeUsd: welcomeUsd(env, chainId),
+    topup: loadTopUpConfig(env, chainId, env.RPC_URL || network.chain.rpcUrls.default.http[0]!, (env.USDC_ADDRESS ?? network.usdc?.address) as Address | undefined),
+  };
+}
+
+/**
+ * A live provider (aurora/oneclick) can only deliver real USDC on Monad mainnet. On mainnet that's the chain we
+ * run on. On a testnet server it means "real money in, test dollars out": the delivery is verified on mainnet
+ * (TOPUP_DELIVERY_RPC_URL, default the public Monad RPCs; TOPUP_DELIVERY_USDC, default native USDC) and the user
+ * is credited 1:1 in test dollars from the treasury on this testnet. That cross-network mode is refused on mainnet.
+ */
+function loadTopUpConfig(env: Env, chainId: number, rpcUrl: string, usdc: Address | undefined): TopUpConfig {
+  const topupEnv = Object.fromEntries(Object.entries(env).filter(([k]) => k.startsWith("TOPUP_") || k.startsWith("INTENTS_")));
+  const provider = (env.TOPUP_PROVIDER || (env.INTENTS_API_KEY ? "aurora" : "mock")).toLowerCase() as TopUpConfig["provider"];
+  if (!["aurora", "oneclick", "mock"].includes(provider)) throw new Error(`TOPUP_PROVIDER must be aurora, oneclick or mock (got ${provider})`);
+  const crossNetwork = env.TOPUP_DELIVERY_RPC_URL || env.TOPUP_DELIVERY_USDC;
+  if (chainId === 143) {
+    if (crossNetwork) throw new Error("TOPUP_DELIVERY_RPC_URL/TOPUP_DELIVERY_USDC are testnet-only (mainnet verifies deliveries on its own chain)");
+    return { env: topupEnv, provider, delivery: { chainId, rpcUrl, usdc }, crossNetwork: false };
+  }
+  if (provider === "mock") {
+    if (crossNetwork) throw new Error("TOPUP_DELIVERY_* needs a live TOPUP_PROVIDER (aurora or oneclick)");
+    return { env: topupEnv, provider, delivery: { chainId, rpcUrl, usdc }, crossNetwork: false };
+  }
+  const mainnet = getNetwork(143);
+  return {
+    env: topupEnv,
+    provider,
+    delivery: {
+      chainId: 143,
+      rpcUrl: env.TOPUP_DELIVERY_RPC_URL || mainnet.chain.rpcUrls.default.http.join(","),
+      usdc: getAddress(env.TOPUP_DELIVERY_USDC || mainnet.usdc!.address),
+    },
+    crossNetwork: true,
   };
 }

@@ -131,3 +131,129 @@ matching levels. If there's no time, submit the film as it is.
 
 Built with assistance from Claude Code (Anthropic) for research, planning, code, and the launch film; the voiceover
 for the launch film generated with Google AI Studio.
+
+## Go-to-market and user acquisition
+
+**Who first:** Indians abroad (students and workers in the US, UK and Gulf) sending money and gifts home. They already
+pay by phone number with UPI at home, and their family is one WhatsApp message away. "Send to a phone number" needs
+no explanation for them.
+
+**The product is the acquisition loop.** Every payment or gift to someone who isn't on BilbyPay becomes a claim link
+sent over WhatsApp or iMessage. To get the money, the recipient signs up with the same number. So senders bring
+recipients, and recipients become senders. We track one number above all: the share of claim links that turn into a
+new account.
+
+**Gifts lower the barrier.** A $10 Starbucks or Target card for a birthday, Diwali or a thank-you is an easier first
+send than "try this crypto app". Gifting seasons (Diwali, Christmas, graduation) are our launch moments.
+
+**Channels, in order:**
+1. **Communities we can reach directly:** university Indian student associations and diaspora WhatsApp/Telegram
+   groups. One ambassador per campus, plus a small credit for both sides of a first send.
+2. **The Monad ecosystem:** testnet users, the Monad community and hackathon networks for the first beta users, with
+   AUSD/Agora and Mera as natural partners for co-marketing.
+3. **Short-form content** with Bilby the mascot: 15-second "sent $20 home in two seconds, no address" clips.
+4. **Gift-card brands and creators:** branded cards and creator gift drops that pull their audiences in by phone
+   number.
+
+**Why it's cheap to grow:** no gas token to buy and no seed phrase to explain, so onboarding is a phone number and
+a fingerprint. Fees are sub-cent on Monad, so free payments are sustainable. Revenue comes from small fees on gift
+cards and cash-out, and from a share of Burrow yield, not from charging people to send.
+
+**Next 90 days:** onboard 50–100 testnet users from two campuses, measure the claim-to-signup rate and time to the
+first send, fix what confuses people, then move to mainnet with one corridor (US → India) before adding more.
+
+## Bounty answers
+
+### Mera — "Describe how your project meaningfully integrates Mera as the entire account layer"
+
+Mera is the only account BilbyPay has. There is no seed phrase, no password, no email and no server-held key.
+
+- **Sign-up is one passkey ceremony.** After verifying a phone number, the app calls Mera's
+  `createPasskeyWithPrfOutput` (React Native WebAuthn client, relying party `bilbypay.pages.dev`). The passkey is saved
+  to the phone's password manager and unlocked with a fingerprint or Face ID. Its PRF output deterministically
+  derives the account's secp256k1 key, and the account address comes from Mera's `getEvmAddress`. The phone number
+  is then bound to that address in our on-chain directory.
+- **Every payment is signed through Mera.** Sends, claim-link payments, gift cards, adding to Burrow and the
+  "pay more than you have" Burrow top-up all sign EIP-3009 / EIP-712 authorizations with a Mera
+  `createSecp256k1SigningSession`, exposed to viem via `toViemAccount`. One fingerprint opens the session for one
+  action; everything that action needs (for example breaking Burrow and paying in one transaction) is signed inside
+  it without further prompts, then the session ends and the key is wiped from memory. A relayer submits the
+  transaction and pays gas, so the user never holds MON.
+- **Stateless by design.** The app stores nothing it can't lose. On a new phone or after a reinstall, "I already
+  have an account" calls Mera's `getPasskeyPrfOutput`; the OS offers the synced passkey and the same PRF output gives
+  back the same account and balance. A fingerprint-gated copy of the secret on the device only saves a step; if it's
+  missing or biometrics change, the app falls back to the passkey automatically.
+- **Safety around the passkey.** If someone picks a passkey that belongs to a different BilbyPay account, the app
+  refuses to sign. Mera errors are turned into plain words ("Cancelled. Nothing was sent.", "This phone's passkeys
+  can't be used with BilbyPay yet"). An SMS code can verify a number but can never move money: only the passkey can.
+- **The UX is the point.** Users never see "wallet", "key", "gas" or an address. The confirm button says "Confirm
+  with your fingerprint", and the whole flow, from sign-up to a payment to someone not yet on BilbyPay, is shown on a
+  real Android phone against Monad testnet in our demo video.
+
+Honest notes: we ask for a fingerprint per payment on purpose (it's money), rather than a long-lived session; signing
+within that one action is prompt-free. Android is tested on a real phone; iOS needs an Apple developer account for
+the associated domain. Code: `app/src/account.ts`, `app/src/auth/unlock.ts`.
+
+### Agora (cross-border)
+
+BilbyPay sends dollars to a phone number in any country. The sender signs once with a passkey, the payment is final on
+Monad in under a second, and a recipient who hasn't joined gets a claim link and signs up with the same number. Our
+first corridor is US → India. Balances are AUSD, the dollar Agora issues; on testnet a stand-in with the same
+EIP-3009 interface.
+
+**Built against Agora's API** (`server/src/agora/`, typed from Agora's published OpenAPI spec):
+- **Live now, no key needed:** `GET /v1/agora/metrics` serves Agora's public `/v0/metrics`: AUSD supply in total and
+  per network, with Monad highlighted (on Oct 14: $104.35M circulating on Monad, the largest network Agora lists). It
+  is cached for 5 minutes and served stale for up to an hour if Agora is down. The Add money screen shows it: "Your
+  dollars are issued by Agora, with $187 million in use worldwide."
+- **Coded and tested, needs an Agora API key:** API-key → session-token exchange with caching and retry; mint routes
+  into AUSD on Monad (settlement instructions for fiat or stablecoin in), redeem routes, and transactions. Exposed as
+  `GET /v1/agora/mint-instructions` and `/v1/agora/routes/:id` for signed-in users. Without a key they return
+  "not configured" and never call Agora. Staging can be targeted with `AGORA_API_BASE`.
+- **Where Agora fits:** money in (fiat or stablecoins → AUSD on Monad via mint routes) and money out (redeem), with
+  BilbyPay handling everything between: phone-number sends, claim links, gift cards and Burrow.
+
+Honest limits: we have no Agora API key yet, so the authenticated calls have only run against a mocked Agora (11 tests).
+Code: `server/src/agora/client.ts`, `server/src/agora/service.ts`, `server/src/routes/agora.ts`, `server/test/agora.test.ts`.
+
+### Aurora Intents (any-chain liquidity)
+
+Users top up their BilbyPay balance with USDC from another network, through NEAR Intents' 1Click swap API (the
+protocol behind Aurora Intents).
+
+- In the app: **Add money → Add from another account**. Pick where the money is (for example USDC on Arbitrum or
+  Base), enter an amount, and the app shows a one-time deposit address with live status: waiting → on its way → added.
+- The intent swaps to **real USDC on Monad mainnet**, delivered to the BilbyPay treasury
+  (`0xC9f2F2533A8698377CF4aA3bf0Bd515B03a57a51`). The server checks the delivery on chain and credits the user's
+  balance 1:1. On testnet it credits test dollars, capped at $25 per top-up. Credits are idempotent (one per delivery
+  transaction) and use the smaller of the reported and the actually received amount. Refunds go back to the sender
+  on the origin network.
+- **Live, not mocked:** the hosted API uses the 1Click backend with no key (`TOPUP_PROVIDER=oneclick`). Real quotes
+  on Oct 14: $5 USDC on Arbitrum → 4.988 USDC on Monad, ETA 27 s; from Base, ETA about an hour. The provider also
+  supports Aurora's hosted Intents API (`intents-api.aurora.dev`) once a Widget Studio key is set.
+- Settlement runs in the Cloudflare Durable Object's alarm, so top-ups complete even if the app is closed.
+
+Honest limits: proven with live quotes and deposit addresses. A completed real deposit is the last step.
+Code: `packages/topup/`, `server/src/topup.ts`, `app/src/app/topup-other.tsx`.
+
+### Envio (HyperIndex)
+
+`indexer/` is an Envio HyperIndex indexer for BilbyPay on Monad: phone bindings and recovery, phone-number escrow (sends,
+gifts, claims, refunds, cancellations), Burrow savings moves, and every dollar movement of BilbyPay accounts, rolled
+up into an activity feed, per-account stats, a contact graph and daily/global protocol stats.
+
+- **Pointed at the live v2 testnet contracts** (chain 10143, from block 67216804). Accounts are registered at runtime
+  from directory and escrow events, so token events are matched as wildcards on BilbyPay users only, not the whole
+  token.
+- **Checked against real chain data:** the indexer's ABIs decoded 75 real v2 transactions (Bound, BindingUpdated,
+  Recovery*, Deposited, Claimed, Refunded, Cancelled, Swept, Broken, Added, token transfers and vault deposits/
+  withdrawals). A local `envio start` run over the first 1,500 blocks produced 25 activity items covering sends,
+  gifts, refunds and Burrow moves.
+- **Used in a core screen:** the app's Activity tab reads the indexer's GraphQL feed when `EXPO_PUBLIC_INDEXER_URL`
+  is set, merges it with the API's rows (keeping names, notes and cancel actions) and falls back to the API on any
+  error.
+- 30 indexer tests (handler simulations), 9 app tests including one that keeps the app's query identical to
+  `indexer/queries/activity.graphql`.
+
+Hosted endpoint: see `indexer/README.md` (Envio Cloud, root `indexer/`, branch `main`).
+Code: `indexer/config.yaml`, `indexer/src/`, `app/src/api/indexer.ts`, `app/src/app/(tabs)/activity.tsx`.

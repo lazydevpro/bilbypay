@@ -256,6 +256,21 @@ export type CreateFundingSession = {
   idempotencyKey: string;
 };
 
+/** GET /v1/agora/metrics: Agora's public supply figures. Amounts are six-decimal dollar strings. */
+export type AgoraNetworkSupply = { network: string; chainId: string; totalSupply: string; circulatingSupply: string };
+export type AgoraMetrics = {
+  source: "agora";
+  /** True when Agora is missing a network; the worldwide totals are then omitted. */
+  partial: boolean;
+  totalSupply?: string;
+  circulatingSupply?: string;
+  /** The network BilbyPay balances live on, when Agora lists it. */
+  home?: AgoraNetworkSupply;
+  networks: AgoraNetworkSupply[];
+  fetchedAt: string;
+  stale?: boolean;
+};
+
 /** Error codes from docs/api.md, plus NETWORK for "couldn't reach the server". */
 export type ApiErrorCode =
   | "OTP_INVALID"
@@ -310,4 +325,6 @@ export interface BilbyApi {
   fundingOptions(): Promise<FundingOptions>;
   createFundingSession(request: CreateFundingSession): Promise<FundingSession>;
   fundingSession(id: string): Promise<FundingSession>;
+  /** Public, no session needed. */
+  agoraMetrics(): Promise<AgoraMetrics>;
 }
