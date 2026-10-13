@@ -1,0 +1,174 @@
+{
+  "voice": "take",
+  "model": "gemini-3.8-flash-tts · Sulafat (AI Studio, one take)",
+  "lines": [
+    {
+      "at": 1,
+      "text": "Paying someone in crypto still means a long address, a seed phrase to guard, and a gas token you don't have.",
+      "src": "film/vo/take/01.wav",
+      "lead": 0.08000000000000002,
+      "speech": 7.66,
+      "seconds": 7.82
+    },
+    {
+      "at": 19,
+      "text": "What if their phone number was enough?",
+      "src": "film/vo/take/02.wav",
+      "lead": 0.08000000000000007,
+      "speech": 2.07,
+      "seconds": 2.23
+    },
+    {
+      "at": 27,
+      "text": "This is Bilby Pay.",
+      "src": "film/vo/take/03.wav",
+      "lead": 0.08000000000000007,
+      "speech": 1.49,
+      "seconds": 1.65
+    },
+    {
+      "at": 30.2,
+      "text": "Your number is your wallet.",
+      "src": "film/vo/take/04.wav",
+      "lead": 0.08000000000000007,
+      "speech": 1.28,
+      "seconds": 1.44
+    },
+    {
+      "at": 36.5,
+      "text": "Pick a contact.",
+      "src": "film/vo/take/05.wav",
+      "lead": 0.08000000000000007,
+      "speech": 0.79,
+      "seconds": 0.95
+    },
+    {
+      "at": 40.6,
+      "text": "Type an amount.",
+      "src": "film/vo/take/06.wav",
+      "lead": 0.08000000000000007,
+      "speech": 0.93,
+      "seconds": 1.09
+    },
+    {
+      "at": 43.4,
+      "text": "Confirm with your face or fingerprint.",
+      "src": "film/vo/take/07.wav",
+      "lead": 0.0799999999999983,
+      "speech": 1.81,
+      "seconds": 1.97
+    },
+    {
+      "at": 48.6,
+      "text": "It lands in about two seconds, and the network fee is on us.",
+      "src": "film/vo/take/08.wav",
+      "lead": 0.0799999999999983,
+      "speech": 3.74,
+      "seconds": 3.9
+    },
+    {
+      "at": 58.6,
+      "text": "Not on Bilby Pay yet?",
+      "src": "film/vo/take/09.wav",
+      "lead": 0.0799999999999983,
+      "speech": 1.13,
+      "seconds": 1.29
+    },
+    {
+      "at": 61,
+      "text": "Send it anyway.",
+      "src": "film/vo/take/10.wav",
+      "lead": 0.0799999999999983,
+      "speech": 1.17,
+      "seconds": 1.33
+    },
+    {
+      "at": 63.6,
+      "text": "They get a link to claim it, and if they never do, it comes back to you.",
+      "src": "film/vo/take/11.wav",
+      "lead": 0.0799999999999983,
+      "speech": 3.51,
+      "seconds": 3.67
+    },
+    {
+      "at": 76.4,
+      "text": "Send a gift card the same way, and it opens right inside the app.",
+      "src": "film/vo/take/12.wav",
+      "lead": 0.0799999999999983,
+      "speech": 3.41,
+      "seconds": 3.57
+    },
+    {
+      "at": 87,
+      "text": "Set the amount you want to keep handy.",
+      "src": "film/vo/take/13.wav",
+      "lead": 0.0799999999999983,
+      "speech": 2.25,
+      "seconds": 2.41
+    },
+    {
+      "at": 93,
+      "text": "Anything above it tucks itself away into your savings burrow, where it can earn while it rests.",
+      "src": "film/vo/take/14.wav",
+      "lead": 0.0799999999999983,
+      "speech": 4.9,
+      "seconds": 5.06
+    },
+    {
+      "at": 106,
+      "text": "Pay more than you have, and Bilby Pay pulls the difference straight back out, in the same tap.",
+      "src": "film/vo/take/15.wav",
+      "lead": 0.0799999999999983,
+      "speech": 5.25,
+      "seconds": 5.41
+    },
+    {
+      "at": 119.6,
+      "text": "No seed phrase to lose.",
+      "src": "film/vo/take/16.wav",
+      "lead": 0.0799999999999983,
+      "speech": 1.9,
+      "seconds": 2.06
+    },
+    {
+      "at": 123.6,
+      "text": "Your passkey is the key.",
+      "src": "film/vo/take/17.wav",
+      "lead": 0.0799999999999983,
+      "speech": 1.31,
+      "seconds": 1.47
+    },
+    {
+      "at": 129,
+      "text": "Built on Monad, every payment settles in under a second, for less than a cent.",
+      "src": "film/vo/take/18.wav",
+      "lead": 0.0799999999999983,
+      "speech": 5.01,
+      "seconds": 5.17
+    },
+    {
+      "at": 146,
+      "text": "Bilby Pay.",
+      "src": "film/vo/take/19.wav",
+      "lead": 0.0799999999999983,
+      "speech": 0.58,
+      "seconds": 0.74
+    },
+    {
+      "at": 147.6,
+      "text": "Money that just works.",
+      "src": "film/vo/take/20.wav",
+      "lead": 0.0799999999999983,
+      "speech": 2.28,
+      "seconds": 2.44
+    },
+    {
+      "at": 152.4,
+      "text": "Try the beta today.",
+      "src": "film/vo/take/21.wav",
+      "lead": 0.0799999999999983,
+      "speech": 0.88,
+      "seconds": 1.04
+    }
+  ]
+}

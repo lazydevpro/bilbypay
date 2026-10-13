@@ -7,7 +7,7 @@ The v2 contracts are deployed on **Monad testnet, chain 10143**. The API/keeper 
 Hosted on Cloudflare since 2026-10-12 (no local setup needed):
 
 - Web app: **https://bilbypay-app.lazydevpro.workers.dev** (test mode; accounts use a key stored in the browser, not a passkey)
-- Android APKs (standalone, hosted API): https://bilbypay.pages.dev/download/android (test mode, key on the phone) and https://bilbypay.pages.dev/download/android-passkey (passkeys via Mera; early beta, not yet tested on a physical phone). Same package, so one replaces the other. EAS profiles `apk-testmode` / `apk-passkey`; both signed with the EAS keystore in `site/signing.json`.
+- Android APKs (standalone, hosted API): https://bilbypay.pages.dev/download/android (test mode, key on the phone) and https://bilbypay.pages.dev/download/android-passkey (passkeys via Mera; early beta; sign-up, sends, gifts and Burrow recorded on a real Android phone on 2026-10-13, see [demo-walkthrough.md](demo-walkthrough.md)). Same package, so one replaces the other. EAS profiles `apk-testmode` / `apk-passkey`; both signed with the EAS keystore in `site/signing.json`.
 - API health: https://bilbypay-api.lazydevpro.workers.dev/health
 - Landing page, passkey domain and claim links: https://bilbypay.pages.dev (claim links offer "Open in your browser")
 - Verification code: **000000** for any number (test mode; no SMS is sent).

@@ -10,7 +10,7 @@ Judges see this for 3–5 min: a **hosted live link + real phone demo** beats an
 Originality 15 · **Founder & Market 25 · Traction 20**. Bounty judging is ~40% "adherence to published requirements".
 
 ### P0 — blockers (without these the submission is weak or ineligible)
-- [ ] Repo access: `lazydevpro/bilbypay` is **PRIVATE** — make public (also needed for Envio's public config/schema/handlers) or grant metropolis@hackathon.monad.xyz #submission
+- [ ] Repo access: `lazydevpro/bilbypay` is **PRIVATE** (history scanned 2026-10-14: no real keys/tokens ever committed) — make public (also needed for Envio's public config/schema/handlers) or grant metropolis@hackathon.monad.xyz #submission
 - [~] Passkey domain: **https://bilbypay.pages.dev** live on Cloudflare Pages (`site/`, 2026-10-05) instead of buying `bilbypay.com` for now #admin #app
   - Android ✓: EAS keystore SHA-256 in `site/signing.json`, Google asset-links check `linked: true`; `testnet-passkey` APK built (EAS build bd0c64dc)
   - iOS: blocked on an Apple developer account → then set `appleTeamId` in `site/signing.json` and redeploy
@@ -23,20 +23,23 @@ Originality 15 · **Founder & Market 25 · Traction 20**. Bounty judging is ~40%
   - [x] RPC fallback list for the hosted API (public RPCs throttle Cloudflare's shared IPs)
   - [ ] Keyed RPC endpoint (claim QuickNode/Alchemy/Dwellir perk) first in `RPC_URL`; keep the relayer topped up (~0.5 test MON per full e2e run) #admin
   - [x] Standalone Android APKs against the hosted API, linked from bilbypay.pages.dev "Try the beta" with a beta/not-audited disclaimer (2026-10-13): test mode (EAS 4f063b55) + passkey (EAS 4a5d0605); `/download/*` redirects in `site/static/_redirects`
-  - [ ] Install the passkey APK on a real Android phone: create → pay → reinstall → same account (Mera stateless/cross-device test)
+  - [~] Passkey APK on a real Android phone: create → pay → gift → Burrow ✓ (recorded 2026-10-13); still to do: reinstall → same account (Mera stateless/cross-device test)
   - [ ] Shrink the APK (157 MB universal): arm64-only ABI filter + smaller sprite sheets; mirror APKs to a GitHub release once the repo is public (EAS artifact links may expire)
   - keep the local server **off** while the Worker is live (same relayer key/nonces)
 - [~] Real-phone passkey run (Mera), **Android first**: install the `testnet-passkey` APK, `.env` from `.env.testnet.example` with `EXPO_PUBLIC_DEMO_KEY=0`; create → pay → reinstall → same account ([runbook](docs/phase-0-runbook.md) A–C). iPhone later (needs Apple developer account) #app
 - [ ] Read the gated Rules modal + Agora/Mera/Envio/Aurora bounty pages (signed in) and re-check every checklist item below #admin
-- [ ] Demo video ≤ 3 min of the **live product** (not slides) + pitch video ≤ 2 min (team, problem, why you) #submission
+- [x] Demo video ≤ 3 min: `video/out/bilbypay-demo.mp4` (2:49, real Android run + voiceover) — [docs/demo-walkthrough.md](docs/demo-walkthrough.md) #submission
+- [~] Pitch video ≤ 2 min: launch film `video/out/bilbypay-launch.mp4` (1:27) done; ~30 s founder-on-camera clip to prepend #submission
+- [ ] Upload videos (YouTube unlisted), fill the form from [docs/submission.md](docs/submission.md) #submission
+- [ ] Top up the relayer during judging (4.15 test MON on 2026-10-14) #admin
 
 ### P1 — scoring (Founder & Market + Traction = 45%)
 - [ ] Name the first user: one corridor (e.g. US → India, "send home to a phone number") — use it in README, pitch, demo #submission
 - [ ] Traction: onboard 5–10 real people on testnet; log sends, claims, gifts + 2–3 quotes; screenshot the indexer stats #qa #submission
 - [ ] "Grandma test" with one non-crypto person; fix every confusing word/step #qa
 - [ ] Pitch framing: map to Resources ideas "Payments Embedded in Social Gestures" + "Programmable Gifts" (claim links, gift cards) #submission
-- [ ] README rewrite for judges: problem → demo link → Why Monad (300 ms / 600 ms per docs.monad.xyz, verified 2026-10-05) → architecture → v2 addresses → limits #submission
-- [ ] Logo + submission one-liner ("Your number is your wallet.") + description #submission
+- [~] README for judges (Try it, test credentials, status done 2026-10-14; still: corridor framing, architecture): problem → demo link → Why Monad (300 ms / 600 ms per docs.monad.xyz, verified 2026-10-05) → architecture → v2 addresses → limits #submission
+- [x] Logo + submission one-liner ("Your number is your wallet.") + description — [docs/submission.md](docs/submission.md) #submission
 
 ### P1 — bounties (confirm requirements on the live pages first)
 - [ ] **Agora cross-border ($10K)** — req: mobile app + Mera onboarding + AUSD cross-border send + built against Agora's API/staging. **Gap: no Agora API integration.** Email/DM Agora today; if no access by **Oct 9**, submit with on-chain AUSD and say so #admin #bounty
@@ -130,7 +133,7 @@ Originality 15 · **Founder & Market 25 · Traction 20**. Bounty judging is ~40%
 ### Submission #submission
 - [ ] README: problem, demo, "Why Monad" (300ms/600ms, EIP-3009 gasless, P256), architecture, addresses, tx hashes, AI-tool disclosure
 - [x] OSI license (MIT)
-- [ ] Optional 30s ad (repo access + demo/pitch videos are P0 in Now)
+- [x] Optional 30s ad (`video/out/bilbypay-ad-30s.mp4`) (repo access + demo/pitch videos are P0 in Now)
 - [ ] Logo (bilby 🐰) + live link
 - [ ] Submit Track 02 + bounties (Agora cross-border, Mera UX; + Envio/Aurora if built)
 

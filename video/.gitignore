@@ -1,0 +1,7 @@
+node_modules/
+out/
+# Derived: re-cut with scripts/demo-edit.mjs from the phone recordings
+public/demo/*.mp4
+# Pixabay licence: no standalone redistribution. "Product Launch Advertising Music" by MaksymMalko, pixabay.com
+public/film/music.mp3
+.DS_Store
